@@ -1,0 +1,91 @@
+name: PairsPvP
+main: bourg.austin.PairsPvP.PairsPvP
+version: 0
+
+commands:
+  2v2:
+    description: 'The root command for the Pairs Arena Plugin'
+    usage: '/<command> subject action'
+    permission-message: 'You don''t have <permission>'
+    
+permissions:
+  pairspvp.*:
+    description: Gives access to everything
+    default: op
+    children:
+      pairspvp.go: true
+      pairspvp.nexus.*: true
+      pairspvp.arena.*: true
+      pairspvp.config.*: true
+  
+  pairspvp.go:
+    description: 'Allows the use of the /2v2 command to go to the nexus'
+    default: true
+  pairspvp.select:
+    description: 'Allows a player to select a block for use with other commands'
+    default: false
+    
+  pairspvp.nexus.*:
+    description: 'Allows full control over nexus related commands'
+    default: op
+    children:
+      pairspvp.nexus.delete: true
+      pairspvp.nexus.set: true
+  pairspvp.nexus.delete:
+    description: 'Allows the use of the /2v2 nexus delete command'
+    default: op
+  pairspvp.nexus.set:
+    description: 'Allows the use of the /2v2 nexus set command'
+    children:
+      pairspvp.select: true
+    default: op
+    
+  pairspvp.arena.*:
+    description: 'Allows full control over arena related commands'
+    children:
+      pairspvp.arena.modify: true
+      pairspvp.arena.view: true
+    default: op
+  pairspvp.arena.modify:
+    description: 'Allows the use of any commands that modify arenas'
+    children:
+      pairspvp.arena.make: true
+      pairspvp.arena.delete: true
+      pairspvp.arena.setspawn: true
+    default: op
+  pairspvp.arena.view:
+    description: 'Allows the use of any commands that allow viewing of arenas and details'
+    children:
+      pairspvp.arena.list: true
+      pairspvp.arena.details: true
+    default: op
+  pairspvp.arena.make:
+    description: 'Allows the use of the /2v2 arena make <name> command'
+    default: op
+  pairspvp.arena.delete:
+    description: 'Allows the use of the /2v2 arena delete <name> command'
+    default: op
+  pairspvp.arena.list:
+    description: 'Allows the use of the /2v2 arena list command'
+    default: op
+  pairspvp.arena.details:
+    description: 'Allows the use of the /2v2 arena details <name> command'
+    default: op
+  pairspvp.arena.setspawn:
+    description: 'Allows the use of the /2v2 arena setspawn <teamnum> <playernum> command'
+    default: op
+    children:
+      pairspvp.select: true
+  
+  pairspvp.config.*:
+    description: Allows the use of any commands relating to the config file.
+    default: op
+    children:
+      pairspvp.config.save: true
+      pairspvp.config.load: true
+  pairspvp.config.save:
+    description: Allows the use of the /2v2 config save command.
+    default: op
+  pairspvp.config.load:
+    description: Allows the use of the /2v2 config load command. This shouldn't be used outside of debugging.
+    default: op
