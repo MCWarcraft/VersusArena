@@ -12,6 +12,7 @@ import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 
 import bourg.austin.VersusArena.VersusArena;
 import bourg.austin.VersusArena.Constants.Inventories;
@@ -111,6 +112,20 @@ public class MyListener implements Listener
 			event.getBlock().breakNaturally();
 			event.setCancelled(true);
 		}
-		
+	}
+	
+	@EventHandler
+	public void onPlayerMove(PlayerMoveEvent event)
+	{
+		try
+		{
+			if (plugin.getArenaManager().getPlayerStatus(event.getPlayer()).equals(VersusStatus.LOCKED))
+				if (event.getFrom().getBlockX() != event.getTo().getBlockX() || event.getFrom().getBlockY() != event.getTo().getBlockY() || event.getFrom().getBlockZ() != event.getTo().getBlockZ())
+					event.setCancelled(true);
+		}
+		catch (NullPointerException e)
+		{
+			return;
+		}
 	}
 }

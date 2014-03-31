@@ -12,6 +12,8 @@ import org.bukkit.inventory.ItemStack;
 import bourg.austin.VersusArena.VersusArena;
 import bourg.austin.VersusArena.Constants.Inventories;
 import bourg.austin.VersusArena.Constants.VersusStatus;
+import bourg.austin.VersusArena.Game.Game;
+import bourg.austin.VersusArena.Game.VersusTeam;
 import bourg.austin.VersusArena.Interface.DisplayBoard;
 
 public class ArenaManager
@@ -54,6 +56,9 @@ public class ArenaManager
 		
 		//Store data about players in the arena
 		playerStatuses.put(player, VersusStatus.IN_LOBBY);
+		
+		//TODO: Eliminate test code
+		startGame(new Player[]{player});
 	}
 	
 	public void showLobbyBoard(Player player)
@@ -65,6 +70,11 @@ public class ArenaManager
 		boards.get(player).putField("Losses: ", competitor.getLosses());
 		boards.get(player).putField("Rating: ", competitor.getRating());
 		boards.get(player).display();
+	}
+	
+	public void startGame(Player[] players)
+	{
+		new Game(this, new VersusTeam[]{new VersusTeam(players)});
 	}
 	/*
 	public void resetPlayer(String playerName)
@@ -124,6 +134,11 @@ public class ArenaManager
 		p.updateInventory();
 	}
 	
+	public void setPlayerStatus(OfflinePlayer player, VersusStatus status)
+	{
+		playerStatuses.put(player,  status);
+	}
+	
 	public HashMap<OfflinePlayer, Competitor> getCompetitors()
 	{
 		return competitors;
@@ -166,6 +181,11 @@ public class ArenaManager
 		return arenas;
 	}
 	
+	public VersusArena getPlugin()
+	{
+		return plugin;
+	}
+	
 	public boolean containsArena(String name)
 	{
 		return arenas.containsKey(name);
@@ -190,5 +210,4 @@ public class ArenaManager
 	{
 		competitors.clear();
 	}
-	
 }
