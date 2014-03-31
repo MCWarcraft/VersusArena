@@ -85,6 +85,7 @@ public class MyListener implements Listener
 			event.setCancelled(true);
 	}
 	
+	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void onBlockPlace(BlockPlaceEvent event)
 	{

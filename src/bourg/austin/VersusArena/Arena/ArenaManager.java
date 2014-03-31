@@ -1,6 +1,5 @@
 package bourg.austin.VersusArena.Arena;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.bukkit.Bukkit;
@@ -100,6 +99,7 @@ public class ArenaManager
 		}
 	}
 	
+	@SuppressWarnings("deprecation")
 	public void giveLobbyInventory(Player p)
 	{
 		p.getInventory().clear();
@@ -109,6 +109,7 @@ public class ArenaManager
 		p.updateInventory();
 	}
 	
+	@SuppressWarnings("deprecation")
 	public void giveQueueInventory(Player p, int type)
 	{
 		p.getInventory().clear();
