@@ -31,6 +31,7 @@ permissions:
     children:
       pairspvp.nexus.delete: true
       pairspvp.nexus.set: true
+      pairspvp.nexus.sign: true
   pairspvp.nexus.delete:
     description: 'Allows the use of the /versus nexus delete command'
     default: op
@@ -38,6 +39,9 @@ permissions:
     description: 'Allows the use of the /versus nexus set command'
     children:
       pairspvp.select: true
+    default: op
+  pairspvp.nexus.sign:
+    description: Allows the user to place signs with /versus as the first line in order to go to arena.
     default: op
     
   pairspvp.arena.*:

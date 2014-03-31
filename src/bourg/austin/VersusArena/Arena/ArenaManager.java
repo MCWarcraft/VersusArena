@@ -12,6 +12,7 @@ import org.bukkit.inventory.ItemStack;
 
 import bourg.austin.VersusArena.VersusArena;
 import bourg.austin.VersusArena.Constants.Inventories;
+import bourg.austin.VersusArena.Constants.VersusStatus;
 import bourg.austin.VersusArena.Interface.DisplayBoard;
 
 public class ArenaManager
@@ -20,10 +21,8 @@ public class ArenaManager
 	private Location nexusLocation;
 	
 	private HashMap<OfflinePlayer, Competitor> competitors;
-	private ArrayList<OfflinePlayer> playersInArena;
+	private HashMap<OfflinePlayer, VersusStatus> playerStatuses;
 	private HashMap<OfflinePlayer, DisplayBoard> boards;
-	
-	private HashMap<Player, Integer> queue;
 	
 	private VersusArena plugin;
 	
@@ -35,17 +34,13 @@ public class ArenaManager
 		
 		boards = new HashMap<OfflinePlayer, DisplayBoard>();
 		
-		queue = new HashMap<Player, Integer>();
-		
 		competitors = new HashMap<OfflinePlayer, Competitor>();
-		playersInArena = new ArrayList<OfflinePlayer>();
+		playerStatuses = new HashMap<OfflinePlayer, VersusStatus>();
 	}
+	
 	public void bringPlayer(String playerName)
 	{		
 		Player player = plugin.getServer().getPlayer(playerName);
-		
-		//Store data about players in the arena
-		playersInArena.add(player);
 		
 		giveLobbyInventory(player);
 		
@@ -57,6 +52,9 @@ public class ArenaManager
 		
 		player.sendMessage(ChatColor.BLUE + "Welcome to the Versus Arena!");
 		player.teleport(plugin.getArenaManager().getNexusLocation());
+		
+		//Store data about players in the arena
+		playerStatuses.put(player, VersusStatus.IN_LOBBY);
 	}
 	
 	public void showLobbyBoard(Player player)
@@ -85,34 +83,34 @@ public class ArenaManager
 		}
 	}
 	*/
-	public boolean addToQueue(Player player, int gameType)
+	public boolean addToQueue(Player player, VersusStatus gameType)
 	{
-		if (!(gameType > 0 || gameType <= 3))
+		if (!(gameType.getValue() > 0 || (gameType.getValue() <= 3)))
+		{
+			player.sendMessage("Err1");
 			return false;
-		else if (queue.containsKey(player))
-			return false;
+		}
+		
 		else
 		{
-			queue.put(player, gameType);
-			giveQueueInventory(player, gameType);
-			player.sendMessage(ChatColor.BLUE + "You are now in the " + gameType + "v" + gameType + " queue.");
+			playerStatuses.put(player, gameType);
+			giveQueueInventory(player, gameType.getValue());
+			player.sendMessage(ChatColor.BLUE + "You are now in the " + gameType.getValue() + "v" + gameType.getValue() + " queue.");
 			return true;
 		}
 	}
 	
 	public void giveLobbyInventory(Player p)
 	{
-		p.sendMessage("" + Inventories.LOBBY_SLOTS[0].getItemMeta().getLore());
-		
 		p.getInventory().clear();
 		for (ItemStack i : Inventories.LOBBY_SLOTS)
 			p.getInventory().addItem(i);
+		
+		p.updateInventory();
 	}
 	
 	public void giveQueueInventory(Player p, int type)
 	{
-		p.sendMessage("" + type);
-		
 		p.getInventory().clear();
 		for (int i = 0; i < Inventories.LOBBY_SLOTS.length; i++)
 		{
@@ -121,6 +119,8 @@ public class ArenaManager
 			else
 				p.getInventory().addItem(Inventories.QUEUE_SLOTS[i]);
 		}
+		
+		p.updateInventory();
 	}
 	
 	public HashMap<OfflinePlayer, Competitor> getCompetitors()
@@ -128,9 +128,14 @@ public class ArenaManager
 		return competitors;
 	}
 	
-	public boolean isPlayerInArena(String name)
+	public VersusStatus getPlayerStatus(OfflinePlayer p)
 	{
-		return playersInArena.contains(Bukkit.getOfflinePlayer(name));
+		return playerStatuses.get(p);
+	}
+	
+	public void removeFromQueue(OfflinePlayer p)
+	{
+		playerStatuses.remove(p);
 	}
 	
 	public void addCompetitor(String name, int wins, int losses, int rating)
