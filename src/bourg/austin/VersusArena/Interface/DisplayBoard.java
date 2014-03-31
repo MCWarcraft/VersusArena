@@ -21,8 +21,6 @@ public class DisplayBoard
 	
 	private ChatColor titleColor, scoreColor;
 	
-	private int itemCounter;
-	
 	public DisplayBoard(Player player, String title, ChatColor titleColor, ChatColor scoreColor)
 	{
 		this.player = player;
@@ -35,8 +33,6 @@ public class DisplayBoard
 		o.setDisplaySlot(DisplaySlot.SIDEBAR);
 		
 		values = new HashMap<OfflinePlayer, Score>();
-		
-		itemCounter = 20;
 	}
 	
 	public void putField(String name, int value)
@@ -45,8 +41,9 @@ public class DisplayBoard
 		while (displayText.length() < 16)
 			displayText += " ";
 		values.put(Bukkit.getOfflinePlayer(displayText), o.getScore(Bukkit.getOfflinePlayer(displayText)));
-		values.get(Bukkit.getOfflinePlayer(displayText)).setScore(itemCounter);
-		itemCounter--;
+		values.get(Bukkit.getOfflinePlayer(displayText)).setScore(0);
+		for (OfflinePlayer p : values.keySet())
+			values.get(p).setScore(values.get(p).getScore() + 1);
 	}
 	
 	public void display()
