@@ -1,4 +1,6 @@
-package bourg.austin.PairsPvP.Background;
+package bourg.austin.VersusArena.Background;
+
+import java.util.ArrayList;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -7,13 +9,13 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import bourg.austin.PairsPvP.PairsPvP;
+import bourg.austin.VersusArena.VersusArena;
 
 public class MyCommandExecutor implements CommandExecutor
 {
-	private PairsPvP plugin;
+	private VersusArena plugin;
 	
-	public MyCommandExecutor(PairsPvP plugin)
+	public MyCommandExecutor(VersusArena plugin)
 	{
 		this.plugin = plugin;
 	}
@@ -27,7 +29,7 @@ public class MyCommandExecutor implements CommandExecutor
 		else
 			player = null;
 			
-		if (cmd.getName().equalsIgnoreCase("2v2"))
+		if (cmd.getName().equalsIgnoreCase("versus"))
 		{
 			//root command to go to nexus
 			if (args.length == 0)
@@ -109,7 +111,7 @@ public class MyCommandExecutor implements CommandExecutor
 							if (sender.hasPermission("pairspvp.arena.make"))
 							{
 								//If the correct number of arguments has been supplied
-								if (args.length == 3)
+								if (args.length == 4)
 								{
 									//If the arena doesn't already exist
 									if (!plugin.getArenaManager().containsArena(args[2]))
@@ -117,8 +119,23 @@ public class MyCommandExecutor implements CommandExecutor
 										//If the name is of appropriate length
 										if (args[2].length() > 0 && args[2].length() <= 15)
 										{
-											plugin.getArenaManager().addArena(args[2]);
-											sender.sendMessage(ChatColor.GREEN + "The arena " + ChatColor.BLUE + args[2] + ChatColor.GREEN + " has been created.");
+											int teamSize = 0;
+											try
+											{
+												teamSize = Integer.parseInt(args[3]);
+											}
+											catch (NumberFormatException e)
+											{
+												sender.sendMessage(ChatColor.RED + "Team size must be a valid integer");
+												return true;
+											}
+											if (teamSize > 0 && teamSize <= 3)
+											{
+												plugin.getArenaManager().addArena(args[2], teamSize);
+												sender.sendMessage(ChatColor.GREEN + "The arena " + ChatColor.BLUE + args[2] + ChatColor.GREEN + " has been created.");
+											}
+											else
+												sender.sendMessage(ChatColor.RED + "Team size must be between 1, 2, or 3");
 										}
 										//If the name is too long
 										else
@@ -130,7 +147,7 @@ public class MyCommandExecutor implements CommandExecutor
 								}
 								//If the wrong number of arguments has been supplied
 								else
-									sender.sendMessage(ChatColor.RED + "/2v2 arena make <arena_name>");
+									sender.sendMessage(ChatColor.RED + "/versus arena make <arena_name> <team_size>");
 							}
 							//If the sender doesn't have pairspvp.arena.make
 						}
@@ -139,18 +156,63 @@ public class MyCommandExecutor implements CommandExecutor
 						{
 							if (sender.hasPermission("pairspvp.arena.list"))
 							{
-								if (!(plugin.getArenaManager().getAllArenas().keySet().size() == 0))
+								if (args.length == 2)
 								{
-									sender.sendMessage(ChatColor.BLUE + "" + ChatColor.UNDERLINE + "Current Arenas");
-									sender.sendMessage("");
-									for (String s : plugin.getArenaManager().getAllArenas().keySet())
+									if (!(plugin.getArenaManager().getAllArenas().keySet().size() == 0))
 									{
-										sender.sendMessage((plugin.getArenaManager().getArena(s).isConfigured() ? ChatColor.GREEN : ChatColor.RED) + s);
+										sender.sendMessage(ChatColor.BLUE + "" + ChatColor.UNDERLINE + "Current Arenas");
+										sender.sendMessage("");
+										for (String s : plugin.getArenaManager().getAllArenas().keySet())
+										{
+											sender.sendMessage((plugin.getArenaManager().getArena(s).isConfigured() ? ChatColor.GREEN : ChatColor.RED) + s + ChatColor.BLUE + " (" + plugin.getArenaManager().getArena(s).getTeamSize() + (plugin.getArenaManager().getArena(s).getTeamSize() == 1 ? " Player)" : " Players)"));
+										}
+									}
+									
+									else
+										sender.sendMessage(ChatColor.BLUE + "" + ChatColor.UNDERLINE + "No arenas have been made");
+								}
+								else if (args.length == 3)
+								{
+									int teamSize;
+									
+									try
+									{
+										teamSize = Integer.parseInt(args[2]);
+									}
+									catch (NumberFormatException e)
+									{
+										sender.sendMessage("Team size must be a valid integer");
+										return true;
+									}
+									
+									ArrayList<String> properArenas = new ArrayList<String>();
+									
+									if (teamSize > 0 && teamSize <= 3)
+									{
+										for (String arenaName : plugin.getArenaManager().getAllArenas().keySet())
+										{
+											if (plugin.getArenaManager().getArena(arenaName).getTeamSize() == teamSize)
+												properArenas.add(arenaName);
+										}
+									
+										if (!(properArenas.size() == 0))
+										{
+											sender.sendMessage(ChatColor.BLUE + "" + ChatColor.UNDERLINE + "Current " + teamSize + "v" + teamSize + " Arenas");
+											sender.sendMessage("");
+											for (String s : properArenas)
+											{
+												sender.sendMessage((plugin.getArenaManager().getArena(s).isConfigured() ? ChatColor.GREEN : ChatColor.RED) + s);
+											}
+										}
+										
+										else
+											sender.sendMessage(ChatColor.BLUE + "" + ChatColor.UNDERLINE + "No " + teamSize + "v" + teamSize + " arenas have been made");
 									}
 								}
-								
 								else
-									sender.sendMessage(ChatColor.BLUE + "" + ChatColor.UNDERLINE + "No arenas have been made");
+								{
+									sender.sendMessage(ChatColor.RED + "/versus arena list <team_size_optional>");
+								}
 							}
 						}
 						
@@ -171,20 +233,22 @@ public class MyCommandExecutor implements CommandExecutor
 										sender.sendMessage("");
 										sender.sendMessage((!plugin.getArenaManager().getArena(args[2]).isConfigured() ? ChatColor.RED + "Not Fully Configured" : ChatColor.GREEN + "Fully Configured"));
 										//Coords
-										sender.sendMessage(ChatColor.AQUA + "Team 1 Player 1: " + (tempLoc == null ? ChatColor.RED + "Not set" : ChatColor.GREEN +   "(" + tempLoc.getBlockX() + ", " + tempLoc.getBlockY() + ", " + tempLoc.getBlockZ() + ") in world " + tempLoc.getWorld().getName()));
-										tempLoc = spawns[0][1];
-										sender.sendMessage(ChatColor.AQUA + "Team 1 Player 2: " + (tempLoc == null ? ChatColor.RED + "Not set" : ChatColor.GREEN +   "(" + tempLoc.getBlockX() + ", " + tempLoc.getBlockY() + ", " + tempLoc.getBlockZ() + ") in world " + tempLoc.getWorld().getName()));
-										tempLoc = spawns[1][0];
-										sender.sendMessage(ChatColor.AQUA + "Team 2 Player 1: " + (tempLoc == null ? ChatColor.RED + "Not set" : ChatColor.GREEN +   "(" + tempLoc.getBlockX() + ", " + tempLoc.getBlockY() + ", " + tempLoc.getBlockZ() + ") in world " + tempLoc.getWorld().getName()));
-										tempLoc = spawns[1][1];
-										sender.sendMessage(ChatColor.AQUA + "Team 2 Player 2: " + (tempLoc == null ? ChatColor.RED + "Not set" : ChatColor.GREEN +   "(" + tempLoc.getBlockX() + ", " + tempLoc.getBlockY() + ", " + tempLoc.getBlockZ() + ") in world " + tempLoc.getWorld().getName()));
-									}
+										for (int team = 0; team < 2; team++)
+										{
+											for (int playerNum = 0; playerNum < plugin.getArenaManager().getArena(args[2]).getTeamSize(); playerNum++)
+											{
+												tempLoc = spawns[team][playerNum];
+												sender.sendMessage(ChatColor.AQUA + "Team " + (team + 1) + " Player " + (playerNum + 1) + ": " + (tempLoc == null ? ChatColor.RED + "Not set" : ChatColor.GREEN +   "(" + tempLoc.getBlockX() + ", " + tempLoc.getBlockY() + ", " + tempLoc.getBlockZ() + ") in world " + tempLoc.getWorld().getName()));
+																							}
+											}
+										}
+									
 									//If the arena doesn't exist
 									else
 										sender.sendMessage(ChatColor.RED + "The arena " + ChatColor.BLUE + args[2] + ChatColor.RED + " does not exist");
 								}
 								else
-									sender.sendMessage(ChatColor.RED + "/2v2 arena details <arenaname>");
+									sender.sendMessage(ChatColor.RED + "/versus arena details <arenaname>");
 								
 							}
 							//If the command sender doesn't have permission auto return
@@ -207,7 +271,7 @@ public class MyCommandExecutor implements CommandExecutor
 								}
 								//If the wrong number of args is supplied
 								else
-									sender.sendMessage(ChatColor.RED + "/2v2 arena delete <arena_name>");
+									sender.sendMessage(ChatColor.RED + "/versus arena delete <arena_name>");
 							}
 						}
 						//This is a copied block. Fix it.
@@ -232,29 +296,38 @@ public class MyCommandExecutor implements CommandExecutor
 											}
 											catch (NumberFormatException e)
 											{
-												sender.sendMessage(ChatColor.RED + "The team number and spawn number must be either 1 or 2");
+												sender.sendMessage(ChatColor.RED + "The team number and spawn number must be valid integers.");
 												return true;
 											}
-											//If the integers are valid
-											if ((teamNum == 1 || teamNum == 2) && (playerNum == 1 || playerNum == 2))
+											//If the team number is valid
+											if (teamNum == 1 || teamNum == 2)
 											{
-												//If the player has a location selected
-												if (plugin.getSelectedLocation(sender.getName()) != null)
+												//if the playerNum is valid
+												if (playerNum >= 1 && playerNum <= plugin.getArenaManager().getArena(args[2]).getTeamSize())
 												{
-													plugin.getArenaManager().getArena(args[2]).setSpawnLocation(teamNum - 1, playerNum - 1, plugin.getSelectedLocation(player.getName()));
-													player.sendMessage(ChatColor.GREEN + "The spawn for " + ChatColor.BLUE + "Team " + args[3] + " Player " + args[4] + ChatColor.GREEN + " has been set at the selected location.");
+													//If the player has a location selected
+													if (plugin.getSelectedLocation(sender.getName()) != null)
+													{
+														plugin.getArenaManager().getArena(args[2]).setSpawnLocation(teamNum - 1, playerNum - 1, plugin.getSelectedLocation(player.getName()));
+														player.sendMessage(ChatColor.GREEN + "The spawn for " + ChatColor.BLUE + "Team " + args[3] + " Player " + args[4] + ChatColor.GREEN + " has been set at the selected location.");
+													}
+													//If the player does not have a location selected
+													else
+														sender.sendMessage(ChatColor.RED + "You must select a location for the spawn");
 												}
-												//If the player does not have a location selected
+												//If the playerNum isn't valid
 												else
-													sender.sendMessage(ChatColor.RED + "You must select a location for the spawn");
+												{
+													player.sendMessage(ChatColor.RED + "The player number must be between 1 and the team size");
+												}
 											}
-											//If the numbers are wrong
+											//If the team number is wrong
 											else
-												sender.sendMessage(ChatColor.RED + "The team number and spawn number must be either 1 or 2");
+												sender.sendMessage(ChatColor.RED + "The team number must be either 1 or 2");
 										}
 										//If the wrong number of arguments has been supplied
 										else
-											sender.sendMessage(ChatColor.RED + "/2v2 arena setspawn <arenaname> <teamnum> <playernum>");								
+											sender.sendMessage(ChatColor.RED + "/versus arena setspawn <arenaname> <teamnum> <playernum>");								
 									}
 									//If the arena doesn't exist
 									else

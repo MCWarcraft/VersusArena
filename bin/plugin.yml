@@ -1,10 +1,10 @@
-name: PairsPvP
-main: bourg.austin.PairsPvP.PairsPvP
+name: VersusArena
+main: bourg.austin.VersusArena.VersusArena
 version: 0
 
 commands:
-  2v2:
-    description: 'The root command for the Pairs Arena Plugin'
+  versus:
+    description: 'The root command for the Versus Arena Plugin'
     usage: '/<command> subject action'
     permission-message: 'You don''t have <permission>'
     
@@ -19,7 +19,7 @@ permissions:
       pairspvp.config.*: true
   
   pairspvp.go:
-    description: 'Allows the use of the /2v2 command to go to the nexus'
+    description: 'Allows the use of the /versus command to go to the nexus'
     default: true
   pairspvp.select:
     description: 'Allows a player to select a block for use with other commands'
@@ -32,10 +32,10 @@ permissions:
       pairspvp.nexus.delete: true
       pairspvp.nexus.set: true
   pairspvp.nexus.delete:
-    description: 'Allows the use of the /2v2 nexus delete command'
+    description: 'Allows the use of the /versus nexus delete command'
     default: op
   pairspvp.nexus.set:
-    description: 'Allows the use of the /2v2 nexus set command'
+    description: 'Allows the use of the /versus nexus set command'
     children:
       pairspvp.select: true
     default: op
@@ -60,19 +60,19 @@ permissions:
       pairspvp.arena.details: true
     default: op
   pairspvp.arena.make:
-    description: 'Allows the use of the /2v2 arena make <name> command'
+    description: 'Allows the use of the /versus arena make <name> command'
     default: op
   pairspvp.arena.delete:
-    description: 'Allows the use of the /2v2 arena delete <name> command'
+    description: 'Allows the use of the /versus arena delete <name> command'
     default: op
   pairspvp.arena.list:
-    description: 'Allows the use of the /2v2 arena list command'
+    description: 'Allows the use of the /versus arena list command'
     default: op
   pairspvp.arena.details:
-    description: 'Allows the use of the /2v2 arena details <name> command'
+    description: 'Allows the use of the /versus arena details <name> command'
     default: op
   pairspvp.arena.setspawn:
-    description: 'Allows the use of the /2v2 arena setspawn <teamnum> <playernum> command'
+    description: 'Allows the use of the /versus arena setspawn <teamnum> <playernum> command'
     default: op
     children:
       pairspvp.select: true
@@ -84,8 +84,8 @@ permissions:
       pairspvp.config.save: true
       pairspvp.config.load: true
   pairspvp.config.save:
-    description: Allows the use of the /2v2 config save command.
+    description: Allows the use of the /versus config save command.
     default: op
   pairspvp.config.load:
-    description: Allows the use of the /2v2 config load command. This shouldn't be used outside of debugging.
+    description: Allows the use of the /versus config load command. This shouldn't be used outside of debugging.
     default: op

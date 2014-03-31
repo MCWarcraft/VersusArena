@@ -1,19 +1,19 @@
-package bourg.austin.PairsPvP.Interface;
+package bourg.austin.VersusArena.Interface;
 
 import org.bukkit.inventory.ItemStack;
 
-import bourg.austin.PairsPvP.PairsPvP;
+import bourg.austin.VersusArena.VersusArena;
 
 public class ItemMenu
 {
 	private String name;
 	private int size;
-	private PairsPvP plugin;
+	private VersusArena plugin;
 	
 	private String[] optionNames;
 	private ItemStack[] optionIcons;
 	
-	public ItemMenu(String name, int size, PairsPvP plugin)
+	public ItemMenu(String name, int size, VersusArena plugin)
 	{
 		this.name = name;
 		this.size = size;

@@ -1,18 +1,20 @@
-package bourg.austin.PairsPvP.Arena;
+package bourg.austin.VersusArena.Arena;
 
 import org.bukkit.Location;
 
 public class Arena
 {
 	private String arenaName;
+	private int teamSize;
 	private Location spawnLocations[][];
 	
-	public Arena(String arenaName)
+	public Arena(String arenaName, int teamSize)
 	{
 		this.arenaName = arenaName;
+		this.teamSize = teamSize;
 		
 		//First pos is team number, second pos is player number
-		this.spawnLocations = new Location[2][2];
+		this.spawnLocations = new Location[2][teamSize];
 		
 	}
 	
@@ -21,10 +23,15 @@ public class Arena
 		return arenaName;
 	}
 	
+	public int getTeamSize()
+	{
+		return teamSize;
+	}
+	
 	public boolean setSpawnLocation(int teamNumber, int playerNumber, Location loc)
 	{
 		//If team number or player number is invalid
-		if (!(Math.abs(teamNumber) == 1 || Math.abs(teamNumber) == 0) || !(Math.abs(playerNumber) == 1 || Math.abs(playerNumber) == 0))
+		if (!(Math.abs(teamNumber) == 1 || Math.abs(teamNumber) == 0) || !(Math.abs(playerNumber) >= 0 && Math.abs(playerNumber) < teamSize))
 		{
 			return false;
 		}

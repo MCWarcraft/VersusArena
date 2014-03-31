@@ -1,22 +1,21 @@
-package bourg.austin.PairsPvP.Arena;
+package bourg.austin.VersusArena.Arena;
 
 public class Competitor
 {
-	private int wins, losses, mmr, rating;
+	private int wins, losses, rating;
 	private String name;
 	
 	public Competitor(String name)
 	{
-		this(name, 0, 0, 1500, 0);
+		this(name, 0, 0, 0);
 	}
 	
-	public Competitor(String name, int wins, int losses, int mmr, int rating)
+	public Competitor(String name, int wins, int losses, int rating)
 	{
 		this.name = name;
 		this.wins = wins;
 		this.losses = losses;
-		this.mmr = mmr;
-		this.rating=rating;
+		this.rating = rating;
 	}
 	
 	public String getCompetitorName()
@@ -32,11 +31,6 @@ public class Competitor
 	public int getLosses()
 	{
 		return losses;
-	}
-	
-	public int getMMR()
-	{
-		return mmr;
 	}
 	
 	public int getRating()

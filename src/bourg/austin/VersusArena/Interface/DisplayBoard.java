@@ -1,8 +1,9 @@
-package bourg.austin.PairsPvP.Interface;
+package bourg.austin.VersusArena.Interface;
 
 import java.util.HashMap;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.DisplaySlot;
@@ -18,9 +19,15 @@ public class DisplayBoard
 	private Objective o;
 	private HashMap<OfflinePlayer, Score> values;
 	
-	public DisplayBoard(Player player, String title)
+	private ChatColor titleColor, scoreColor;
+	
+	private int itemCounter;
+	
+	public DisplayBoard(Player player, String title, ChatColor titleColor, ChatColor scoreColor)
 	{
 		this.player = player;
+		this.titleColor = titleColor;
+		this.scoreColor = scoreColor;
 		
 		board = Bukkit.getScoreboardManager().getNewScoreboard();
 		o = board.registerNewObjective(title, "dummy");
@@ -28,12 +35,18 @@ public class DisplayBoard
 		o.setDisplaySlot(DisplaySlot.SIDEBAR);
 		
 		values = new HashMap<OfflinePlayer, Score>();
+		
+		itemCounter = 20;
 	}
 	
 	public void putField(String name, int value)
-	{
-		values.put(Bukkit.getOfflinePlayer(name), o.getScore(Bukkit.getOfflinePlayer(name)));
-		values.get(Bukkit.getOfflinePlayer(name)).setScore(value);
+	{		
+		String displayText = titleColor + name + scoreColor + value;
+		while (displayText.length() < 16)
+			displayText += " ";
+		values.put(Bukkit.getOfflinePlayer(displayText), o.getScore(Bukkit.getOfflinePlayer(displayText)));
+		values.get(Bukkit.getOfflinePlayer(displayText)).setScore(itemCounter);
+		itemCounter--;
 	}
 	
 	public void display()

@@ -1,4 +1,4 @@
-package bourg.austin.PairsPvP.Arena;
+package bourg.austin.VersusArena.Arena;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,9 +8,11 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
-import bourg.austin.PairsPvP.PairsPvP;
-import bourg.austin.PairsPvP.Interface.DisplayBoard;
+import bourg.austin.VersusArena.VersusArena;
+import bourg.austin.VersusArena.Constants.Inventories;
+import bourg.austin.VersusArena.Interface.DisplayBoard;
 
 public class ArenaManager
 {
@@ -18,12 +20,14 @@ public class ArenaManager
 	private Location nexusLocation;
 	
 	private HashMap<OfflinePlayer, Competitor> competitors;
-	private ArrayList<Player> playersInArena;
+	private ArrayList<OfflinePlayer> playersInArena;
 	private HashMap<OfflinePlayer, DisplayBoard> boards;
 	
-	private PairsPvP plugin;
+	private HashMap<Player, Integer> queue;
 	
-	public ArenaManager(PairsPvP plugin)
+	private VersusArena plugin;
+	
+	public ArenaManager(VersusArena plugin)
 	{
 		this.plugin = plugin;
 		arenas = new HashMap<String, Arena>();
@@ -31,16 +35,19 @@ public class ArenaManager
 		
 		boards = new HashMap<OfflinePlayer, DisplayBoard>();
 		
+		queue = new HashMap<Player, Integer>();
+		
 		competitors = new HashMap<OfflinePlayer, Competitor>();
-		playersInArena = new ArrayList<Player>();
+		playersInArena = new ArrayList<OfflinePlayer>();
 	}
-	
 	public void bringPlayer(String playerName)
-	{
+	{		
 		Player player = plugin.getServer().getPlayer(playerName);
 		
 		//Store data about players in the arena
 		playersInArena.add(player);
+		
+		giveLobbyInventory(player);
 		
 		//Create a new profile
 		if (competitors.get(player) == null)
@@ -48,21 +55,18 @@ public class ArenaManager
 		
 		showLobbyBoard(player);
 		
-		player.sendMessage(ChatColor.BLUE + "Welcome to 2v2!");
+		player.sendMessage(ChatColor.BLUE + "Welcome to the Versus Arena!");
 		player.teleport(plugin.getArenaManager().getNexusLocation());
 	}
 	
 	public void showLobbyBoard(Player player)
-	{
-		ChatColor format = ChatColor.GREEN, titleFormat = ChatColor.AQUA;
-		
+	{		
 		Competitor competitor = competitors.get(player);
 		
-		boards.put(player, new DisplayBoard(player, titleFormat + player.getName()));
-		boards.get(player).putField(format + "Wins: ", competitor.getWins());
-		boards.get(player).putField(format + "Losses: ", competitor.getLosses());
-		boards.get(player).putField(format + "MMR: ", competitor.getMMR());
-		boards.get(player).putField(format + "Rating: ", competitor.getRating());
+		boards.put(player, new DisplayBoard(player, ChatColor.DARK_AQUA + player.getName(), ChatColor.GOLD, ChatColor.BLUE));
+		boards.get(player).putField("Wins: ", competitor.getWins());
+		boards.get(player).putField("Losses: ", competitor.getLosses());
+		boards.get(player).putField("Rating: ", competitor.getRating());
 		boards.get(player).display();
 	}
 	/*
@@ -81,6 +85,44 @@ public class ArenaManager
 		}
 	}
 	*/
+	public boolean addToQueue(Player player, int gameType)
+	{
+		if (!(gameType > 0 || gameType <= 3))
+			return false;
+		else if (queue.containsKey(player))
+			return false;
+		else
+		{
+			queue.put(player, gameType);
+			giveQueueInventory(player, gameType);
+			player.sendMessage(ChatColor.BLUE + "You are now in the " + gameType + "v" + gameType + " queue.");
+			return true;
+		}
+	}
+	
+	public void giveLobbyInventory(Player p)
+	{
+		p.sendMessage("" + Inventories.LOBBY_SLOTS[0].getItemMeta().getLore());
+		
+		p.getInventory().clear();
+		for (ItemStack i : Inventories.LOBBY_SLOTS)
+			p.getInventory().addItem(i);
+	}
+	
+	public void giveQueueInventory(Player p, int type)
+	{
+		p.sendMessage("" + type);
+		
+		p.getInventory().clear();
+		for (int i = 0; i < Inventories.LOBBY_SLOTS.length; i++)
+		{
+			if (i != (type - 1))
+				p.getInventory().addItem(Inventories.LOBBY_SLOTS[i]);
+			else
+				p.getInventory().addItem(Inventories.QUEUE_SLOTS[i]);
+		}
+	}
+	
 	public HashMap<OfflinePlayer, Competitor> getCompetitors()
 	{
 		return competitors;
@@ -88,17 +130,17 @@ public class ArenaManager
 	
 	public boolean isPlayerInArena(String name)
 	{
-		return playersInArena.contains(name.toLowerCase());
+		return playersInArena.contains(Bukkit.getOfflinePlayer(name));
 	}
 	
-	public void addCompetitor(String name, int wins, int losses, int mmr, int rating)
+	public void addCompetitor(String name, int wins, int losses, int rating)
 	{
-		competitors.put(Bukkit.getOfflinePlayer(name), new Competitor(name, wins, losses, mmr, rating));
+		competitors.put(Bukkit.getOfflinePlayer(name), new Competitor(name, wins, losses, rating));
 	}
 	
-	public void addArena(String name)
+	public void addArena(String name, int teamSize)
 	{
-		arenas.put(name, new Arena(name));
+		arenas.put(name, new Arena(name, teamSize));
 	}
 	
 	public void deleteArena(String name)

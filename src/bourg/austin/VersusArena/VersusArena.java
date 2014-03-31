@@ -1,4 +1,4 @@
-package bourg.austin.PairsPvP;
+package bourg.austin.VersusArena;
 
 import java.util.HashMap;
 import java.util.Set;
@@ -8,12 +8,13 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import bourg.austin.PairsPvP.Arena.Arena;
-import bourg.austin.PairsPvP.Arena.ArenaManager;
-import bourg.austin.PairsPvP.Background.MyCommandExecutor;
-import bourg.austin.PairsPvP.Background.MyListener;
+import bourg.austin.VersusArena.Arena.Arena;
+import bourg.austin.VersusArena.Arena.ArenaManager;
+import bourg.austin.VersusArena.Background.MyCommandExecutor;
+import bourg.austin.VersusArena.Background.MyListener;
+import bourg.austin.VersusArena.Constants.Inventories;
 
-public final class PairsPvP extends JavaPlugin
+public final class VersusArena extends JavaPlugin
 {
 	private ArenaManager arenaManager;
 	
@@ -21,6 +22,8 @@ public final class PairsPvP extends JavaPlugin
 	
 	public void onEnable()
 	{		
+		Inventories.initialize();
+		
 		//Declare variables
 		arenaManager = new ArenaManager(this);
 		selectedLocations = new HashMap<String, Location>();
@@ -29,7 +32,7 @@ public final class PairsPvP extends JavaPlugin
 		this.getServer().getPluginManager().registerEvents(new MyListener(this), this);
 		
 		//Set command executors
-		this.getCommand("2v2").setExecutor(new MyCommandExecutor(this));
+		this.getCommand("versus").setExecutor(new MyCommandExecutor(this));
 		
 		this.loadData();
 	} 		  
@@ -46,19 +49,21 @@ public final class PairsPvP extends JavaPlugin
 		this.getConfig().set("arenas", "");
 		for (String name : arenas.keySet())
 		{
+			Arena tempArena = arenas.get(name);
 			//Save spawn locations
 			for (int teamNum = 0; teamNum <= 1; teamNum++)
-				for (int playerNum = 0; playerNum <= 1; playerNum++)
+				for (int playerNum = 0; playerNum < tempArena.getTeamSize(); playerNum++)
 				{
-					if (arenas.get(name).getSpawnLocations()[teamNum][playerNum] != null)
+					if (tempArena.getSpawnLocations()[teamNum][playerNum] != null)
 					{
-						this.getConfig().set("arenas." + name + ".team" + teamNum + ".player" + playerNum, locationToString(arenas.get(name).getSpawnLocations()[teamNum][playerNum]));
+						this.getConfig().set("arenas." + name + ".team" + teamNum + ".player" + playerNum, locationToString(tempArena.getSpawnLocations()[teamNum][playerNum]));
 					}
 					else
 					{
 						this.getConfig().set("arenas." + name + ".team" + teamNum + ".player" + playerNum, "null");
 					}
 				}
+			this.getConfig().set("arenas." + name + ".teamsize", tempArena.getTeamSize());
 		}
 		//Save nexus location
 		if (this.getArenaManager().getNexusLocation() != null)
@@ -72,7 +77,6 @@ public final class PairsPvP extends JavaPlugin
 		{
 			this.getConfig().set("competitors." + p.getName() + ".wins", arenaManager.getCompetitors().get(p).getWins());
 			this.getConfig().set("competitors." + p.getName() + ".losses", arenaManager.getCompetitors().get(p).getLosses());
-			this.getConfig().set("competitors." + p.getName() + ".mmr", arenaManager.getCompetitors().get(p).getMMR());
 			this.getConfig().set("competitors." + p.getName() + ".rating", arenaManager.getCompetitors().get(p).getRating());
 		}
 		
@@ -97,9 +101,10 @@ public final class PairsPvP extends JavaPlugin
 			arenaManager.clearArenas();
 			for (String arenaName : arenaNames)
 			{
-				arenaManager.addArena(arenaName);
+				int teamSize = this.getConfig().getInt("arenas." + arenaName + ".teamsize");
+				arenaManager.addArena(arenaName, teamSize);
 				for (int teamNum = 0; teamNum <= 1; teamNum++)
-					for (int playerNum = 0; playerNum <= 1; playerNum++)
+					for (int playerNum = 0; playerNum < teamSize; playerNum++)
 					{
 						Location tempLoc = this.parseLocation(this.getConfig().getString("arenas." + arenaName + ".team" + teamNum + ".player" + playerNum));
 						arenaManager.getArena(arenaName).setSpawnLocation(teamNum, playerNum, tempLoc);
@@ -120,21 +125,9 @@ public final class PairsPvP extends JavaPlugin
 				arenaManager.addCompetitor(compName,
 						this.getConfig().getInt("competitors." + compName + ".wins"),
 						this.getConfig().getInt("competitors." + compName + ".losses"),
-						this.getConfig().getInt("competitors." + compName + ".mmr"),
 						this.getConfig().getInt("competitors." + compName + ".rating"));
 			}
 		}
-		
-		/*
-		//Load trapped locations
-		Set<String> playerNames = null;
-		
-		try {playerNames = this.getConfig().getConfigurationSection("activeplayers").getKeys(false);}
-		catch (NullPointerException e) {}
-		
-		for (String s : playerNames)
-			arenaManager.addPlayer(s, parseLocation(getConfig().getString("activeplayers." + s)));
-			*/
 	}
 	
 	public static String locationToString(Location loc)
