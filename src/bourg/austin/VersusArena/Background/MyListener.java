@@ -61,7 +61,7 @@ public class MyListener implements Listener
 					plugin.getArenaManager().addToQueue(event.getPlayer(), VersusStatus.IN_2V2_QUEUE);
 				else if (event.getPlayer().getItemInHand().getItemMeta().getDisplayName().equals(Inventories.LOBBY_SLOTS[2].getItemMeta().getDisplayName()) && event.getPlayer().getItemInHand().getItemMeta().getLore().equals(Inventories.LOBBY_SLOTS[2].getItemMeta().getLore()))
 					plugin.getArenaManager().addToQueue(event.getPlayer(), VersusStatus.IN_3V3_QUEUE);
-				if (event.getPlayer().getItemInHand().getItemMeta().getDisplayName().equals(Inventories.QUEUE_SLOTS[3].getItemMeta().getDisplayName()) && event.getPlayer().getItemInHand().getItemMeta().getLore().equals(Inventories.LOBBY_SLOTS[3].getItemMeta().getLore()))
+				if (event.getPlayer().getItemInHand().getItemMeta().getDisplayName().equals(Inventories.QUEUE_SLOTS[3].getItemMeta().getDisplayName()) && event.getPlayer().getItemInHand().getItemMeta().getLore().equals(Inventories.QUEUE_SLOTS[3].getItemMeta().getLore()))
 					plugin.getArenaManager().removeFromQueue(event.getPlayer());
 				
 			}

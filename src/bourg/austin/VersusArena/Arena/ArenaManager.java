@@ -112,9 +112,9 @@ public class ArenaManager
 	public void giveQueueInventory(Player p, int type)
 	{
 		p.getInventory().clear();
-		for (int i = 0; i < Inventories.LOBBY_SLOTS.length; i++)
+		for (int i = 0; i < Inventories.QUEUE_SLOTS.length; i++)
 		{
-			if (i != (type - 1))
+			if (i != (type - 1) && i < Inventories.LOBBY_SLOTS.length)
 				p.getInventory().addItem(Inventories.LOBBY_SLOTS[i]);
 			else
 				p.getInventory().addItem(Inventories.QUEUE_SLOTS[i]);
@@ -133,9 +133,11 @@ public class ArenaManager
 		return playerStatuses.get(p);
 	}
 	
-	public void removeFromQueue(OfflinePlayer p)
+	public void removeFromQueue(Player p)
 	{
-		playerStatuses.remove(p);
+		playerStatuses.put(p, VersusStatus.IN_LOBBY);
+		this.giveLobbyInventory(p);
+		p.sendMessage(ChatColor.BLUE + "You have been removed from the queue");
 	}
 	
 	public void addCompetitor(String name, int wins, int losses, int rating)
