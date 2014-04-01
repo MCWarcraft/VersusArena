@@ -19,6 +19,9 @@ public class VersusUnlockPlayerTask extends BukkitRunnable
 		//Unlock the players by setting them to in game
 		for (int teamNum = 0; teamNum < game.getNumberOfTeams(); teamNum++)
 			for (int playerNum = 0; playerNum < game.getTeam(teamNum).getNumberOfPlayers(); playerNum++)
+			{
 				game.getArenaManager().setPlayerStatus(game.getTeam(teamNum).getPlayer(playerNum), VersusStatus.IN_GAME);
+				game.getTeam(teamNum).getPlayer(playerNum).sendMessage("Fight!");
+			}
 	}
 }

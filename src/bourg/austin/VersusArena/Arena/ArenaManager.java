@@ -1,6 +1,8 @@
 package bourg.austin.VersusArena.Arena;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -22,7 +24,7 @@ public class ArenaManager
 	private Location nexusLocation;
 	
 	private HashMap<OfflinePlayer, Competitor> competitors;
-	private HashMap<OfflinePlayer, VersusStatus> playerStatuses;
+	private HashMap<Player, VersusStatus> playerStatuses;
 	private HashMap<OfflinePlayer, DisplayBoard> boards;
 	
 	private VersusArena plugin;
@@ -36,7 +38,7 @@ public class ArenaManager
 		boards = new HashMap<OfflinePlayer, DisplayBoard>();
 		
 		competitors = new HashMap<OfflinePlayer, Competitor>();
-		playerStatuses = new HashMap<OfflinePlayer, VersusStatus>();
+		playerStatuses = new HashMap<Player, VersusStatus>();
 	}
 	
 	public void bringPlayer(String playerName)
@@ -56,9 +58,6 @@ public class ArenaManager
 		
 		//Store data about players in the arena
 		playerStatuses.put(player, VersusStatus.IN_LOBBY);
-		
-		//TODO: Eliminate test code
-		startGame(new Player[]{player});
 	}
 	
 	public void showLobbyBoard(Player player)
@@ -72,10 +71,6 @@ public class ArenaManager
 		boards.get(player).display();
 	}
 	
-	public void startGame(Player[] players)
-	{
-		new Game(this, new VersusTeam[]{new VersusTeam(players)});
-	}
 	/*
 	public void resetPlayer(String playerName)
 	{
@@ -96,7 +91,7 @@ public class ArenaManager
 	{
 		if (!(gameType.getValue() > 0 || (gameType.getValue() <= 3)))
 		{
-			player.sendMessage("Err1");
+			player.sendMessage("error1");
 			return false;
 		}
 		
@@ -105,8 +100,13 @@ public class ArenaManager
 			playerStatuses.put(player, gameType);
 			giveQueueInventory(player, gameType.getValue());
 			player.sendMessage(ChatColor.BLUE + "You are now in the " + gameType.getValue() + "v" + gameType.getValue() + " queue.");
+			
+			matchMake(gameType);
+			
 			return true;
 		}
+		
+		
 	}
 	
 	@SuppressWarnings("deprecation")
@@ -134,7 +134,43 @@ public class ArenaManager
 		p.updateInventory();
 	}
 	
-	public void setPlayerStatus(OfflinePlayer player, VersusStatus status)
+	public void matchMake(VersusStatus statusType)
+	{
+		ArrayList<Player> validPlayers = getSpecificQueue(statusType);
+		
+		Arena a = this.getRandomArenaBySize(statusType.getValue());
+		if (a == null)
+			return;
+		
+		if (validPlayers.size() >= statusType.getValue() * 2)
+		{
+			startGame(validPlayers.subList(0, statusType.getValue() * 2), a);
+		}
+	}
+	
+	public void startGame(List<Player> players, Arena a)
+	{
+		
+		
+		VersusTeam tempTeams[] = new VersusTeam[2];
+		tempTeams[0] = new VersusTeam(players.subList(0, players.size() / 2));
+		tempTeams[1] = new VersusTeam(players.subList(players.size() / 2, players.size()));
+		
+		new Game(this, tempTeams, a);
+	}
+	
+	public ArrayList<Player> getSpecificQueue(VersusStatus statusType)
+	{
+		ArrayList<Player> validPlayers = new ArrayList<Player>();
+		
+		for (Player p : playerStatuses.keySet())
+			if (playerStatuses.get(p).equals(statusType))
+				validPlayers.add(p);
+		
+		return validPlayers;
+	}
+	
+	public void setPlayerStatus(Player player, VersusStatus status)
 	{
 		playerStatuses.put(player,  status);
 	}
@@ -144,9 +180,42 @@ public class ArenaManager
 		return competitors;
 	}
 	
+	public ArrayList<Arena> getArenasBySize(int size)
+	{
+		ArrayList<Arena> validArenas = new ArrayList<Arena>();
+		boolean none = true;
+		for (String s : arenas.keySet())
+			if (arenas.get(s).getTeamSize() == size && arenas.get(s).isConfigured())
+			{
+				validArenas.add(arenas.get(s));
+				none = false;
+			}
+		if (none)
+			return null;
+		return validArenas;
+	}
+	
+	public Arena getRandomArenaBySize(int size)
+	{
+		ArrayList<Arena> validArenas = getArenasBySize(size);
+		if (validArenas == null)
+			return null;
+		return validArenas.get((int)(Math.random() * validArenas.size()));
+	}
+	
 	public VersusStatus getPlayerStatus(OfflinePlayer p)
 	{
 		return playerStatuses.get(p);
+	}
+	
+	public ArrayList<Player> getPlayersInGame()
+	{
+		ArrayList<Player> tempList = new ArrayList<Player>();
+		
+		for (Player p : playerStatuses.keySet())
+			if (playerStatuses.get(p).equals(VersusStatus.IN_GAME) || playerStatuses.get(p).equals(VersusStatus.LOCKED))
+				tempList.add(p);
+		return tempList;
 	}
 	
 	public void removeFromQueue(Player p)
