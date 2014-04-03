@@ -2,7 +2,6 @@ package bourg.austin.VersusArena.Arena;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -13,9 +12,8 @@ import org.bukkit.inventory.ItemStack;
 
 import bourg.austin.VersusArena.VersusArena;
 import bourg.austin.VersusArena.Constants.Inventories;
-import bourg.austin.VersusArena.Constants.VersusStatus;
-import bourg.austin.VersusArena.Game.Game;
-import bourg.austin.VersusArena.Game.VersusTeam;
+import bourg.austin.VersusArena.Constants.LobbyStatus;
+import bourg.austin.VersusArena.Game.GameManager;
 import bourg.austin.VersusArena.Interface.DisplayBoard;
 
 public class ArenaManager
@@ -24,9 +22,10 @@ public class ArenaManager
 	private Location nexusLocation;
 	
 	private HashMap<OfflinePlayer, Competitor> competitors;
-	private HashMap<Player, VersusStatus> playerStatuses;
+	private HashMap<Player, LobbyStatus> playerLobbyStatuses;
 	private HashMap<OfflinePlayer, DisplayBoard> boards;
 	
+	private GameManager gameManager;
 	private VersusArena plugin;
 	
 	public ArenaManager(VersusArena plugin)
@@ -35,10 +34,12 @@ public class ArenaManager
 		arenas = new HashMap<String, Arena>();
 		nexusLocation = null;
 		
+		gameManager = new GameManager(this);
+		
 		boards = new HashMap<OfflinePlayer, DisplayBoard>();
 		
 		competitors = new HashMap<OfflinePlayer, Competitor>();
-		playerStatuses = new HashMap<Player, VersusStatus>();
+		playerLobbyStatuses = new HashMap<Player, LobbyStatus>();
 	}
 	
 	public void bringPlayer(String playerName)
@@ -57,7 +58,7 @@ public class ArenaManager
 		player.teleport(plugin.getArenaManager().getNexusLocation());
 		
 		//Store data about players in the arena
-		playerStatuses.put(player, VersusStatus.IN_LOBBY);
+		playerLobbyStatuses.put(player, LobbyStatus.IN_LOBBY);
 	}
 	
 	public void showLobbyBoard(Player player)
@@ -70,24 +71,8 @@ public class ArenaManager
 		boards.get(player).putField("Rating: ", competitor.getRating());
 		boards.get(player).display();
 	}
-	
-	/*
-	public void resetPlayer(String playerName)
-	{
-		if (isPlayerInArena(playerName))
-		{
-			playersInArena.remove(playerName.toLowerCase());
-			try
-			{
-				plugin.getServer().getPlayer(playerName).teleport(originalPlayerLocations.get(playerName.toLowerCase()));
-			}
-			catch (NullPointerException e) {}
-			
-			originalPlayerLocations.remove(playerName.toLowerCase());
-		}
-	}
-	*/
-	public boolean addToQueue(Player player, VersusStatus gameType)
+
+	public boolean addToQueue(Player player, LobbyStatus gameType)
 	{
 		if (!(gameType.getValue() > 0 || (gameType.getValue() <= 3)))
 		{
@@ -97,7 +82,7 @@ public class ArenaManager
 		
 		else
 		{
-			playerStatuses.put(player, gameType);
+			playerLobbyStatuses.put(player, gameType);
 			giveQueueInventory(player, gameType.getValue());
 			player.sendMessage(ChatColor.BLUE + "You are now in the " + gameType.getValue() + "v" + gameType.getValue() + " queue.");
 			
@@ -134,7 +119,7 @@ public class ArenaManager
 		p.updateInventory();
 	}
 	
-	public void matchMake(VersusStatus statusType)
+	public void matchMake(LobbyStatus statusType)
 	{
 		ArrayList<Player> validPlayers = getSpecificQueue(statusType);
 		
@@ -143,36 +128,25 @@ public class ArenaManager
 			return;
 		
 		if (validPlayers.size() >= statusType.getValue() * 2)
-		{
-			startGame(validPlayers.subList(0, statusType.getValue() * 2), a);
-		}
+			gameManager.startGame(validPlayers.subList(0, statusType.getValue() * 2), a);
 	}
 	
-	public void startGame(List<Player> players, Arena a)
-	{
-		
-		
-		VersusTeam tempTeams[] = new VersusTeam[2];
-		tempTeams[0] = new VersusTeam(players.subList(0, players.size() / 2));
-		tempTeams[1] = new VersusTeam(players.subList(players.size() / 2, players.size()));
-		
-		new Game(this, tempTeams, a);
-	}
 	
-	public ArrayList<Player> getSpecificQueue(VersusStatus statusType)
+	
+	public ArrayList<Player> getSpecificQueue(LobbyStatus statusType)
 	{
 		ArrayList<Player> validPlayers = new ArrayList<Player>();
 		
-		for (Player p : playerStatuses.keySet())
-			if (playerStatuses.get(p).equals(statusType))
+		for (Player p : playerLobbyStatuses.keySet())
+			if (playerLobbyStatuses.get(p).equals(statusType))
 				validPlayers.add(p);
 		
 		return validPlayers;
 	}
 	
-	public void setPlayerStatus(Player player, VersusStatus status)
+	public void setPlayerStatus(Player player, LobbyStatus status)
 	{
-		playerStatuses.put(player,  status);
+		playerLobbyStatuses.put(player,  status);
 	}
 	
 	public HashMap<OfflinePlayer, Competitor> getCompetitors()
@@ -203,24 +177,24 @@ public class ArenaManager
 		return validArenas.get((int)(Math.random() * validArenas.size()));
 	}
 	
-	public VersusStatus getPlayerStatus(OfflinePlayer p)
+	public LobbyStatus getPlayerStatus(OfflinePlayer p)
 	{
-		return playerStatuses.get(p);
+		return playerLobbyStatuses.get(p);
 	}
 	
 	public ArrayList<Player> getPlayersInGame()
 	{
 		ArrayList<Player> tempList = new ArrayList<Player>();
 		
-		for (Player p : playerStatuses.keySet())
-			if (playerStatuses.get(p).equals(VersusStatus.IN_GAME) || playerStatuses.get(p).equals(VersusStatus.LOCKED))
+		for (Player p : playerLobbyStatuses.keySet())
+			if (playerLobbyStatuses.get(p).equals(LobbyStatus.IN_GAME))
 				tempList.add(p);
 		return tempList;
 	}
 	
 	public void removeFromQueue(Player p)
 	{
-		playerStatuses.put(p, VersusStatus.IN_LOBBY);
+		playerLobbyStatuses.put(p, LobbyStatus.IN_LOBBY);
 		this.giveLobbyInventory(p);
 		p.sendMessage(ChatColor.BLUE + "You have been removed from the queue");
 	}
@@ -253,6 +227,11 @@ public class ArenaManager
 	public VersusArena getPlugin()
 	{
 		return plugin;
+	}
+	
+	public GameManager getGameManager()
+	{
+		return gameManager;
 	}
 	
 	public boolean containsArena(String name)

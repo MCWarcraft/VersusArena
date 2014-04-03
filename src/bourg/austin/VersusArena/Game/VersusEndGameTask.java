@@ -17,6 +17,6 @@ public class VersusEndGameTask extends BukkitRunnable
 		//Teleport players back to the nexus
 		for (int teamNum = 0; teamNum < game.getNumberOfTeams(); teamNum++)
 			for (int playerNum = 0; playerNum < game.getTeam(teamNum).getNumberOfPlayers(); playerNum++)
-				game.getArenaManager().bringPlayer(game.getTeam(teamNum).getPlayer(playerNum).getName());
+				game.getGameManager().getArenaManager().bringPlayer(game.getTeam(teamNum).getPlayer(playerNum).getName());
 	}
 }

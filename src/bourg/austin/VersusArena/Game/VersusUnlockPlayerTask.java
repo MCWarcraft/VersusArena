@@ -2,7 +2,7 @@ package bourg.austin.VersusArena.Game;
 
 import org.bukkit.scheduler.BukkitRunnable;
 
-import bourg.austin.VersusArena.Constants.VersusStatus;
+import bourg.austin.VersusArena.Constants.InGameStatus;
 
 public class VersusUnlockPlayerTask extends BukkitRunnable
 {
@@ -20,7 +20,7 @@ public class VersusUnlockPlayerTask extends BukkitRunnable
 		for (int teamNum = 0; teamNum < game.getNumberOfTeams(); teamNum++)
 			for (int playerNum = 0; playerNum < game.getTeam(teamNum).getNumberOfPlayers(); playerNum++)
 			{
-				game.getArenaManager().setPlayerStatus(game.getTeam(teamNum).getPlayer(playerNum), VersusStatus.IN_GAME);
+				game.getGameManager().setPlayerStatus(game.getTeam(teamNum).getPlayer(playerNum), InGameStatus.ALIVE);
 				game.getTeam(teamNum).getPlayer(playerNum).sendMessage("Fight!");
 			}
 	}

@@ -5,29 +5,26 @@ import java.util.List;
 
 import org.bukkit.entity.Player;
 
-import bourg.austin.VersusArena.Constants.VersusStatus;
+import bourg.austin.VersusArena.Constants.InGameStatus;
 
 public class VersusTeam
 {
 	List<Player> players;
-	HashMap<Player, VersusStatus> playerStatuses;
+	Game game;
 	
-	public VersusTeam(List<Player> players)
+	public VersusTeam(List<Player> players, Game game)
 	{
 		this.players = players;
-		playerStatuses = new HashMap<Player, VersusStatus>();
-		
-		for (int i = 0; i < this.players.size(); i++)
-			playerStatuses.put(players.get(i), VersusStatus.ALIVE);
+		this.game = game;
 	}
 	
 	public boolean isDefeated()
 	{
-		for (Player p : playerStatuses.keySet())
-		{
-			if (playerStatuses.get(p).equals(VersusStatus.ALIVE))
+		HashMap<Player, InGameStatus> statuses = game.getGameManager().getPlayerStatuses();
+		
+		for (Player p : statuses.keySet())
+			if (players.contains(p) && statuses.get(p).equals(InGameStatus.ALIVE))
 				return false;
-		}
 		return true;
 	}
 	
@@ -59,15 +56,5 @@ public class VersusTeam
 	public int getNumberOfPlayers()
 	{
 		return players.size();
-	}
-	
-	public void setPlayerStatus(Player player, VersusStatus status)
-	{
-		playerStatuses.put(player, status);
-		
-		for (Player p : playerStatuses.keySet())
-		{
-			System.out.println("Status " + p.getName() + status.getValue());
-		}
 	}
 }

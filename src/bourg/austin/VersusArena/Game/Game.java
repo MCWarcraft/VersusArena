@@ -1,6 +1,6 @@
 package bourg.austin.VersusArena.Game;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -9,65 +9,53 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 
 import bourg.austin.VersusArena.Arena.Arena;
-import bourg.austin.VersusArena.Arena.ArenaManager;
-import bourg.austin.VersusArena.Constants.VersusStatus;
+import bourg.austin.VersusArena.Constants.InGameStatus;
 
 public class Game implements Listener
 {
-	private final ArenaManager arenaManager;
+	private final GameManager gameManager;
 	private VersusTeam[] teams;
 	private Arena arena;
 	
-	private ArrayList<Player> allPlayers;
+	private List<Player> allPlayers;
 	
-	public Game(ArenaManager arenaManager, VersusTeam[] teams, Arena arena)
+	public Game(GameManager gameManager, List<Player> players, Arena arena)
 	{
-		this.arenaManager = arenaManager;
-		this.teams = teams;
+		System.out.println("A game has been made");
+		
+		this.gameManager = gameManager;
+		this.teams = new VersusTeam[]{new VersusTeam(players.subList(0, players.size()/2), this), new VersusTeam(players.subList(players.size()/2, players.size()), this)};
 		this.arena = arena;
+				
+		allPlayers = players;
 		
 		run();
 	}
 	
 	public void run()
 	{
-		allPlayers = new ArrayList<Player>();
+		//Register events starting on run
+		gameManager.getArenaManager().getPlugin().getServer().getPluginManager().registerEvents(this, gameManager.getArenaManager().getPlugin());
 		
-		arenaManager.getPlugin().getServer().getPluginManager().registerEvents(this, arenaManager.getPlugin());
+		//Set invisibility
+		setInGameVisibility();
 		
-		//Lock all players and set invis to begin
-		for (int teamNum = 0; teamNum < teams.length; teamNum++)
-			for (int playerNum = 0; playerNum < teams[teamNum].getNumberOfPlayers(); playerNum++)
-			{
-				allPlayers.add(teams[teamNum].getPlayer(playerNum));
-			}
-		//Exceptions to invis (AKA players in game)
+		//Lock players and remove scoreboard
 		for (Player player : allPlayers)
 		{
-			//Lock
-			arenaManager.setPlayerStatus(player, VersusStatus.LOCKED);
-			
-			//Invis for all except those in game with the user
-			for (Player onlinePlayer : arenaManager.getPlayersInGame())
-			{
-				if (!allPlayers.contains(onlinePlayer))
-					player.hidePlayer(onlinePlayer);
-				else
-					player.showPlayer(onlinePlayer);
-			}
-			
+			lockPlayer(player);
 			//Remove scoreboard
-			player.setScoreboard(arenaManager.getPlugin().getServer().getScoreboardManager().getNewScoreboard());
+			player.setScoreboard(gameManager.getArenaManager().getPlugin().getServer().getScoreboardManager().getNewScoreboard());
 		}
 		
 		//Teleport
-		for (int teamNum = 0; teamNum < teams.length; teamNum++)
+		for (int teamNum = 0; teamNum < 2; teamNum++)
 			for (int playerNum = 0; playerNum < teams[teamNum].getNumberOfPlayers(); playerNum++)
 			{
 				teams[teamNum].getPlayer(playerNum).teleport(arena.getSpawnLocations()[teamNum][playerNum]);
 			}
 		
-		new VersusUnlockPlayerTask(this).runTaskLater(arenaManager.getPlugin(), 60);
+		new VersusUnlockPlayerTask(this).runTaskLater(gameManager.getArenaManager().getPlugin(), 60);
 	}
 	
 	@EventHandler
@@ -102,7 +90,7 @@ public class Game implements Listener
 			if (!involvedPlayer.equals(p))
 				p.hidePlayer(involvedPlayer);
 		
-		teams[playerTeamNum].setPlayerStatus(involvedPlayer, VersusStatus.DEAD);
+		gameManager.setPlayerStatus(involvedPlayer, InGameStatus.DEAD);
 		
 		for (Player p : allPlayers)
 			p.sendMessage(ChatColor.BLUE + involvedPlayer.getName() + " has fallen!");
@@ -116,13 +104,43 @@ public class Game implements Listener
 			for (Player p : teams[Math.abs(playerTeamNum-1)].getAllPlayers())
 				p.sendMessage(ChatColor.GREEN + "You have won");
 			
-			new VersusEndGameTask(this).runTaskLater(arenaManager.getPlugin(), 60);
+			new VersusEndGameTask(this).runTaskLater(gameManager.getArenaManager().getPlugin(), 60);
 		}
 	}
 	
-	public ArenaManager getArenaManager()
+	public GameManager getGameManager()
 	{
-		return arenaManager;
+		return gameManager;
+	}
+	
+	private void lockPlayer(Player player)
+	{
+		gameManager.setPlayerStatus(player, InGameStatus.LOCKED);
+	}
+	
+	private void setInGameVisibility()
+	{
+		for (Player playerInGame : allPlayers)
+		{
+			for (Player playerInArena : gameManager.getPlayersInArena(arena.getArenaName()))
+			{
+				if (!allPlayers.contains(playerInArena))
+				{
+					playerInArena.hidePlayer(playerInGame);
+					playerInGame.hidePlayer(playerInArena);
+				}
+				else
+				{
+					playerInArena.showPlayer(playerInGame);
+					playerInGame.showPlayer(playerInArena);
+				}
+			}
+		}
+	}
+	
+	public Arena getArena()
+	{
+		return arena;
 	}
 	
 	public VersusTeam getTeam(int teamNum)
@@ -140,5 +158,10 @@ public class Game implements Listener
 	public int getNumberOfTeams()
 	{
 		return teams.length;
+	}
+	
+	public List<Player> getPlayers()
+	{
+		return allPlayers;
 	}
 }

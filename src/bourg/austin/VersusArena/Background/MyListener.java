@@ -15,8 +15,9 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 
 import bourg.austin.VersusArena.VersusArena;
+import bourg.austin.VersusArena.Constants.InGameStatus;
 import bourg.austin.VersusArena.Constants.Inventories;
-import bourg.austin.VersusArena.Constants.VersusStatus;
+import bourg.austin.VersusArena.Constants.LobbyStatus;
 
 public class MyListener implements Listener
 {
@@ -57,11 +58,11 @@ public class MyListener implements Listener
 			try
 			{				
 				if (event.getPlayer().getItemInHand().getItemMeta().getDisplayName().equals(Inventories.LOBBY_SLOTS[0].getItemMeta().getDisplayName()) && event.getPlayer().getItemInHand().getItemMeta().getLore().equals(Inventories.LOBBY_SLOTS[0].getItemMeta().getLore()))
-					plugin.getArenaManager().addToQueue(event.getPlayer(), VersusStatus.IN_1V1_QUEUE);
+					plugin.getArenaManager().addToQueue(event.getPlayer(), LobbyStatus.IN_1V1_QUEUE);
 				else if (event.getPlayer().getItemInHand().getItemMeta().getDisplayName().equals(Inventories.LOBBY_SLOTS[1].getItemMeta().getDisplayName()) && event.getPlayer().getItemInHand().getItemMeta().getLore().equals(Inventories.LOBBY_SLOTS[1].getItemMeta().getLore()))
-					plugin.getArenaManager().addToQueue(event.getPlayer(), VersusStatus.IN_2V2_QUEUE);
+					plugin.getArenaManager().addToQueue(event.getPlayer(), LobbyStatus.IN_2V2_QUEUE);
 				else if (event.getPlayer().getItemInHand().getItemMeta().getDisplayName().equals(Inventories.LOBBY_SLOTS[2].getItemMeta().getDisplayName()) && event.getPlayer().getItemInHand().getItemMeta().getLore().equals(Inventories.LOBBY_SLOTS[2].getItemMeta().getLore()))
-					plugin.getArenaManager().addToQueue(event.getPlayer(), VersusStatus.IN_3V3_QUEUE);
+					plugin.getArenaManager().addToQueue(event.getPlayer(), LobbyStatus.IN_3V3_QUEUE);
 				if (event.getPlayer().getItemInHand().getItemMeta().getDisplayName().equals(Inventories.QUEUE_SLOTS[3].getItemMeta().getDisplayName()) && event.getPlayer().getItemInHand().getItemMeta().getLore().equals(Inventories.QUEUE_SLOTS[3].getItemMeta().getLore()))
 					plugin.getArenaManager().removeFromQueue(event.getPlayer());
 				
@@ -119,7 +120,7 @@ public class MyListener implements Listener
 	{
 		try
 		{
-			if (plugin.getArenaManager().getPlayerStatus(event.getPlayer()).equals(VersusStatus.LOCKED))
+			if (plugin.getArenaManager().getGameManager().getPlayerStatus(event.getPlayer()).equals(InGameStatus.LOCKED))
 				if (event.getFrom().getBlockX() != event.getTo().getBlockX() || event.getFrom().getBlockY() != event.getTo().getBlockY() || event.getFrom().getBlockZ() != event.getTo().getBlockZ())
 					event.setCancelled(true);
 		}
