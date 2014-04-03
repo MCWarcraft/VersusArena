@@ -2,11 +2,8 @@ package bourg.austin.VersusArena.Game;
 
 import java.util.List;
 
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageEvent;
 
 import bourg.austin.VersusArena.Arena.Arena;
 import bourg.austin.VersusArena.Constants.InGameStatus;
@@ -17,25 +14,39 @@ public class Game implements Listener
 	private VersusTeam[] teams;
 	private Arena arena;
 	
+	private static int nextGameID = 0;
+	private int gameID;
+	
 	private List<Player> allPlayers;
 	
 	public Game(GameManager gameManager, List<Player> players, Arena arena)
-	{
-		System.out.println("A game has been made");
-		
+	{		
 		this.gameManager = gameManager;
 		this.teams = new VersusTeam[]{new VersusTeam(players.subList(0, players.size()/2), this), new VersusTeam(players.subList(players.size()/2, players.size()), this)};
 		this.arena = arena;
+		
+		gameID = nextGameID;
+		nextGameID++;
 				
 		allPlayers = players;
 		
 		run();
 	}
 	
+	public int getGameID()
+	{
+		return gameID;
+	}
+	
+	public static int getNextGameID()
+	{
+		return nextGameID;
+	}
+	
 	public void run()
 	{
 		//Register events starting on run
-		gameManager.getArenaManager().getPlugin().getServer().getPluginManager().registerEvents(this, gameManager.getArenaManager().getPlugin());
+		//gameManager.getArenaManager().getPlugin().getServer().getPluginManager().registerEvents(this, gameManager.getArenaManager().getPlugin());
 		
 		//Set invisibility
 		setInGameVisibility();
@@ -58,9 +69,12 @@ public class Game implements Listener
 		new VersusUnlockPlayerTask(this).runTaskLater(gameManager.getArenaManager().getPlugin(), 60);
 	}
 	
+	/*
 	@EventHandler
 	public void onPlayerDeath(EntityDamageEvent event)
 	{
+		System.out.println("Player death event in game ID " + gameID);
+		
 		if (event.getEntity() == null)
 			return;
 		else if (!(event.getEntity() instanceof Player))
@@ -107,7 +121,7 @@ public class Game implements Listener
 			new VersusEndGameTask(this).runTaskLater(gameManager.getArenaManager().getPlugin(), 60);
 		}
 	}
-	
+	*/
 	public GameManager getGameManager()
 	{
 		return gameManager;
@@ -134,6 +148,15 @@ public class Game implements Listener
 					playerInArena.showPlayer(playerInGame);
 					playerInGame.showPlayer(playerInArena);
 				}
+			}
+		}
+		
+		for (Player player1 : allPlayers)
+		{
+			for (Player player2 : allPlayers.subList(1, allPlayers.size()))
+			{
+				player1.showPlayer(player2);
+				player2.showPlayer(player1);
 			}
 		}
 	}
