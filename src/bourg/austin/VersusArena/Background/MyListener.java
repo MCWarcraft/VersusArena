@@ -187,7 +187,7 @@ public class MyListener implements Listener
 			for (Player p : game.getTeam(Math.abs(playerTeamNum-1)).getAllPlayers())
 				p.sendMessage(ChatColor.GREEN + "You have won");
 			
-			new VersusEndGameTask(game).runTaskLater(plugin.getArenaManager().getPlugin(), 60);
+			new VersusEndGameTask(game, playerTeamNum).runTaskLater(plugin.getArenaManager().getPlugin(), 60);
 		}
 	}
 }

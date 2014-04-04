@@ -71,6 +71,16 @@ public class ArenaManager
 		boards.get(player).putField("Rating: ", competitor.getRating());
 		boards.get(player).display();
 	}
+	
+	public void addWin(OfflinePlayer player)
+	{
+		competitors.put(player, competitors.get(player).addWin());
+	}
+	
+	public void addLoss(OfflinePlayer player)
+	{
+		competitors.put(player, competitors.get(player).addLoss());
+	}
 
 	public boolean addToQueue(Player player, LobbyStatus gameType)
 	{

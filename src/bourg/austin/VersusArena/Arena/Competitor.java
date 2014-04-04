@@ -28,9 +28,21 @@ public class Competitor
 		return wins;
 	}
 	
+	public Competitor addWin()
+	{
+		wins++;
+		return this;
+	}
+	
 	public int getLosses()
 	{
 		return losses;
+	}
+	
+	public Competitor addLoss()
+	{
+		losses++;
+		return this;
 	}
 	
 	public int getRating()
