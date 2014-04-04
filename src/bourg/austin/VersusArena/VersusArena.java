@@ -3,6 +3,7 @@ package bourg.austin.VersusArena;
 import java.util.HashMap;
 import java.util.Set;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
@@ -13,6 +14,7 @@ import bourg.austin.VersusArena.Arena.ArenaManager;
 import bourg.austin.VersusArena.Background.MyCommandExecutor;
 import bourg.austin.VersusArena.Background.MyListener;
 import bourg.austin.VersusArena.Constants.Inventories;
+import bourg.austin.VersusArena.Constants.VersusKits;
 
 public final class VersusArena extends JavaPlugin
 {
@@ -23,6 +25,7 @@ public final class VersusArena extends JavaPlugin
 	public void onEnable()
 	{		
 		Inventories.initialize();
+		VersusKits.initialize();
 		
 		//Declare variables
 		arenaManager = new ArenaManager(this);
@@ -78,6 +81,9 @@ public final class VersusArena extends JavaPlugin
 			this.getConfig().set("competitors." + p.getName() + ".wins", arenaManager.getCompetitors().get(p).getWins());
 			this.getConfig().set("competitors." + p.getName() + ".losses", arenaManager.getCompetitors().get(p).getLosses());
 			this.getConfig().set("competitors." + p.getName() + ".rating", arenaManager.getCompetitors().get(p).getRating());
+			this.getConfig().set("competitors." + p.getName() + ".selectedkit", arenaManager.getCompetitors().get(p).getSelectedKitName());
+			for (String kitName : arenaManager.getCompetitors().get(p).getAvailableKits().keySet())
+				this.getConfig().set("competitors." + p.getName() + ".availablekits." + kitName, arenaManager.getCompetitors().get(p).getAvailableKits().get(kitName));
 		}
 		
 		
@@ -117,6 +123,8 @@ public final class VersusArena extends JavaPlugin
 		try {competitorNames = this.getConfig().getConfigurationSection("competitors").getKeys(false);}
 		catch (NullPointerException e) {}
 		
+		HashMap<String, Boolean> tempKits;
+		
 		if (competitorNames != null)
 		{
 			arenaManager.clearCompetitors();
@@ -125,7 +133,18 @@ public final class VersusArena extends JavaPlugin
 				arenaManager.addCompetitor(compName,
 						this.getConfig().getInt("competitors." + compName + ".wins"),
 						this.getConfig().getInt("competitors." + compName + ".losses"),
-						this.getConfig().getInt("competitors." + compName + ".rating"));
+						this.getConfig().getInt("competitors." + compName + ".rating"),
+						this.getConfig().getString("competitors." + compName + "selectedkit"));
+				
+				tempKits = new HashMap<String, Boolean>();
+				for (String kitName : this.getConfig().getConfigurationSection("competitors." + compName + ".availablekits").getKeys(false))
+				{
+					System.out.println(kitName + ": " + this.getConfig().getBoolean("competitors." + compName + ".availablekits." + kitName));
+					tempKits.put(kitName, this.getConfig().getBoolean("competitors." + compName + ".availablekits." + kitName));
+				}
+				arenaManager.setAvailableKits(Bukkit.getOfflinePlayer(compName), tempKits);
+				
+				arenaManager.setSelectedKit(Bukkit.getOfflinePlayer(compName), this.getConfig().getString("competitors." + compName + ".selectedkit"));
 			}
 		}
 	}

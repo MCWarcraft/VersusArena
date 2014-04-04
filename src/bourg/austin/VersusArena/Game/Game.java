@@ -1,12 +1,16 @@
 package bourg.austin.VersusArena.Game;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 
 import bourg.austin.VersusArena.Arena.Arena;
 import bourg.austin.VersusArena.Constants.InGameStatus;
+import bourg.austin.VersusArena.Constants.VersusKit;
 
 public class Game implements Listener
 {
@@ -17,19 +21,34 @@ public class Game implements Listener
 	private static int nextGameID = 0;
 	private int gameID;
 	
-	private List<Player> allPlayers;
+	private ArrayList<Player> allPlayers;
+	private HashMap<Player, VersusKit> playerKits;
 	
-	public Game(GameManager gameManager, List<Player> players, Arena arena)
+	public Game(GameManager gameManager, HashMap<Player, VersusKit> playerKits, Arena arena)
 	{		
+		
+		
+		allPlayers = new ArrayList<Player>();
+		allPlayers.addAll(playerKits.keySet());
+		
+		System.out.println("Game has been created with:");
+		for (Player p : allPlayers)
+			System.out.println(p.getName());
+		
+		for (Player p : playerKits.keySet())
+		{
+			System.out.println(p.getName() + ((playerKits.get(p) == null) ? " has no kit" : "has a kit"));
+		}
+		
+		this.playerKits = playerKits;
+		
 		this.gameManager = gameManager;
-		this.teams = new VersusTeam[]{new VersusTeam(players.subList(0, players.size()/2), this), new VersusTeam(players.subList(players.size()/2, players.size()), this)};
+		this.teams = new VersusTeam[]{new VersusTeam(allPlayers.subList(0, allPlayers.size()/2), this), new VersusTeam(allPlayers.subList(allPlayers.size()/2, allPlayers.size()), this)};
 		this.arena = arena;
 		
 		gameID = nextGameID;
 		nextGameID++;
 				
-		allPlayers = players;
-		
 		run();
 	}
 	
@@ -48,12 +67,16 @@ public class Game implements Listener
 		//Register events starting on run
 		//gameManager.getArenaManager().getPlugin().getServer().getPluginManager().registerEvents(this, gameManager.getArenaManager().getPlugin());
 		
+		System.out.println("Game is being run");
+		
 		//Set invisibility
 		setInGameVisibility();
 		
 		//Lock players and remove scoreboard
 		for (Player player : allPlayers)
 		{
+			player.sendMessage(ChatColor.BLUE + "Prepare to fight.");
+			
 			lockPlayer(player);
 			//Remove scoreboard
 			player.setScoreboard(gameManager.getArenaManager().getPlugin().getServer().getScoreboardManager().getNewScoreboard());
@@ -66,62 +89,11 @@ public class Game implements Listener
 				teams[teamNum].getPlayer(playerNum).teleport(arena.getSpawnLocations()[teamNum][playerNum]);
 			}
 		
+		distributeKits();
+		
 		new VersusUnlockPlayerTask(this).runTaskLater(gameManager.getArenaManager().getPlugin(), 60);
 	}
 	
-	/*
-	@EventHandler
-	public void onPlayerDeath(EntityDamageEvent event)
-	{
-		System.out.println("Player death event in game ID " + gameID);
-		
-		if (event.getEntity() == null)
-			return;
-		else if (!(event.getEntity() instanceof Player))
-			return;
-
-		Player involvedPlayer = (Player) event.getEntity();
-		
-		if (involvedPlayer == null)
-			return;
-		if (!allPlayers.contains(involvedPlayer))
-			return;
-		if (involvedPlayer.getHealth() - event.getDamage() > 0)
-			return;
-		
-		event.setCancelled(true);
-		involvedPlayer.setHealth(20);
-		
-		int playerTeamNum = -1;
-		
-		if (teams[0].containsPlayer(involvedPlayer))
-			playerTeamNum = 0;
-		else
-			playerTeamNum = 1;
-		
-		//Hide the player from sight
-		for (Player p : allPlayers)
-			if (!involvedPlayer.equals(p))
-				p.hidePlayer(involvedPlayer);
-		
-		gameManager.setPlayerStatus(involvedPlayer, InGameStatus.DEAD);
-		
-		for (Player p : allPlayers)
-			p.sendMessage(ChatColor.BLUE + involvedPlayer.getName() + " has fallen!");
-		
-		if (teams[playerTeamNum].isDefeated())
-		{
-			for (Player p : allPlayers)
-				p.sendMessage(ChatColor.BLUE + "It's all over!");
-			for (Player p : teams[playerTeamNum].getAllPlayers())
-				p.sendMessage(ChatColor.DARK_RED + "You have lost");
-			for (Player p : teams[Math.abs(playerTeamNum-1)].getAllPlayers())
-				p.sendMessage(ChatColor.GREEN + "You have won");
-			
-			new VersusEndGameTask(this).runTaskLater(gameManager.getArenaManager().getPlugin(), 60);
-		}
-	}
-	*/
 	public GameManager getGameManager()
 	{
 		return gameManager;
@@ -137,7 +109,9 @@ public class Game implements Listener
 		for (Player playerInGame : allPlayers)
 		{
 			for (Player playerInArena : gameManager.getPlayersInArena(arena.getArenaName()))
-			{
+			{				
+				System.out.println("Invis call InGame " + playerInGame.getName() + " InArena " + playerInArena.getName());
+				
 				if (!allPlayers.contains(playerInArena))
 				{
 					playerInArena.hidePlayer(playerInGame);
@@ -155,9 +129,20 @@ public class Game implements Listener
 		{
 			for (Player player2 : allPlayers.subList(1, allPlayers.size()))
 			{
+				System.out.println("Invis fix p1 " + player1.getName() + " p2 " + player2.getName());
 				player1.showPlayer(player2);
 				player2.showPlayer(player1);
 			}
+		}
+	}
+	
+	public void distributeKits()
+	{
+		System.out.println("Kits should be given to " + allPlayers.size() + " players:");
+		for (Player p : allPlayers)
+		{
+			System.out.println("Kit given to " + p.getName());
+			playerKits.get(p).equipToPlayer(p);
 		}
 	}
 	

@@ -61,6 +61,20 @@ public class ArenaManager
 		playerLobbyStatuses.put(player, LobbyStatus.IN_LOBBY);
 	}
 	
+	public void setAvailableKits(OfflinePlayer p, HashMap<String, Boolean> kits)
+	{
+		Competitor tempCompetitor = competitors.get(p);
+		tempCompetitor.setAvailableKits(kits);
+		competitors.put(p, tempCompetitor);
+	}
+	
+	public void setSelectedKit(OfflinePlayer p, String kitName)
+	{
+		Competitor tempCompetitor = competitors.get(p);
+		tempCompetitor.setSelectedKitName(kitName);
+		competitors.put(p, tempCompetitor);
+	}
+	
 	public void showLobbyBoard(Player player)
 	{		
 		Competitor competitor = competitors.get(player);
@@ -100,8 +114,6 @@ public class ArenaManager
 			
 			return true;
 		}
-		
-		
 	}
 	
 	@SuppressWarnings("deprecation")
@@ -131,14 +143,21 @@ public class ArenaManager
 	
 	public void matchMake(LobbyStatus statusType)
 	{
+		System.out.println("matchmake called");
+		
 		ArrayList<Player> validPlayers = getSpecificQueue(statusType);
 		
 		Arena a = this.getRandomArenaBySize(statusType.getValue());
 		if (a == null)
 			return;
 		
+		
+		
 		if (validPlayers.size() >= statusType.getValue() * 2)
+		{
+			System.out.println("startgame executed");
 			gameManager.startGame(validPlayers.subList(0, statusType.getValue() * 2), a);
+		}
 	}
 	
 	
@@ -209,9 +228,9 @@ public class ArenaManager
 		p.sendMessage(ChatColor.BLUE + "You have been removed from the queue");
 	}
 	
-	public void addCompetitor(String name, int wins, int losses, int rating)
+	public void addCompetitor(String name, int wins, int losses, int rating, String selectedKitName)
 	{
-		competitors.put(Bukkit.getOfflinePlayer(name), new Competitor(name, wins, losses, rating));
+		competitors.put(Bukkit.getOfflinePlayer(name), new Competitor(name, wins, losses, rating, selectedKitName));
 	}
 	
 	public void addArena(String name, int teamSize)

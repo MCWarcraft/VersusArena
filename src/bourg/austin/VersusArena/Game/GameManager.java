@@ -10,6 +10,8 @@ import bourg.austin.VersusArena.Arena.Arena;
 import bourg.austin.VersusArena.Arena.ArenaManager;
 import bourg.austin.VersusArena.Constants.InGameStatus;
 import bourg.austin.VersusArena.Constants.LobbyStatus;
+import bourg.austin.VersusArena.Constants.VersusKit;
+import bourg.austin.VersusArena.Constants.VersusKits;
 
 public class GameManager
 {
@@ -35,10 +37,18 @@ public class GameManager
 	
 	public void startGame(List<Player> players, Arena a)
 	{
-		for (Player p : players)
-			arenaManager.setPlayerStatus(p, LobbyStatus.IN_GAME);
+		System.out.println("Now in startgame");
 		
-		gamesInProgress.put(Game.getNextGameID(), new Game(this, players, a));
+		HashMap<Player, VersusKit> tempKits = new HashMap<Player, VersusKit>();
+		
+		for (Player p : players)
+		{
+			arenaManager.setPlayerStatus(p, LobbyStatus.IN_GAME);
+			tempKits.put(p, VersusKits.getKits().get(arenaManager.getCompetitors().get(p).getSelectedKitName()));
+		}
+		
+		gamesInProgress.put(Game.getNextGameID(), new Game(this, tempKits, a));
+		System.out.println("Startgame finished");
 	}
 	
 	public InGameStatus getPlayerStatus(Player p)
@@ -68,11 +78,16 @@ public class GameManager
 	
 	public ArrayList<Player> getPlayersInArena(String name)
 	{ 
+		System.out.println("Getting players in arena");
 		ArrayList<Player> tempInArena = new ArrayList<Player>();
 		for (Game game : gamesInProgress.values())
+		{
+			System.out.println("Checking " + name + " against " + game.getArena().getArenaName());
 			if (game.getArena().getArenaName().equals(name))
 				tempInArena.addAll(game.getPlayers());
+		}
 		
+		System.out.println("There are " + tempInArena.size() + "players sharing the arena");
 		return tempInArena;
 	}
 	
