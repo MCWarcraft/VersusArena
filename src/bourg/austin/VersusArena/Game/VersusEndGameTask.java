@@ -1,5 +1,6 @@
 package bourg.austin.VersusArena.Game;
 
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 public class VersusEndGameTask extends BukkitRunnable
@@ -25,6 +26,13 @@ public class VersusEndGameTask extends BukkitRunnable
 				else
 					game.getGameManager().getArenaManager().addWin(game.getTeam(teamNum).getPlayer(playerNum));
 				game.getGameManager().getArenaManager().bringPlayer(game.getTeam(teamNum).getPlayer(playerNum).getName());
+				
+				for (Player p : game.getGameManager().getArenaManager().getAllParticipants())
+				{
+					p.showPlayer(game.getTeam(teamNum).getPlayer(playerNum));
+					game.getTeam(teamNum).getPlayer(playerNum).showPlayer(p);
+				}
+				
 			}
 		
 		game.getGameManager().endGame(game.getGameID());

@@ -2,6 +2,7 @@ package bourg.austin.VersusArena.Arena;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -73,6 +74,11 @@ public class ArenaManager
 		Competitor tempCompetitor = competitors.get(p);
 		tempCompetitor.setSelectedKitName(kitName);
 		competitors.put(p, tempCompetitor);
+	}
+	
+	public Set<Player> getAllParticipants()
+	{
+		return playerLobbyStatuses.keySet();
 	}
 	
 	public void showLobbyBoard(Player player)
