@@ -14,13 +14,13 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 import bourg.austin.VersusArena.VersusArena;
 import bourg.austin.VersusArena.Constants.InGameStatus;
 import bourg.austin.VersusArena.Constants.Inventories;
 import bourg.austin.VersusArena.Constants.LobbyStatus;
 import bourg.austin.VersusArena.Game.Game;
-import bourg.austin.VersusArena.Game.VersusEndGameTask;
 
 public class MyListener implements Listener
 {
@@ -161,13 +161,7 @@ public class MyListener implements Listener
 		event.setCancelled(true);
 		involvedPlayer.setHealth(20);
 		
-		int playerTeamNum = -1;
-		
-		if (game.getTeam(0).containsPlayer(involvedPlayer))
-			playerTeamNum = 0;
-		else
-			playerTeamNum = 1;
-		
+	
 		//Hide the player from sight
 		for (Player p : game.getPlayers())
 			if (!involvedPlayer.equals(p))
@@ -178,16 +172,25 @@ public class MyListener implements Listener
 		for (Player p : game.getPlayers())
 			p.sendMessage(ChatColor.BLUE + involvedPlayer.getName() + " has fallen!");
 		
-		if (game.getTeam(playerTeamNum).isDefeated())
-		{
-			for (Player p : game.getPlayers())
-				p.sendMessage(ChatColor.BLUE + "It's all over!");
-			for (Player p : game.getTeam(playerTeamNum).getAllPlayers())
-				p.sendMessage(ChatColor.DARK_RED + "You have lost");
-			for (Player p : game.getTeam(Math.abs(playerTeamNum-1)).getAllPlayers())
-				p.sendMessage(ChatColor.GREEN + "You have won");
-			
-			new VersusEndGameTask(game, playerTeamNum).runTaskLater(plugin.getArenaManager().getPlugin(), 60);
-		}
+		game.checkGameOver(game.getTeamNum(involvedPlayer));
+	}
+	
+	@EventHandler
+	public void onLogout(PlayerQuitEvent event)
+	{
+		Player player = event.getPlayer();
+		Game game = plugin.getArenaManager().getGameManager().getGameByParticipant(player);
+		
+		if (game == null)
+			return;
+		if (!game.getPlayers().contains(player))
+			return;
+		
+		for (Player p : game.getPlayers())
+			p.sendMessage(ChatColor.DARK_RED + player.getName() + " has left the game.");
+		game.getGameManager().setPlayerStatus(player, InGameStatus.DEAD);
+		
+		game.checkGameOver(game.getTeamNum(player));
+		game.getGameManager().getArenaManager().setPlayerStatus(player, LobbyStatus.OFFLINE);
 	}
 }

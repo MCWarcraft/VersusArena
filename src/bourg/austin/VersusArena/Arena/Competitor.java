@@ -2,7 +2,9 @@ package bourg.austin.VersusArena.Arena;
 
 import java.util.HashMap;
 
+import bourg.austin.VersusArena.Constants.GameResult;
 import bourg.austin.VersusArena.Constants.VersusKits;
+import bourg.austin.VersusArena.Game.VersusTeam;
 
 public class Competitor
 {
@@ -13,7 +15,7 @@ public class Competitor
 	
 	public Competitor(String name)
 	{
-		this(name, 0, 0, 0, "Default");
+		this(name, 0, 0, 1500, "Default");
 	}
 	
 	
@@ -82,6 +84,16 @@ public class Competitor
 	
 	public int getRating()
 	{
+		return rating;
+	}
+	
+	public int updateRating(GameResult result, VersusTeam enemyTeam)
+	{
+		double expectedWinRate = 1.0 / (1.0 + Math.pow(10.0, (((double) enemyTeam.getAverageRating() - rating)) / 400.0));
+		System.out.println("Expected win rate:" + expectedWinRate);
+		Double doubleDelta = new Double(30.0 * (((double) result.getValue()) - expectedWinRate));
+		rating = rating + doubleDelta.intValue();
+		
 		return rating;
 	}
 }

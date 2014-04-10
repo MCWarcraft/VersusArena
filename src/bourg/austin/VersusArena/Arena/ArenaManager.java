@@ -62,6 +62,13 @@ public class ArenaManager
 		playerLobbyStatuses.put(player, LobbyStatus.IN_LOBBY);
 	}
 	
+	public void removePlayer(Player p)
+	{
+		boards.remove(p);
+		playerLobbyStatuses.remove(p);
+		System.out.println(p.getName() + " has been removed from the arena");
+	}
+	
 	public void setAvailableKits(OfflinePlayer p, HashMap<String, Boolean> kits)
 	{
 		Competitor tempCompetitor = competitors.get(p);

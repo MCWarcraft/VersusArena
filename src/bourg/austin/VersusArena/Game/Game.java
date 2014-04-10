@@ -163,9 +163,37 @@ public class Game implements Listener
 		}
 	}
 	
+	public boolean checkGameOver(int deathTeam)
+	{
+		if (teams[deathTeam].isDefeated())
+		{
+			for (Player p : allPlayers)
+				p.sendMessage(ChatColor.BLUE + "It's all over!");
+			for (Player p : teams[deathTeam].getAllPlayers())
+				p.sendMessage(ChatColor.DARK_RED + "You have lost");
+			for (Player p : teams[Math.abs(deathTeam-1)].getAllPlayers())
+				p.sendMessage(ChatColor.GREEN + "You have won");
+			
+			new VersusEndGameTask(this, deathTeam).runTaskLater(gameManager.getArenaManager().getPlugin(), 60);
+			
+			return true;
+		}
+		
+		return false;
+	}
+	
 	public int getNumberOfTeams()
 	{
 		return teams.length;
+	}
+	
+	public int getTeamNum(Player p)
+	{
+		if (teams[0].containsPlayer(p))
+			return 0;
+		else if (teams[1].containsPlayer(p))
+			return 0;
+		return -1;
 	}
 	
 	public List<Player> getPlayers()

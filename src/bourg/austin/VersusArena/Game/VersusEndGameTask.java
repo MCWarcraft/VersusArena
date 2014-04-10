@@ -3,6 +3,9 @@ package bourg.austin.VersusArena.Game;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import bourg.austin.VersusArena.Constants.GameResult;
+import bourg.austin.VersusArena.Constants.LobbyStatus;
+
 public class VersusEndGameTask extends BukkitRunnable
 {
 	private final Game game;
@@ -17,24 +20,37 @@ public class VersusEndGameTask extends BukkitRunnable
 	@Override
 	public void run()
 	{
+		System.out.println("Start end task");
+		
 		//Teleport players back to the nexus
 		for (int teamNum = 0; teamNum < game.getNumberOfTeams(); teamNum++)
 			for (int playerNum = 0; playerNum < game.getTeam(teamNum).getNumberOfPlayers(); playerNum++)
 			{
+				//Add wins
 				if (teamNum == losingTeamNum)
+				{
 					game.getGameManager().getArenaManager().addLoss(game.getTeam(teamNum).getPlayer(playerNum));
+					game.getGameManager().getArenaManager().getCompetitors().get(game.getTeam(teamNum).getPlayer(playerNum)).updateRating(GameResult.LOSS, game.getTeam(Math.abs(teamNum - 1)));
+				}
 				else
+				{
 					game.getGameManager().getArenaManager().addWin(game.getTeam(teamNum).getPlayer(playerNum));
-				game.getGameManager().getArenaManager().bringPlayer(game.getTeam(teamNum).getPlayer(playerNum).getName());
+					game.getGameManager().getArenaManager().getCompetitors().get(game.getTeam(teamNum).getPlayer(playerNum)).updateRating(GameResult.WIN, game.getTeam(Math.abs(teamNum - 1)));
+				}
+				
+				//If player is offline in the records
+				if (!game.getGameManager().getArenaManager().getPlayerStatus(game.getTeam(teamNum).getPlayer(playerNum)).equals(LobbyStatus.OFFLINE))
+					game.getGameManager().getArenaManager().bringPlayer(game.getTeam(teamNum).getPlayer(playerNum).getName());
 				
 				for (Player p : game.getGameManager().getArenaManager().getAllParticipants())
 				{
 					p.showPlayer(game.getTeam(teamNum).getPlayer(playerNum));
 					game.getTeam(teamNum).getPlayer(playerNum).showPlayer(p);
 				}
-				
 			}
 		
 		game.getGameManager().endGame(game.getGameID());
+		
+		System.out.println("End end task");
 	}
 }

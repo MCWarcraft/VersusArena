@@ -57,4 +57,12 @@ public class VersusTeam
 	{
 		return players.size();
 	}
+	
+	public int getAverageRating()
+	{
+		int totalRating = 0;
+		for (Player p : players)
+			totalRating += game.getGameManager().getArenaManager().getCompetitors().get(p).getRating();
+		return totalRating / players.size();
+	}
 }
