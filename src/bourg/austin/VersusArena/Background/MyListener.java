@@ -158,6 +158,7 @@ public class MyListener implements Listener
 		if (involvedPlayer.getHealth() - event.getDamage() > 0)
 			return;
 		
+		//To get to this point a player in a game must have died
 		event.setCancelled(true);
 		involvedPlayer.setHealth(20);
 		
@@ -172,7 +173,7 @@ public class MyListener implements Listener
 		for (Player p : game.getPlayers())
 			p.sendMessage(ChatColor.BLUE + involvedPlayer.getName() + " has fallen!");
 		
-		game.checkGameOver(game.getTeamNum(involvedPlayer));
+		game.checkGameOver();
 	}
 	
 	@EventHandler
@@ -190,7 +191,7 @@ public class MyListener implements Listener
 			p.sendMessage(ChatColor.DARK_RED + player.getName() + " has left the game.");
 		game.getGameManager().setPlayerStatus(player, InGameStatus.DEAD);
 		
-		game.checkGameOver(game.getTeamNum(player));
+		game.checkGameOver();
 		game.getGameManager().getArenaManager().setPlayerStatus(player, LobbyStatus.OFFLINE);
 	}
 }

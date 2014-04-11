@@ -20,12 +20,21 @@ public class VersusTeam
 	
 	public boolean isDefeated()
 	{
+		System.out.println("---------Starting isDefeated-------------");
 		HashMap<Player, InGameStatus> statuses = game.getGameManager().getPlayerStatuses();
-		
+		boolean returnbool = true;
 		for (Player p : statuses.keySet())
-			if (players.contains(p) && statuses.get(p).equals(InGameStatus.ALIVE))
-				return false;
-		return true;
+		{
+			if (players.contains(p))
+			{
+				System.out.println(p.getName() + " is " + (statuses.get(p).equals(InGameStatus.ALIVE) ? "alive" : "dead"));
+				if (statuses.get(p).equals(InGameStatus.ALIVE))
+					returnbool = false;
+			}
+		}
+		
+		System.out.println("Team is " + (returnbool ? "defeated" : "not defeated"));
+		return returnbool;
 	}
 	
 	public Player getPlayer(int num)
