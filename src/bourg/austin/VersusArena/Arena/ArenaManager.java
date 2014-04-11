@@ -93,9 +93,9 @@ public class ArenaManager
 		Competitor competitor = competitors.get(player);
 		
 		boards.put(player, new DisplayBoard(player, ChatColor.DARK_AQUA + player.getName(), ChatColor.GOLD, ChatColor.BLUE));
+		boards.get(player).putField("Rating: ", competitor.getRating());
 		boards.get(player).putField("Wins: ", competitor.getWins());
 		boards.get(player).putField("Losses: ", competitor.getLosses());
-		boards.get(player).putField("Rating: ", competitor.getRating());
 		boards.get(player).display();
 	}
 	
