@@ -1,10 +1,11 @@
-package bourg.austin.VersusArena.Game;
+package bourg.austin.VersusArena.Game.Task;
 
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import bourg.austin.VersusArena.Constants.GameResult;
 import bourg.austin.VersusArena.Constants.LobbyStatus;
+import bourg.austin.VersusArena.Game.Game;
 
 public class VersusEndGameTask extends BukkitRunnable
 {

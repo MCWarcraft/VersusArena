@@ -11,6 +11,8 @@ import org.bukkit.event.Listener;
 import bourg.austin.VersusArena.Arena.Arena;
 import bourg.austin.VersusArena.Constants.InGameStatus;
 import bourg.austin.VersusArena.Constants.VersusKit;
+import bourg.austin.VersusArena.Game.Task.VersusEndGameTask;
+import bourg.austin.VersusArena.Game.Task.VersusStartGameTask;
 
 public class Game implements Listener
 {
@@ -91,7 +93,7 @@ public class Game implements Listener
 		
 		distributeKits();
 		
-		new VersusUnlockPlayerTask(this).runTaskLater(gameManager.getArenaManager().getPlugin(), 60);
+		new VersusStartGameTask(this, 3).runTaskTimer(gameManager.getArenaManager().getPlugin(), 0, 20);
 	}
 	
 	public GameManager getGameManager()
