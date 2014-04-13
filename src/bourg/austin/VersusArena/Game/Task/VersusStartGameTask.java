@@ -32,11 +32,7 @@ public class VersusStartGameTask extends BukkitRunnable
 			//Unlock the players by setting them to in game
 			for (int teamNum = 0; teamNum < game.getNumberOfTeams(); teamNum++)
 				for (int playerNum = 0; playerNum < game.getTeam(teamNum).getNumberOfPlayers(); playerNum++)
-				{
-					System.out.println("Unlocking " + game.getTeam(teamNum).getPlayer(playerNum).getName());
-					
 					game.getGameManager().setPlayerStatus(game.getTeam(teamNum).getPlayer(playerNum), InGameStatus.ALIVE);
-				}
 			this.cancel();
 		}
 

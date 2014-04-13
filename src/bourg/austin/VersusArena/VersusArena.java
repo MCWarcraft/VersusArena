@@ -13,6 +13,7 @@ import bourg.austin.VersusArena.Arena.Arena;
 import bourg.austin.VersusArena.Arena.ArenaManager;
 import bourg.austin.VersusArena.Background.MyCommandExecutor;
 import bourg.austin.VersusArena.Background.MyListener;
+import bourg.austin.VersusArena.Constants.GameType;
 import bourg.austin.VersusArena.Constants.Inventories;
 import bourg.austin.VersusArena.Constants.VersusKits;
 
@@ -78,9 +79,18 @@ public final class VersusArena extends JavaPlugin
 		
 		for (OfflinePlayer p : arenaManager.getCompetitors().keySet())
 		{
-			this.getConfig().set("competitors." + p.getName() + ".wins", arenaManager.getCompetitors().get(p).getWins());
-			this.getConfig().set("competitors." + p.getName() + ".losses", arenaManager.getCompetitors().get(p).getLosses());
-			this.getConfig().set("competitors." + p.getName() + ".rating", arenaManager.getCompetitors().get(p).getRating());
+			this.getConfig().set("competitors." + p.getName() + ".1v1.wins", arenaManager.getCompetitors().get(p).getWins(GameType.ONE));
+			this.getConfig().set("competitors." + p.getName() + ".2v2.wins", arenaManager.getCompetitors().get(p).getWins(GameType.TWO));
+			this.getConfig().set("competitors." + p.getName() + ".3v3.wins", arenaManager.getCompetitors().get(p).getWins(GameType.THREE));
+			
+			this.getConfig().set("competitors." + p.getName() + ".1v1.losses", arenaManager.getCompetitors().get(p).getLosses(GameType.ONE));
+			this.getConfig().set("competitors." + p.getName() + ".2v2.losses", arenaManager.getCompetitors().get(p).getLosses(GameType.TWO));
+			this.getConfig().set("competitors." + p.getName() + ".3v3.losses", arenaManager.getCompetitors().get(p).getLosses(GameType.THREE));
+			
+			this.getConfig().set("competitors." + p.getName() + ".1v1.rating", arenaManager.getCompetitors().get(p).getRating(GameType.ONE));
+			this.getConfig().set("competitors." + p.getName() + ".2v2.rating", arenaManager.getCompetitors().get(p).getRating(GameType.TWO));
+			this.getConfig().set("competitors." + p.getName() + ".3v3.rating", arenaManager.getCompetitors().get(p).getRating(GameType.THREE));
+			
 			this.getConfig().set("competitors." + p.getName() + ".selectedkit", arenaManager.getCompetitors().get(p).getSelectedKitName());
 			for (String kitName : arenaManager.getCompetitors().get(p).getAvailableKits().keySet())
 				this.getConfig().set("competitors." + p.getName() + ".availablekits." + kitName, arenaManager.getCompetitors().get(p).getAvailableKits().get(kitName));
@@ -131,17 +141,27 @@ public final class VersusArena extends JavaPlugin
 			for (String compName : competitorNames)
 			{
 				arenaManager.addCompetitor(compName,
-						this.getConfig().getInt("competitors." + compName + ".wins"),
-						this.getConfig().getInt("competitors." + compName + ".losses"),
-						this.getConfig().getInt("competitors." + compName + ".rating"),
+						new Integer[] {
+						this.getConfig().getInt("competitors." + compName + ".1v1.wins"),
+						this.getConfig().getInt("competitors." + compName + ".2v2.wins"),
+						this.getConfig().getInt("competitors." + compName + ".3v3.wins")},
+						
+						new Integer[] {
+							this.getConfig().getInt("competitors." + compName + ".1v1.losses"),
+							this.getConfig().getInt("competitors." + compName + ".2v2.losses"),
+							this.getConfig().getInt("competitors." + compName + ".3v3.losses")},
+						
+						new Integer[] {
+							this.getConfig().getInt("competitors." + compName + ".1v1.rating"),
+							this.getConfig().getInt("competitors." + compName + ".2v2.rating"),
+							this.getConfig().getInt("competitors." + compName + ".3v3.rating")},
+						
 						this.getConfig().getString("competitors." + compName + "selectedkit"));
 				
 				tempKits = new HashMap<String, Boolean>();
 				for (String kitName : this.getConfig().getConfigurationSection("competitors." + compName + ".availablekits").getKeys(false))
-				{
-					System.out.println(kitName + ": " + this.getConfig().getBoolean("competitors." + compName + ".availablekits." + kitName));
 					tempKits.put(kitName, this.getConfig().getBoolean("competitors." + compName + ".availablekits." + kitName));
-				}
+					
 				arenaManager.setAvailableKits(Bukkit.getOfflinePlayer(compName), tempKits);
 				
 				arenaManager.setSelectedKit(Bukkit.getOfflinePlayer(compName), this.getConfig().getString("competitors." + compName + ".selectedkit"));

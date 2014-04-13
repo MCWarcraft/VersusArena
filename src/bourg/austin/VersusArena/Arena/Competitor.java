@@ -3,23 +3,24 @@ package bourg.austin.VersusArena.Arena;
 import java.util.HashMap;
 
 import bourg.austin.VersusArena.Constants.GameResult;
+import bourg.austin.VersusArena.Constants.GameType;
 import bourg.austin.VersusArena.Constants.VersusKits;
 import bourg.austin.VersusArena.Game.VersusTeam;
 
 public class Competitor
 {
-	private int wins, losses, rating;
+	private Integer[] wins, losses, rating;
 	private HashMap<String, Boolean> availableKits;
 	private String selectedKitName;
 	private String name;
 	
 	public Competitor(String name)
 	{
-		this(name, 0, 0, 1500, "Default");
+		this(name, new Integer[]{0, 0, 0}, new Integer[]{0, 0, 0}, new Integer[]{1500, 1500, 1500}, "Default");
 	}
 	
 	
-	public Competitor(String name, int wins, int losses, int rating, String selectedKitName)
+	public Competitor(String name, Integer[] wins, Integer[] losses, Integer[] rating, String selectedKitName)
 	{
 		this.name = name;
 		this.wins = wins;
@@ -60,40 +61,40 @@ public class Competitor
 		return name;
 	}
 	
-	public int getWins()
+	public int getWins(GameType type)
 	{
-		return wins;
+		return wins[type.getValue()];
 	}
 	
-	public Competitor addWin()
+	public Competitor addWin(GameType type)
 	{
-		wins++;
+		wins[type.getValue()]++;
+		System.out.println("Array index: " + type.getValue());
 		return this;
 	}
 	
-	public int getLosses()
+	public int getLosses(GameType type)
 	{
-		return losses;
+		return losses[type.getValue()];
 	}
 	
-	public Competitor addLoss()
+	public Competitor addLoss(GameType type)
 	{
-		losses++;
+		losses[type.getValue()]++;
 		return this;
 	}
 	
-	public int getRating()
+	public int getRating(GameType type)
 	{
-		return rating;
+		return rating[type.getValue()];
 	}
 	
 	public int updateRating(GameResult result, VersusTeam enemyTeam)
 	{
-		double expectedWinRate = 1.0 / (1.0 + Math.pow(10.0, (((double) enemyTeam.getAverageRating() - rating)) / 400.0));
-		System.out.println("Expected win rate:" + expectedWinRate);
+		double expectedWinRate = 1.0 / (1.0 + Math.pow(10.0, (((double) enemyTeam.getAverageRating() - rating[enemyTeam.getGame().getGameType().getValue()])) / 400.0));
 		Double doubleDelta = new Double(30.0 * (((double) result.getValue()) - expectedWinRate));
-		rating = rating + doubleDelta.intValue();
+		rating[enemyTeam.getGame().getGameType().getValue()] = rating[enemyTeam.getGame().getGameType().getValue()] + doubleDelta.intValue();
 		
-		return rating;
+		return rating[enemyTeam.getGame().getGameType().getValue()];
 	}
 }

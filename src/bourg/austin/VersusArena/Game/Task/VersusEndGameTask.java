@@ -21,8 +21,6 @@ public class VersusEndGameTask extends BukkitRunnable
 	@Override
 	public void run()
 	{
-		System.out.println("Start end task");
-		
 		//Teleport players back to the nexus
 		for (int teamNum = 0; teamNum < game.getNumberOfTeams(); teamNum++)
 			for (int playerNum = 0; playerNum < game.getTeam(teamNum).getNumberOfPlayers(); playerNum++)
@@ -30,12 +28,12 @@ public class VersusEndGameTask extends BukkitRunnable
 				//Add wins
 				if (teamNum == losingTeamNum)
 				{
-					game.getGameManager().getArenaManager().addLoss(game.getTeam(teamNum).getPlayer(playerNum));
+					game.getGameManager().getArenaManager().addLoss(game.getTeam(teamNum).getPlayer(playerNum), game.getGameType());
 					game.getGameManager().getArenaManager().getCompetitors().get(game.getTeam(teamNum).getPlayer(playerNum)).updateRating(GameResult.LOSS, game.getTeam(Math.abs(teamNum - 1)));
 				}
 				else
 				{
-					game.getGameManager().getArenaManager().addWin(game.getTeam(teamNum).getPlayer(playerNum));
+					game.getGameManager().getArenaManager().addWin(game.getTeam(teamNum).getPlayer(playerNum), game.getGameType());
 					game.getGameManager().getArenaManager().getCompetitors().get(game.getTeam(teamNum).getPlayer(playerNum)).updateRating(GameResult.WIN, game.getTeam(Math.abs(teamNum - 1)));
 				}
 				
@@ -51,7 +49,5 @@ public class VersusEndGameTask extends BukkitRunnable
 			}
 		
 		game.getGameManager().endGame(game.getGameID());
-		
-		System.out.println("End end task");
 	}
 }

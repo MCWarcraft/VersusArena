@@ -37,8 +37,6 @@ public class GameManager
 	
 	public void startGame(List<Player> players, Arena a)
 	{
-		System.out.println("Now in startgame");
-		
 		HashMap<Player, VersusKit> tempKits = new HashMap<Player, VersusKit>();
 		
 		for (Player p : players)
@@ -48,7 +46,6 @@ public class GameManager
 		}
 		
 		gamesInProgress.put(Game.getNextGameID(), new Game(this, tempKits, a));
-		System.out.println("Startgame finished");
 	}
 	
 	public InGameStatus getPlayerStatus(Player p)
@@ -82,17 +79,12 @@ public class GameManager
 	}
 	
 	public ArrayList<Player> getPlayersInArena(String name)
-	{ 
-		System.out.println("Getting players in arena");
+	{
 		ArrayList<Player> tempInArena = new ArrayList<Player>();
 		for (Game game : gamesInProgress.values())
-		{
-			System.out.println("Checking " + name + " against " + game.getArena().getArenaName());
 			if (game.getArena().getArenaName().equals(name))
 				tempInArena.addAll(game.getPlayers());
-		}
 		
-		System.out.println("There are " + tempInArena.size() + "players sharing the arena");
 		return tempInArena;
 	}
 	

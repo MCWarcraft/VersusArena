@@ -9,8 +9,8 @@ import bourg.austin.VersusArena.Constants.InGameStatus;
 
 public class VersusTeam
 {
-	List<Player> players;
-	Game game;
+	private List<Player> players;
+	private Game game;
 	
 	public VersusTeam(List<Player> players, Game game)
 	{
@@ -20,21 +20,12 @@ public class VersusTeam
 	
 	public boolean isDefeated()
 	{
-		System.out.println("---------Starting isDefeated-------------");
 		HashMap<Player, InGameStatus> statuses = game.getGameManager().getPlayerStatuses();
-		boolean returnbool = true;
 		for (Player p : statuses.keySet())
-		{
 			if (players.contains(p))
-			{
-				System.out.println(p.getName() + " is " + (statuses.get(p).equals(InGameStatus.ALIVE) ? "alive" : "dead"));
 				if (statuses.get(p).equals(InGameStatus.ALIVE))
-					returnbool = false;
-			}
-		}
-		
-		System.out.println("Team is " + (returnbool ? "defeated" : "not defeated"));
-		return returnbool;
+					return false;
+		return true;
 	}
 	
 	public Player getPlayer(int num)
@@ -70,8 +61,14 @@ public class VersusTeam
 	public int getAverageRating()
 	{
 		int totalRating = 0;
+		
 		for (Player p : players)
-			totalRating += game.getGameManager().getArenaManager().getCompetitors().get(p).getRating();
+			totalRating += game.getGameManager().getArenaManager().getCompetitors().get(p).getRating(game.getGameType());
 		return totalRating / players.size();
+	}
+	
+	public Game getGame()
+	{
+		return game;
 	}
 }

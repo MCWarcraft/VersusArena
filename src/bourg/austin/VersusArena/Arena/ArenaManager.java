@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import bourg.austin.VersusArena.VersusArena;
+import bourg.austin.VersusArena.Constants.GameType;
 import bourg.austin.VersusArena.Constants.Inventories;
 import bourg.austin.VersusArena.Constants.LobbyStatus;
 import bourg.austin.VersusArena.Game.GameManager;
@@ -92,21 +93,34 @@ public class ArenaManager
 	{		
 		Competitor competitor = competitors.get(player);
 		
-		boards.put(player, new DisplayBoard(player, ChatColor.DARK_AQUA + player.getName(), ChatColor.GOLD, ChatColor.BLUE));
-		boards.get(player).putField("Rating: ", competitor.getRating());
-		boards.get(player).putField("Wins: ", competitor.getWins());
-		boards.get(player).putField("Losses: ", competitor.getLosses());
+		boards.put(player, new DisplayBoard(player, ChatColor.AQUA + "Versus Arena", ChatColor.GOLD, ChatColor.GREEN));
+		
+		boards.get(player).putHeader("[1v1]");
+		boards.get(player).putField("Rating: ", competitor.getRating(GameType.ONE));
+		boards.get(player).putField("Wins: ", competitor.getWins(GameType.ONE));
+		boards.get(player).putField("Losses: ", competitor.getLosses(GameType.ONE));
+		
+		boards.get(player).putHeader("[2v2]");
+		boards.get(player).putField("Rating: ", competitor.getRating(GameType.TWO));
+		boards.get(player).putField("Wins: ", competitor.getWins(GameType.TWO));
+		boards.get(player).putField("Losses: ", competitor.getLosses(GameType.TWO));
+		
+		boards.get(player).putHeader("[3v3]");
+		boards.get(player).putField("Rating: ", competitor.getRating(GameType.THREE));
+		boards.get(player).putField("Wins: ", competitor.getWins(GameType.THREE));
+		boards.get(player).putField("Losses: ", competitor.getLosses(GameType.THREE));
+		
 		boards.get(player).display();
 	}
 	
-	public void addWin(OfflinePlayer player)
+	public void addWin(OfflinePlayer player, GameType type)
 	{
-		competitors.put(player, competitors.get(player).addWin());
+		competitors.put(player, competitors.get(player).addWin(type));
 	}
 	
-	public void addLoss(OfflinePlayer player)
+	public void addLoss(OfflinePlayer player, GameType type)
 	{
-		competitors.put(player, competitors.get(player).addLoss());
+		competitors.put(player, competitors.get(player).addLoss(type));
 	}
 
 	public boolean addToQueue(Player player, LobbyStatus gameType)
@@ -156,8 +170,6 @@ public class ArenaManager
 	
 	public void matchMake(LobbyStatus statusType)
 	{
-		System.out.println("matchmake called");
-		
 		ArrayList<Player> validPlayers = getSpecificQueue(statusType);
 		
 		Arena a = this.getRandomArenaBySize(statusType.getValue());
@@ -241,7 +253,7 @@ public class ArenaManager
 		p.sendMessage(ChatColor.BLUE + "You have been removed from the queue");
 	}
 	
-	public void addCompetitor(String name, int wins, int losses, int rating, String selectedKitName)
+	public void addCompetitor(String name, Integer[] wins, Integer[] losses, Integer[] rating, String selectedKitName)
 	{
 		competitors.put(Bukkit.getOfflinePlayer(name), new Competitor(name, wins, losses, rating, selectedKitName));
 	}

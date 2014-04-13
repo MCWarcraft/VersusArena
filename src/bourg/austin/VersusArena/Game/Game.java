@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 
 import bourg.austin.VersusArena.Arena.Arena;
+import bourg.austin.VersusArena.Constants.GameType;
 import bourg.austin.VersusArena.Constants.InGameStatus;
 import bourg.austin.VersusArena.Constants.VersusKit;
 import bourg.austin.VersusArena.Game.Task.VersusEndGameTask;
@@ -26,21 +27,14 @@ public class Game implements Listener
 	private ArrayList<Player> allPlayers;
 	private HashMap<Player, VersusKit> playerKits;
 	
+	private GameType gameType;
+	
 	public Game(GameManager gameManager, HashMap<Player, VersusKit> playerKits, Arena arena)
 	{		
-		
-		
 		allPlayers = new ArrayList<Player>();
 		allPlayers.addAll(playerKits.keySet());
 		
-		System.out.println("Game has been created with:");
-		for (Player p : allPlayers)
-			System.out.println(p.getName());
-		
-		for (Player p : playerKits.keySet())
-		{
-			System.out.println(p.getName() + ((playerKits.get(p) == null) ? " has no kit" : "has a kit"));
-		}
+		gameType = GameType.values()[allPlayers.size() / 2 - 1];
 		
 		this.playerKits = playerKits;
 		
@@ -66,11 +60,6 @@ public class Game implements Listener
 	
 	public void run()
 	{
-		//Register events starting on run
-		//gameManager.getArenaManager().getPlugin().getServer().getPluginManager().registerEvents(this, gameManager.getArenaManager().getPlugin());
-		
-		System.out.println("Game is being run");
-		
 		//Set invisibility
 		setInGameVisibility();
 		
@@ -202,5 +191,10 @@ public class Game implements Listener
 	public List<Player> getPlayers()
 	{
 		return allPlayers;
+	}
+	
+	public GameType getGameType()
+	{
+		return gameType;
 	}
 }
