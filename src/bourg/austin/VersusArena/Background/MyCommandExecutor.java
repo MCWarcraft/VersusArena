@@ -8,6 +8,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 import bourg.austin.VersusArena.VersusArena;
 
@@ -274,7 +275,108 @@ public class MyCommandExecutor implements CommandExecutor
 									sender.sendMessage(ChatColor.RED + "/versus arena delete <arena_name>");
 							}
 						}
-						//This is a copied block. Fix it.
+						else if (args[1].equalsIgnoreCase("setfacing"))
+						{
+							//If the command sender is a player
+							if (player != null)
+							{
+								if (player.hasPermission("pairspvp.arena.setfacing"))
+								{
+									//If the player has the correct permissions
+									if (plugin.getArenaManager().containsArena(args[2]))
+									{
+										//If the correct number of arguments has been supplied
+										if (args.length == 5 || args.length == 6)
+										{
+											int teamNum, playerNum;
+											try
+											{
+												teamNum = Integer.parseInt(args[3]);
+												playerNum = Integer.parseInt(args[4]);
+											}
+											catch (NumberFormatException e)
+											{
+												sender.sendMessage(ChatColor.RED + "The team number and player number must be valid integers.");
+												return true;
+											}
+											//If the team number is valid
+											if (teamNum == 1 || teamNum == 2)
+											{
+												//if the playerNum is valid
+												if (playerNum >= 1 && playerNum <= plugin.getArenaManager().getArena(args[2]).getTeamSize())
+												{
+													//If the player has a location selected
+													if (args.length == 5 && plugin.getSelectedLocation(sender.getName()) != null)
+													{
+														Location spawnLoc = plugin.getArenaManager().getArena(args[2]).getSpawnLocations()[teamNum - 1][playerNum - 1];
+														Location facingLoc = plugin.getSelectedLocation(sender.getName());
+														
+														plugin.getArenaManager().getArena(args[2]).setSpawnLocation(teamNum - 1, playerNum - 1, 
+																spawnLoc.setDirection(new Vector().setX(facingLoc.getBlockX() - spawnLoc.getBlockX()).setZ(facingLoc.getBlockZ() - spawnLoc.getBlockZ())));
+														
+														player.sendMessage(ChatColor.GREEN + "The facing for " + ChatColor.BLUE + "Team " + args[3] + " Player " + args[4] + ChatColor.GREEN + " has been set towards the selected location.");
+													}
+													//If the player does not have a location selected but has supplied a 6th arg
+													else if (args.length == 6)
+													{
+															int faceX = 0, faceZ = 0;
+															
+															switch (args[5].toLowerCase())
+															{
+																case "n":
+																	faceZ = -1;
+																	break;
+																case "e":
+																	faceX = 1;
+																	break;
+																case "s":
+																	faceZ = 1;
+																	break;
+																case "w":
+																	faceX = -1;
+																	break;
+																default:
+																	sender.sendMessage(ChatColor.RED + "Facings must be N, S, E, or W");
+																	return true;
+															}
+															
+															Location spawnLoc = plugin.getArenaManager().getArena(args[2]).getSpawnLocations()[teamNum - 1][playerNum - 1];
+															
+															plugin.getArenaManager().getArena(args[2]).setSpawnLocation(teamNum - 1, playerNum - 1, 
+																	spawnLoc.setDirection(new Vector().setX(faceX).setZ(faceZ)));
+															
+															player.sendMessage(ChatColor.GREEN + "The facing for " + ChatColor.BLUE + "Team " + args[3] + " Player " + args[4] + ChatColor.GREEN + " has been set to " + args[5].toUpperCase() + ".");
+														
+													}
+													else
+														sender.sendMessage(ChatColor.RED + "You must select a location for the facing");
+												}
+												//If the playerNum isn't valid
+												else
+												{
+													player.sendMessage(ChatColor.RED + "The player number must be between 1 and the team size");
+												}
+											}
+											//If the team number is wrong
+											else
+												sender.sendMessage(ChatColor.RED + "The team number must be either 1 or 2");
+										}
+										//If the wrong number of arguments has been supplied
+										else
+											sender.sendMessage(ChatColor.RED + "/versus arena setfacing <arenaname> <teamnum> <playernum>");								
+									}
+									//If the arena doesn't exist
+									else
+										sender.sendMessage(ChatColor.RED + "The arena " + ChatColor.BLUE + args[2] + ChatColor.RED + " does not exist");
+								}
+								//If the player doesn't have permission nothing will happen
+								
+							}
+							
+							//If the command sender is the console
+							else
+								sender.sendMessage("Only a player can set a spawn location.");
+						}
 						else if (args[1].equalsIgnoreCase("setspawn"))
 						{
 							//If the command sender is a player

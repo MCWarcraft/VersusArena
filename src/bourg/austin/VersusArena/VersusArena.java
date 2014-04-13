@@ -8,6 +8,7 @@ import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.Vector;
 
 import bourg.austin.VersusArena.Arena.Arena;
 import bourg.austin.VersusArena.Arena.ArenaManager;
@@ -178,7 +179,9 @@ public final class VersusArena extends JavaPlugin
 		return (loc.getWorld().getName()) + "|" +
 				(loc.getBlockX()) + "|" +
 				(loc.getBlockY()) + "|" +
-				(loc.getBlockZ());
+				(loc.getBlockZ()) + "|" +
+				(loc.getDirection().getX() + "|" +
+				(loc.getDirection().getZ()));
 	}
 	
 	public Location parseLocation(String unparsed)
@@ -188,7 +191,7 @@ public final class VersusArena extends JavaPlugin
 		
 		
 		String[] coords = unparsed.split("\\|");
-		double x, y, z;
+		double x, y, z, facingX, facingZ;
 		
 		World world = this.getServer().getWorld(coords[0]);
 		if (world == null)
@@ -196,16 +199,19 @@ public final class VersusArena extends JavaPlugin
 		
 		try
 		{
+			System.out.println(coords.length);
 			x = Double.parseDouble(coords[1]);
 			y = Double.parseDouble(coords[2]);
 			z = Double.parseDouble(coords[3]);
+			facingX = Double.parseDouble(coords[4]);
+			facingZ = Double.parseDouble(coords[5]);
 		}
 		catch (NumberFormatException e)
 		{
 			return null;
 		}
 		
-		return new Location(world, x, y, z);
+		return new Location(world, x, y, z).setDirection(new Vector().setX(facingX).setZ(facingZ));
 	}
 	
 	public ArenaManager getArenaManager()
