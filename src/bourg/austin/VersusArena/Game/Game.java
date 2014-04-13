@@ -159,8 +159,6 @@ public class Game implements Listener
 		for (int deathTeam = 0; deathTeam < 2; deathTeam++)
 			if (teams[deathTeam].isDefeated())
 			{
-				for (Player p : allPlayers)
-					p.sendMessage(ChatColor.BLUE + "It's all over!");
 				for (Player p : teams[deathTeam].getAllPlayers())
 					p.sendMessage(ChatColor.DARK_RED + "You have lost");
 				for (Player p : teams[Math.abs(deathTeam-1)].getAllPlayers())

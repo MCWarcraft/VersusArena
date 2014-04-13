@@ -95,15 +95,21 @@ public class ArenaManager
 		
 		boards.put(player, new DisplayBoard(player, ChatColor.AQUA + "Versus Arena", ChatColor.GOLD, ChatColor.GREEN));
 		
+		boards.get(player).putSpace();
+		
 		boards.get(player).putHeader("[1v1]");
 		boards.get(player).putField("Rating: ", competitor.getRating(GameType.ONE));
 		boards.get(player).putField("Wins: ", competitor.getWins(GameType.ONE));
 		boards.get(player).putField("Losses: ", competitor.getLosses(GameType.ONE));
 		
+		boards.get(player).putSpace();
+		
 		boards.get(player).putHeader("[2v2]");
 		boards.get(player).putField("Rating: ", competitor.getRating(GameType.TWO));
 		boards.get(player).putField("Wins: ", competitor.getWins(GameType.TWO));
 		boards.get(player).putField("Losses: ", competitor.getLosses(GameType.TWO));
+		
+		boards.get(player).putSpace();
 		
 		boards.get(player).putHeader("[3v3]");
 		boards.get(player).putField("Rating: ", competitor.getRating(GameType.THREE));
@@ -148,7 +154,10 @@ public class ArenaManager
 	{
 		p.getInventory().clear();
 		for (ItemStack i : Inventories.LOBBY_SLOTS)
+		{
+			System.out.println("ID " + i.getType().getId());
 			p.getInventory().addItem(i);
+		}
 		
 		p.updateInventory();
 	}

@@ -35,54 +35,44 @@ public class DisplayBoard
 		values = new HashMap<OfflinePlayer, Score>();
 	}
 	
+	private void put(String text)
+	{
+		String displayText = text;
+		//Add spaces to the end
+			while (displayText.length() < 16)
+				displayText += " ";
+			
+			//Loop and remove spaces for duplicates
+			while (true)
+			{
+				if (!values.keySet().contains(Bukkit.getOfflinePlayer(displayText)))
+					break;
+				
+				displayText = displayText.substring(0, displayText.length() - 1);
+				
+				if (displayText.length() < (text).length())
+					return;
+			}
+			
+			values.put(Bukkit.getOfflinePlayer(displayText), o.getScore(Bukkit.getOfflinePlayer(displayText)));
+			values.get(Bukkit.getOfflinePlayer(displayText)).setScore(0);
+			for (OfflinePlayer p : values.keySet())
+				values.get(p).setScore(values.get(p).getScore() + 1);
+	}
+	
 	public void putField(String name, int value)
-	{		
-		String displayText = name + scoreColor + value;
-
-		System.out.println("Putting \"" + name + value + "\"");
-		
-		System.out.println("Initial length is " + displayText.length() + " before alterations");
-		
-		while (displayText.length() < 16)
-			displayText += " ";
-		
-		System.out.println("length is " + displayText.length() + " before alterations");
-		
-		
-		while (true)
-		{
-			if (!values.keySet().contains(Bukkit.getOfflinePlayer(displayText)))
-			{
-				System.out.println("Break for good string");
-				break;
-			}
-			
-			displayText = displayText.substring(0, displayText.length() - 1);
-			
-			if (displayText.length() < (name + value).length())
-			{
-				System.out.println("Return for error");
-				return;
-			}
-		}
-		
-		System.out.println("length is " + displayText.length() + " after alterations");
-		
-		values.put(Bukkit.getOfflinePlayer(displayText), o.getScore(Bukkit.getOfflinePlayer(displayText)));
-		values.get(Bukkit.getOfflinePlayer(displayText)).setScore(0);
-		for (OfflinePlayer p : values.keySet())
-			values.get(p).setScore(values.get(p).getScore() + 1);
+	{
+		put(name + scoreColor + value);
 	}
 	
 	public void putHeader(String text)
-	{		
-		String displayText = headerColor + text;
-		while (displayText.length() < 16)
-			displayText += " ";
-		values.put(Bukkit.getOfflinePlayer(displayText), o.getScore(Bukkit.getOfflinePlayer(displayText)));
-		values.get(Bukkit.getOfflinePlayer(displayText)).setScore(0);
-		for (OfflinePlayer p : values.keySet())
-			values.get(p).setScore(values.get(p).getScore() + 1);
+	{
+		put(headerColor + text);
+	}
+	
+	public void putSpace()
+	{
+		put("");
 	}
 	
 	public void display()
