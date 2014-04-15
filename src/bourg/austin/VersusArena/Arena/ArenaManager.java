@@ -72,7 +72,11 @@ public class ArenaManager
 	
 	public void setAvailableKits(OfflinePlayer p, HashMap<String, Boolean> kits)
 	{
+		System.out.println("Player: " + p.getName());
+		System.out.println("Kits length: " + kits.size());
 		Competitor tempCompetitor = competitors.get(p);
+		if (tempCompetitor == null)
+			return;
 		tempCompetitor.setAvailableKits(kits);
 		competitors.put(p, tempCompetitor);
 	}
@@ -80,6 +84,8 @@ public class ArenaManager
 	public void setSelectedKit(OfflinePlayer p, String kitName)
 	{
 		Competitor tempCompetitor = competitors.get(p);
+		if (tempCompetitor == null)
+			return;
 		tempCompetitor.setSelectedKitName(kitName);
 		competitors.put(p, tempCompetitor);
 	}
