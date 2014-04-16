@@ -50,8 +50,6 @@ public final class VersusArena extends JavaPlugin
 		this.getCommand("versus").setExecutor(new MyCommandExecutor(this));
 		
 		this.loadData();
-		
-		System.out.println("habel14's kit at end of onEnable is " + arenaManager.getCompetitors().get(Bukkit.getOfflinePlayer("habel14")).getSelectedKitName());
 	} 		  
 	
 	public void onDisable()
@@ -87,7 +85,8 @@ public final class VersusArena extends JavaPlugin
 	
 	private synchronized void checkDatabase()
 	{
-		openConnection();
+		if (!openConnection())
+			return;
 		
 		try
 		{
@@ -228,8 +227,6 @@ public final class VersusArena extends JavaPlugin
 					for (int playerNum = 0; playerNum < 3; playerNum++)
 						arenaManager.getArena(singlesArenas.getString("name")).setSpawnLocation(teamNum, playerNum, parseLocation(singlesArenas.getString("team" + (teamNum + 1) + "player" + (playerNum + 1))));
 			}
-			
-			System.out.println("habel14's kit at end of load is " + arenaManager.getCompetitors().get(Bukkit.getOfflinePlayer("habel14")).getSelectedKitName());
 		}
 		catch (SQLException e)
 		{
@@ -246,9 +243,7 @@ public final class VersusArena extends JavaPlugin
 		openConnection();
 		PreparedStatement saveStatement = null;
 		try
-		{
-			System.out.println("habel14's kit is " + arenaManager.getCompetitors().get(Bukkit.getOfflinePlayer("habel14")).getSelectedKitName());
-			
+		{			
 			//Save competitors
 			for (OfflinePlayer p : arenaManager.getCompetitors().keySet())
 			{
@@ -366,6 +361,7 @@ public final class VersusArena extends JavaPlugin
 		catch (Exception e)
 		{
 			System.out.println("There has been an error with the connection. Please check your config.yml file and make sure that the database 'VersusArenaData' exists.");
+			e.printStackTrace();
 			return false;
 		}
 		return true;
