@@ -52,7 +52,7 @@ public class ArenaManager
 		
 		//Create a new profile
 		if (competitors.get(player) == null)
-			competitors.put(player, new Competitor(player.getName()));
+			competitors.put(player, new Competitor(player.getName(), plugin));
 		
 		showLobbyBoard(player);
 		
@@ -270,7 +270,7 @@ public class ArenaManager
 	
 	public void addCompetitor(String name, Integer[] wins, Integer[] losses, Integer[] rating, String selectedKitName)
 	{
-		competitors.put(Bukkit.getOfflinePlayer(name), new Competitor(name, wins, losses, rating, selectedKitName));
+		competitors.put(Bukkit.getOfflinePlayer(name), new Competitor(name, wins, losses, rating, selectedKitName, plugin));
 	}
 	
 	public void addArena(String name, int teamSize)

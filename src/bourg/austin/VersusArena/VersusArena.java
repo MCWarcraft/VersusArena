@@ -6,27 +6,32 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
 import bourg.austin.VersusArena.Arena.Arena;
 import bourg.austin.VersusArena.Arena.ArenaManager;
+import bourg.austin.VersusArena.Arena.Competitor;
 import bourg.austin.VersusArena.Background.MyCommandExecutor;
 import bourg.austin.VersusArena.Background.MyListener;
 import bourg.austin.VersusArena.Constants.GameType;
 import bourg.austin.VersusArena.Constants.Inventories;
+import bourg.austin.VersusArena.Constants.VersusKit;
 import bourg.austin.VersusArena.Constants.VersusKits;
 
 public final class VersusArena extends JavaPlugin
 {
 	private ArenaManager arenaManager;
+	private VersusKits versusKits;
 	
 	private HashMap<String, Location> selectedLocations;
 	
@@ -34,10 +39,13 @@ public final class VersusArena extends JavaPlugin
 	
 	public void onEnable()
 	{		
+		this.saveDefaultConfig();
+		
 		checkDatabase();
 		
+		versusKits = new VersusKits();
+		
 		Inventories.initialize();
-		VersusKits.initialize();
 		
 		//Declare variables
 		arenaManager = new ArenaManager(this);
@@ -74,6 +82,30 @@ public final class VersusArena extends JavaPlugin
 		}
 		catch (SQLException e)
 		{
+			return false;
+		}
+		finally
+		{
+			if (!maintainConnection)
+				closeConnection();
+		}
+	}
+	
+	public synchronized boolean isColInTable(String table, String colName, boolean maintainConnection)
+	{
+		if (!maintainConnection)
+			openConnection();
+		
+		try
+		{
+			PreparedStatement getIfColExistsStatement = connection.prepareStatement("SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = ? AND COLUMN_NAME = ?");
+			getIfColExistsStatement.setString(1, table);
+			getIfColExistsStatement.setString(2, colName);
+			return getIfColExistsStatement.executeQuery().next();
+		}
+		catch (SQLException e)
+		{
+			e.printStackTrace();
 			return false;
 		}
 		finally
@@ -165,6 +197,9 @@ public final class VersusArena extends JavaPlugin
 			ResultSet playerResults = getPlayerDataStatement.executeQuery();
 
 			arenaManager.clearCompetitors();
+			
+			HashMap<String, Boolean> tempKits = new HashMap<String, Boolean>();
+					
 			while (playerResults.next())
 			{
 				System.out.println(playerResults.getString("selectedkit"));
@@ -185,7 +220,16 @@ public final class VersusArena extends JavaPlugin
 							playerResults.getInt("rating2"),
 							playerResults.getInt("rating3")},
 						
-						playerResults.getString("selectedkit"));			
+						playerResults.getString("selectedkit"));
+				
+				tempKits.clear();
+				
+				for (int col = 12; col <= playerResults.getMetaData().getColumnCount(); col++)
+				{
+					tempKits.put(playerResults.getMetaData().getColumnName(col), playerResults.getBoolean(col));
+				}
+				
+				arenaManager.getCompetitors().get(Bukkit.getOfflinePlayer(playerResults.getString("player"))).setAvailableKits(tempKits);
 			}
 			
 			getPlayerDataStatement.close();
@@ -214,18 +258,18 @@ public final class VersusArena extends JavaPlugin
 			//Add doubles
 			while (doublesArenas.next())
 			{
-				arenaManager.addArena(singlesArenas.getString("name"), 1);
+				arenaManager.addArena(doublesArenas.getString("name"), 2);
 				for (int teamNum = 0; teamNum <= 1; teamNum++)
 					for (int playerNum = 0; playerNum < 2; playerNum++)
-						arenaManager.getArena(singlesArenas.getString("name")).setSpawnLocation(teamNum, playerNum, parseLocation(singlesArenas.getString("team" + (teamNum + 1) + "player" + (playerNum + 1))));
+						arenaManager.getArena(doublesArenas.getString("name")).setSpawnLocation(teamNum, playerNum, parseLocation(doublesArenas.getString("team" + (teamNum + 1) + "player" + (playerNum + 1))));
 			}
 			//Add triples
 			while (triplesArenas.next())
 			{
-				arenaManager.addArena(singlesArenas.getString("name"), 1);
+				arenaManager.addArena(triplesArenas.getString("name"), 3);
 				for (int teamNum = 0; teamNum <= 1; teamNum++)
 					for (int playerNum = 0; playerNum < 3; playerNum++)
-						arenaManager.getArena(singlesArenas.getString("name")).setSpawnLocation(teamNum, playerNum, parseLocation(singlesArenas.getString("team" + (teamNum + 1) + "player" + (playerNum + 1))));
+						arenaManager.getArena(triplesArenas.getString("name")).setSpawnLocation(teamNum, playerNum, parseLocation(triplesArenas.getString("team" + (teamNum + 1) + "player" + (playerNum + 1))));
 			}
 		}
 		catch (SQLException e)
@@ -244,18 +288,29 @@ public final class VersusArena extends JavaPlugin
 		PreparedStatement saveStatement = null;
 		try
 		{			
+			//Create columns for unlocked kits			
+			PreparedStatement addColStatement;
+			for (String key : this.getConfig().getConfigurationSection("kits").getKeys(false))
+			{
+				if (!isColInTable("player_data", key, true))
+				{
+					addColStatement = connection.prepareStatement("ALTER TABLE player_data ADD " + key + " BOOLEAN NOT NULL DEFAULT FALSE");
+					addColStatement.execute();
+				}
+			}			
+			
 			//Save competitors
+			boolean playerDataExists;
+			
 			for (OfflinePlayer p : arenaManager.getCompetitors().keySet())
 			{
 				System.out.println("Saving " + p.getName());
 				
-				boolean playerDataExists = isStringInCol("player_data", "player", p.getName(), true);
+				playerDataExists = isStringInCol("player_data", "player", p.getName(), true);
 				
 				String query = (playerDataExists ? "UPDATE" : "INSERT INTO") + " player_data SET " +
 						"wins1=?, losses1=?, rating1=?, wins2=?, losses2=?, rating2=?, wins3=?, losses3=?, rating3=?, selectedkit=?" + (playerDataExists ? " WHERE player = '" + p.getName() + "'" : ", player=?");
-				
-				System.out.println(query);
-				
+								
 				saveStatement = connection.prepareStatement(query);
 				if (!playerDataExists)
 					saveStatement.setString(11, p.getName());
@@ -282,22 +337,45 @@ public final class VersusArena extends JavaPlugin
 					saveStatement.execute();
 			}
 			
+			//Store unlocked kits
+			PreparedStatement saveKitsStatement;
+			
+			for (Competitor comp : arenaManager.getCompetitors().values())
+			{
+				for (String kitName : comp.getAvailableKits().keySet())
+				{
+					System.out.println("Attempting to update " + kitName + " for " + comp.getCompetitorName());
+					saveKitsStatement = connection.prepareStatement("UPDATE player_data SET " + kitName + " = ? WHERE player = ?");
+					
+					System.out.println("Def is " + (comp.getAvailableKits().get(kitName) ? "true" : "false"));
+					
+					saveKitsStatement.setBoolean(1, comp.getAvailableKits().get(kitName));
+					saveKitsStatement.setString(2, comp.getCompetitorName());
+					
+					saveKitsStatement.executeUpdate();
+				}
+			}
+			
 			//Save arenas
 			ArrayList<String> spawnLocations = new ArrayList<String>();
 			
 			for (String name : arenaManager.getAllArenas().keySet())
 			{
+				spawnLocations.clear();
+				
 				Arena tempArena = arenaManager.getAllArenas().get(name);
 				//Save spawn locations
 				for (int playerNum = 0; playerNum < tempArena.getTeamSize(); playerNum++)
 					for (int teamNum = 0; teamNum <= 1; teamNum++)
 					{
+						System.out.println("Adding team " + teamNum + " player " + playerNum);
 						if (tempArena.getSpawnLocations()[teamNum][playerNum] == null)
 							spawnLocations.add("null");
 						else
 							spawnLocations.add(locationToString(tempArena.getSpawnLocations()[teamNum][playerNum]));
 					}
 				
+				System.out.println("The arena " + name + " has " + spawnLocations.size() + " spawns");
 				String arenaType = "";
 				if (spawnLocations.size() == 2)
 					arenaType = "singles";
@@ -317,7 +395,6 @@ public final class VersusArena extends JavaPlugin
 				for (int i = 0; i < spawnLocations.size(); i++)
 					saveStatement.setString(i + 1, spawnLocations.get(i));
 				
-				
 				if (arenaDataExists)
 				{
 					System.out.println("updating arena");
@@ -329,6 +406,29 @@ public final class VersusArena extends JavaPlugin
 					saveStatement.setString(spawnLocations.size() + 1, name);
 					saveStatement.execute();
 				}
+				
+				//Remove arenas that have been deleted
+				PreparedStatement getArenasStatement, deleteArenaStatement;
+				String prefixes[] = new String[]{"singles", "doubles", "triples"};
+
+				for (String prefix : prefixes)
+				{
+					getArenasStatement = connection.prepareStatement("SELECT name FROM " + prefix + "_arena_data");
+					ResultSet arenas = getArenasStatement.executeQuery();
+					
+					while (arenas.next())
+					{
+						if (arenaManager.getArena(arenas.getString("name")) == null)
+						{
+							System.out.println("Removing " + arenas.getString("name") + " from the database");
+							
+							deleteArenaStatement = connection.prepareStatement("DELETE FROM " + prefix + "_arena_data WHERE name = ?");
+							deleteArenaStatement.setString(1, arenas.getString("name"));
+							
+							deleteArenaStatement.execute();						
+						}
+					}
+				}				
 			}
 		}
 		catch (SQLException e)
@@ -384,18 +484,11 @@ public final class VersusArena extends JavaPlugin
 	{
 		saveDatabase();
 		
-		
 		//Save nexus location
 		if (this.getArenaManager().getNexusLocation() != null)
 			this.getConfig().set("nexus.location", locationToString(this.arenaManager.getNexusLocation()));
 		else
-			this.getConfig().set("nexus.location", "null");
-		
-		//Save competitor available kit
-		for (OfflinePlayer p : arenaManager.getCompetitors().keySet())
-			for (String kitName : arenaManager.getCompetitors().get(p).getAvailableKits().keySet())
-				this.getConfig().set("competitors." + p.getName() + ".availablekits." + kitName, arenaManager.getCompetitors().get(p).getAvailableKits().get(kitName));
-		
+			this.getConfig().set("nexus.location", "null");		
 		
 		this.saveConfig();
 	}
@@ -403,30 +496,54 @@ public final class VersusArena extends JavaPlugin
 	public void loadData()
 	{
 		loadDatabase();
+		try
+		{
+			for (String kitName : this.getConfig().getConfigurationSection("kits").getKeys(false))
+			{
+				System.out.println("TOP OF LOAD LOOP");
+				ArrayList<ItemStack> armor, inventory;
+				armor = new ArrayList<ItemStack>();
+				inventory = new ArrayList<ItemStack>();
+				
+				String[] armorPieces = new String[]{"boots", "legs", "chest", "helmet"};
+				for (String piece : armorPieces)
+				{
+					try
+					{
+						armor.add(new ItemStack(Material.getMaterial(this.getConfig().getString("kits." + kitName + ".armor." + piece)), 1));
+					}
+					catch (NullPointerException e)
+					{
+						armor.add(new ItemStack(Material.AIR, 1));
+					}
+				}
+				
+				for (int slot = 1; slot <= 9; slot++)
+				{
+					try
+					{
+						inventory.add(new ItemStack(Material.getMaterial(this.getConfig().getString("kits." + kitName + ".inventory." + slot)), 1));
+					}
+					catch (NullPointerException e)
+					{
+						inventory.add(new ItemStack(Material.AIR, 1));
+					}
+				}
+				
+				System.out.println("There are " + armor.size() + " armor pieces");
+				System.out.println("There are " + inventory.size() + " inventory items");
+				
+				versusKits.addKit(kitName, new VersusKit(Arrays.copyOf(inventory.toArray(), inventory.toArray().length, ItemStack[].class), Arrays.copyOf(armor.toArray(), armor.toArray().length, ItemStack[].class)));
+			}
+		}
+		catch (NullPointerException e)
+		{
+			this.getServer().getLogger().info("There are no kits. The plugin will not operate as intended.");
+		}
+		
 		//Load nexus location
 		try {arenaManager.setNexusLocation(this.parseLocation(this.getConfig().getString("nexus.location")));}
 		catch (NullPointerException e) {this.arenaManager.setNexusLocation(null);}
-	
-		
-		
-		//Load player kits
-		Set<String> competitorNames = null;
-		try {competitorNames = this.getConfig().getConfigurationSection("competitors").getKeys(false);}
-		catch (NullPointerException e) {}
-		
-		HashMap<String, Boolean> tempKits;
-		
-		if (competitorNames != null)
-		{
-			for (String compName : competitorNames)
-			{
-				tempKits = new HashMap<String, Boolean>();
-				for (String kitName : this.getConfig().getConfigurationSection("competitors." + compName + ".availablekits").getKeys(false))
-					tempKits.put(kitName, this.getConfig().getBoolean("competitors." + compName + ".availablekits." + kitName));
-					
-				arenaManager.setAvailableKits(Bukkit.getOfflinePlayer(compName), tempKits);
-			}
-		}
 	}
 	
 	public static String locationToString(Location loc)
@@ -486,5 +603,10 @@ public final class VersusArena extends JavaPlugin
 	public Location getSelectedLocation(String name)
 	{
 		return selectedLocations.get(name);
+	}
+	
+	public VersusKits getVersusKits()
+	{
+		return versusKits;
 	}
 }

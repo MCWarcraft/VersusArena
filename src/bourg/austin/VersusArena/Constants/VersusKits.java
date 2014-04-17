@@ -2,21 +2,28 @@ package bourg.austin.VersusArena.Constants;
 
 import java.util.HashMap;
 
-import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
-
 public class VersusKits
 {
-	private static HashMap<String, VersusKit> kits;
+	private HashMap<String, VersusKit> kits;
 	
-	public static void initialize()
+	public VersusKits()
 	{
 		kits = new HashMap<String, VersusKit>();
-		kits.put("Default", new VersusKit(new ItemStack[]{new ItemStack(Material.DIAMOND_SWORD, 1)}, new ItemStack[]{}));
 	}
 	
-	public static HashMap<String, VersusKit> getKits()
+	public HashMap<String, VersusKit> getKits()
 	{
 		return kits;
+	}
+	
+	public boolean addKit(String name, VersusKit kit)
+	{
+		for (String s : kits.keySet())
+			if (name.equalsIgnoreCase(s))
+				return false;
+		
+		kits.put(name, kit);
+		System.out.println("The kit " + name + " has been added to VersusKits");
+		return true;
 	}
 }

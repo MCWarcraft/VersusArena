@@ -11,7 +11,6 @@ import bourg.austin.VersusArena.Arena.ArenaManager;
 import bourg.austin.VersusArena.Constants.InGameStatus;
 import bourg.austin.VersusArena.Constants.LobbyStatus;
 import bourg.austin.VersusArena.Constants.VersusKit;
-import bourg.austin.VersusArena.Constants.VersusKits;
 
 public class GameManager
 {
@@ -42,7 +41,8 @@ public class GameManager
 		for (Player p : players)
 		{
 			arenaManager.setPlayerStatus(p, LobbyStatus.IN_GAME);
-			tempKits.put(p, VersusKits.getKits().get(arenaManager.getCompetitors().get(p).getSelectedKitName()));
+			tempKits.put(p, arenaManager.getPlugin().getVersusKits().getKits().get(arenaManager.getCompetitors().get(p).getSelectedKitName()));
+			System.out.println(p.getName() + " is being passed "+ arenaManager.getCompetitors().get(p).getSelectedKitName());
 		}
 		
 		gamesInProgress.put(Game.getNextGameID(), new Game(this, tempKits, a));
@@ -87,11 +87,4 @@ public class GameManager
 		
 		return tempInArena;
 	}
-	
-	//TODO Delete this testing code
-	public int getNumberOfActiveGames()
-	{
-		return gamesInProgress.keySet().size();
-	}
-	
 }

@@ -17,6 +17,9 @@ public class VersusKit
 	@SuppressWarnings(value = { "deprecation" })
 	public void equipToPlayer(Player p)
 	{
+		System.out.println("Contents: " + contents.length);
+		System.out.println("Armor: " + armor.length);
+		
 		p.getInventory().clear();
 		for (ItemStack stack : contents)
 			p.getInventory().addItem(stack);

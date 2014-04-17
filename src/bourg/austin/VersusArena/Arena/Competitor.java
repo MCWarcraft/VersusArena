@@ -2,9 +2,9 @@ package bourg.austin.VersusArena.Arena;
 
 import java.util.HashMap;
 
+import bourg.austin.VersusArena.VersusArena;
 import bourg.austin.VersusArena.Constants.GameResult;
 import bourg.austin.VersusArena.Constants.GameType;
-import bourg.austin.VersusArena.Constants.VersusKits;
 import bourg.austin.VersusArena.Game.VersusTeam;
 
 public class Competitor
@@ -14,13 +14,13 @@ public class Competitor
 	private String selectedKitName;
 	private String name;
 	
-	public Competitor(String name)
+	public Competitor(String name, VersusArena plugin)
 	{
-		this(name, new Integer[]{0, 0, 0}, new Integer[]{0, 0, 0}, new Integer[]{1500, 1500, 1500}, "Default");
+		this(name, new Integer[]{0, 0, 0}, new Integer[]{0, 0, 0}, new Integer[]{1500, 1500, 1500}, "Def", plugin);
 	}
 	
 	
-	public Competitor(String name, Integer[] wins, Integer[] losses, Integer[] rating, String selectedKitName)
+	public Competitor(String name, Integer[] wins, Integer[] losses, Integer[] rating, String selectedKitName, VersusArena plugin)
 	{
 		this.name = name;
 		this.wins = wins;
@@ -29,9 +29,9 @@ public class Competitor
 		
 		//Kit permissions
 		this.availableKits = new HashMap<String, Boolean>();
-		for (String kitName : VersusKits.getKits().keySet())
+		for (String kitName : plugin.getVersusKits().getKits().keySet())
 			availableKits.put(kitName, false);
-		availableKits.put("Default", true);
+		availableKits.put("Def", true);
 		
 		this.selectedKitName = selectedKitName;
 	}
