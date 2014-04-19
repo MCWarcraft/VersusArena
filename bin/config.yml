@@ -1,4 +1,5 @@
 sql:
+  database:
   ip:
   port:
   username:

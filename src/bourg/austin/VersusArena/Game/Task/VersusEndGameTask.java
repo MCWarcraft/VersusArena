@@ -3,7 +3,9 @@ package bourg.austin.VersusArena.Game.Task;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import bourg.austin.HonorPoints.DatabaseOperations;
 import bourg.austin.VersusArena.Constants.GameResult;
+import bourg.austin.VersusArena.Constants.GameType;
 import bourg.austin.VersusArena.Constants.LobbyStatus;
 import bourg.austin.VersusArena.Game.Game;
 
@@ -35,6 +37,7 @@ public class VersusEndGameTask extends BukkitRunnable
 				{
 					game.getGameManager().getArenaManager().addWin(game.getTeam(teamNum).getPlayer(playerNum), game.getGameType());
 					game.getGameManager().getArenaManager().getCompetitors().get(game.getTeam(teamNum).getPlayer(playerNum)).updateRating(GameResult.WIN, game.getTeam(Math.abs(teamNum - 1)));
+					DatabaseOperations.setCurrency(game.getTeam(teamNum).getPlayer(playerNum), DatabaseOperations.getCurrency(game.getTeam(teamNum).getPlayer(playerNum)) + (game.getGameType().equals(GameType.ONE) ? 10 : 50));
 				}
 				
 				//If player is offline in the records

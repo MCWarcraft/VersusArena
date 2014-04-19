@@ -42,7 +42,6 @@ public class GameManager
 		{
 			arenaManager.setPlayerStatus(p, LobbyStatus.IN_GAME);
 			tempKits.put(p, arenaManager.getPlugin().getVersusKits().getKits().get(arenaManager.getCompetitors().get(p).getSelectedKitName()));
-			System.out.println(p.getName() + " is being passed "+ arenaManager.getCompetitors().get(p).getSelectedKitName());
 		}
 		
 		gamesInProgress.put(Game.getNextGameID(), new Game(this, tempKits, a));

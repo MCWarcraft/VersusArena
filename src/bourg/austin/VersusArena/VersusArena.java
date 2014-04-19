@@ -40,7 +40,6 @@ public final class VersusArena extends JavaPlugin
 	public void onEnable()
 	{		
 		this.saveDefaultConfig();
-		
 		checkDatabase();
 		
 		versusKits = new VersusKits();
@@ -62,7 +61,7 @@ public final class VersusArena extends JavaPlugin
 	
 	public void onDisable()
 	{
-		saveData();
+		saveDatabase();
 	}
 	
 	public synchronized boolean isStringInCol(String table, String colName, String rowName, boolean maintainConnection)
@@ -175,6 +174,11 @@ public final class VersusArena extends JavaPlugin
 					")");
 			openTriplesArenaDataStatement.execute();
 			openTriplesArenaDataStatement.close();
+			
+			//Configure databases for nexus
+			PreparedStatement openNexusDataStatement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS nexus_data (name varchar(17) not null, location varchar(255), PRIMARY KEY (name))");
+			openNexusDataStatement.execute();
+			openNexusDataStatement.close();
 		}
 		catch (SQLException e)
 		{
@@ -193,7 +197,7 @@ public final class VersusArena extends JavaPlugin
 		try
 		{		
 			//Load players
-			PreparedStatement getPlayerDataStatement = connection.prepareStatement("SELECT * FROM VersusArenaData.player_data");
+			PreparedStatement getPlayerDataStatement = connection.prepareStatement("SELECT * FROM player_data");
 			ResultSet playerResults = getPlayerDataStatement.executeQuery();
 
 			arenaManager.clearCompetitors();
@@ -202,8 +206,6 @@ public final class VersusArena extends JavaPlugin
 					
 			while (playerResults.next())
 			{
-				System.out.println(playerResults.getString("selectedkit"));
-				
 				arenaManager.addCompetitor(playerResults.getString("player"),
 						new Integer[] {
 						playerResults.getInt("wins1"),
@@ -237,13 +239,13 @@ public final class VersusArena extends JavaPlugin
 		
 			
 			//Load arenas
-			PreparedStatement getSinglesDataStatement = connection.prepareStatement("SELECT * FROM VersusArenaData.singles_arena_data");
+			PreparedStatement getSinglesDataStatement = connection.prepareStatement("SELECT * FROM singles_arena_data");
 			ResultSet singlesArenas = getSinglesDataStatement.executeQuery();
 			
-			PreparedStatement getDoublesDataStatement = connection.prepareStatement("SELECT * FROM VersusArenaData.doubles_arena_data");
+			PreparedStatement getDoublesDataStatement = connection.prepareStatement("SELECT * FROM doubles_arena_data");
 			ResultSet doublesArenas = getDoublesDataStatement.executeQuery();
 			
-			PreparedStatement getTriplesDataStatement = connection.prepareStatement("SELECT * FROM VersusArenaData.triples_arena_data");
+			PreparedStatement getTriplesDataStatement = connection.prepareStatement("SELECT * FROM triples_arena_data");
 			ResultSet triplesArenas = getTriplesDataStatement.executeQuery();
 			
 			arenaManager.clearArenas();
@@ -271,6 +273,17 @@ public final class VersusArena extends JavaPlugin
 					for (int playerNum = 0; playerNum < 3; playerNum++)
 						arenaManager.getArena(triplesArenas.getString("name")).setSpawnLocation(teamNum, playerNum, parseLocation(triplesArenas.getString("team" + (teamNum + 1) + "player" + (playerNum + 1))));
 			}
+	
+			//Load nexus location
+			PreparedStatement getNexusDataStatement = connection.prepareStatement("SELECT * FROM nexus_data");
+			ResultSet nexusLocation = getNexusDataStatement.executeQuery();
+			String locationRaw;
+			if (!nexusLocation.next())
+				locationRaw = "null";
+			else
+				locationRaw = nexusLocation.getString("location");
+			 
+			arenaManager.setNexusLocation(this.parseLocation(locationRaw));
 		}
 		catch (SQLException e)
 		{
@@ -282,7 +295,7 @@ public final class VersusArena extends JavaPlugin
 		}
 	}
 	
-	private synchronized void saveDatabase()
+	public synchronized void saveDatabase()
 	{
 		openConnection();
 		PreparedStatement saveStatement = null;
@@ -304,8 +317,6 @@ public final class VersusArena extends JavaPlugin
 			
 			for (OfflinePlayer p : arenaManager.getCompetitors().keySet())
 			{
-				System.out.println("Saving " + p.getName());
-				
 				playerDataExists = isStringInCol("player_data", "player", p.getName(), true);
 				
 				String query = (playerDataExists ? "UPDATE" : "INSERT INTO") + " player_data SET " +
@@ -329,8 +340,6 @@ public final class VersusArena extends JavaPlugin
 				
 				saveStatement.setString(10, arenaManager.getCompetitors().get(p).getSelectedKitName());
 				
-				System.out.println("Selected kit " + arenaManager.getCompetitors().get(p).getSelectedKitName());
-				
 				if (playerDataExists)
 					saveStatement.executeUpdate();
 				else
@@ -344,11 +353,7 @@ public final class VersusArena extends JavaPlugin
 			{
 				for (String kitName : comp.getAvailableKits().keySet())
 				{
-					System.out.println("Attempting to update " + kitName + " for " + comp.getCompetitorName());
 					saveKitsStatement = connection.prepareStatement("UPDATE player_data SET " + kitName + " = ? WHERE player = ?");
-					
-					System.out.println("Def is " + (comp.getAvailableKits().get(kitName) ? "true" : "false"));
-					
 					saveKitsStatement.setBoolean(1, comp.getAvailableKits().get(kitName));
 					saveKitsStatement.setString(2, comp.getCompetitorName());
 					
@@ -368,14 +373,12 @@ public final class VersusArena extends JavaPlugin
 				for (int playerNum = 0; playerNum < tempArena.getTeamSize(); playerNum++)
 					for (int teamNum = 0; teamNum <= 1; teamNum++)
 					{
-						System.out.println("Adding team " + teamNum + " player " + playerNum);
 						if (tempArena.getSpawnLocations()[teamNum][playerNum] == null)
 							spawnLocations.add("null");
 						else
 							spawnLocations.add(locationToString(tempArena.getSpawnLocations()[teamNum][playerNum]));
 					}
 				
-				System.out.println("The arena " + name + " has " + spawnLocations.size() + " spawns");
 				String arenaType = "";
 				if (spawnLocations.size() == 2)
 					arenaType = "singles";
@@ -387,8 +390,6 @@ public final class VersusArena extends JavaPlugin
 				boolean arenaDataExists = isStringInCol(arenaType + "_arena_data", "name", name, true);
 				String query = (arenaDataExists ? "UPDATE" : "INSERT INTO") + " " + arenaType + "_arena_data SET " +
 					"team1player1=?, team2player1=?" + (arenaType.equals("doubles") || arenaType.equals("triples") ? ", team1player2=?, team2player2=?" : "") + (arenaType.equals("triples") ? ", team1player3=?, team2player3=?" : "") + (arenaDataExists ? " WHERE name = '" + name + "'" : ", name=?");
-				
-				System.out.println(query);
 						
 				saveStatement = connection.prepareStatement(query);
 				
@@ -396,13 +397,9 @@ public final class VersusArena extends JavaPlugin
 					saveStatement.setString(i + 1, spawnLocations.get(i));
 				
 				if (arenaDataExists)
-				{
-					System.out.println("updating arena");
 					saveStatement.executeUpdate();
-				}
 				else
 				{
-					System.out.println("adding new arena");
 					saveStatement.setString(spawnLocations.size() + 1, name);
 					saveStatement.execute();
 				}
@@ -420,8 +417,6 @@ public final class VersusArena extends JavaPlugin
 					{
 						if (arenaManager.getArena(arenas.getString("name")) == null)
 						{
-							System.out.println("Removing " + arenas.getString("name") + " from the database");
-							
 							deleteArenaStatement = connection.prepareStatement("DELETE FROM " + prefix + "_arena_data WHERE name = ?");
 							deleteArenaStatement.setString(1, arenas.getString("name"));
 							
@@ -430,6 +425,19 @@ public final class VersusArena extends JavaPlugin
 					}
 				}				
 			}
+			boolean nexusDataExists = isStringInCol("nexus_data", "name", "nexus", true);
+			
+			String nexusQuery = (nexusDataExists ? "UPDATE" : "INSERT INTO") + " nexus_data SET " +
+					"location=?" + (nexusDataExists ? " WHERE name = 'nexus'" : ", name='nexus'");
+			
+			PreparedStatement nexusStatement = connection.prepareStatement(nexusQuery);
+			
+			nexusStatement.setString(1, locationToString(this.getArenaManager().getNexusLocation()));
+			if (nexusDataExists)
+				nexusStatement.executeUpdate();
+			else
+				nexusStatement.execute();
+			
 		}
 		catch (SQLException e)
 		{
@@ -451,8 +459,8 @@ public final class VersusArena extends JavaPlugin
 	
 	private synchronized boolean openConnection()
 	{
-		String connectionString = "jdbc:mysql://" + this.getConfig().getString("sql.ip") + ":" + this.getConfig().getString("sql.port") + "/VersusArenaData";
-		getServer().getLogger().info("Attempting to connect to database: " +connectionString);
+		String connectionString = "jdbc:mysql://" + this.getConfig().getString("sql.ip") + ":" + this.getConfig().getString("sql.port") + "/" + this.getConfig().getString("sql.database");
+		getServer().getLogger().info("Attempting to connect to database: " + connectionString);
 		
 		try
 		{
@@ -460,7 +468,6 @@ public final class VersusArena extends JavaPlugin
 		}
 		catch (Exception e)
 		{
-			System.out.println("There has been an error with the connection. Please check your config.yml file and make sure that the database 'VersusArenaData' exists.");
 			e.printStackTrace();
 			return false;
 		}
@@ -480,27 +487,14 @@ public final class VersusArena extends JavaPlugin
 		return true;
 	}
 	
-	public void saveData()
-	{
-		saveDatabase();
-		
-		//Save nexus location
-		if (this.getArenaManager().getNexusLocation() != null)
-			this.getConfig().set("nexus.location", locationToString(this.arenaManager.getNexusLocation()));
-		else
-			this.getConfig().set("nexus.location", "null");		
-		
-		this.saveConfig();
-	}
-	
 	public void loadData()
 	{
 		loadDatabase();
 		try
 		{
+			//Load kits
 			for (String kitName : this.getConfig().getConfigurationSection("kits").getKeys(false))
 			{
-				System.out.println("TOP OF LOAD LOOP");
 				ArrayList<ItemStack> armor, inventory;
 				armor = new ArrayList<ItemStack>();
 				inventory = new ArrayList<ItemStack>();
@@ -530,9 +524,6 @@ public final class VersusArena extends JavaPlugin
 					}
 				}
 				
-				System.out.println("There are " + armor.size() + " armor pieces");
-				System.out.println("There are " + inventory.size() + " inventory items");
-				
 				versusKits.addKit(kitName, new VersusKit(Arrays.copyOf(inventory.toArray(), inventory.toArray().length, ItemStack[].class), Arrays.copyOf(armor.toArray(), armor.toArray().length, ItemStack[].class)));
 			}
 		}
@@ -540,10 +531,6 @@ public final class VersusArena extends JavaPlugin
 		{
 			this.getServer().getLogger().info("There are no kits. The plugin will not operate as intended.");
 		}
-		
-		//Load nexus location
-		try {arenaManager.setNexusLocation(this.parseLocation(this.getConfig().getString("nexus.location")));}
-		catch (NullPointerException e) {this.arenaManager.setNexusLocation(null);}
 	}
 	
 	public static String locationToString(Location loc)
@@ -575,7 +562,6 @@ public final class VersusArena extends JavaPlugin
 		
 		try
 		{
-			System.out.println(coords.length);
 			x = Double.parseDouble(coords[1]);
 			y = Double.parseDouble(coords[2]);
 			z = Double.parseDouble(coords[3]);

@@ -16,11 +16,13 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+import bourg.austin.HonorPoints.OnlinePlayerCurrencyUpdateEvent;
 import bourg.austin.VersusArena.VersusArena;
 import bourg.austin.VersusArena.Constants.InGameStatus;
 import bourg.austin.VersusArena.Constants.Inventories;
 import bourg.austin.VersusArena.Constants.LobbyStatus;
 import bourg.austin.VersusArena.Game.Game;
+
 
 public class MyListener implements Listener
 {
@@ -193,5 +195,16 @@ public class MyListener implements Listener
 		
 		game.checkGameOver();
 		game.getGameManager().getArenaManager().setPlayerStatus(player, LobbyStatus.OFFLINE);
+	}
+
+	@EventHandler
+	public void onPlayerCurrencyUpdateEvent(OnlinePlayerCurrencyUpdateEvent event)
+	{
+		System.out.println("CurrencyUpdateEvent");
+		
+		if (!plugin.getArenaManager().getPlayerStatus(event.getPlayer()).equals(LobbyStatus.IN_GAME))
+		{
+			plugin.getArenaManager().showLobbyBoard(event.getPlayer());
+		}
 	}
 }

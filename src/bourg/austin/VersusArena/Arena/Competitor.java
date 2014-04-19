@@ -69,7 +69,6 @@ public class Competitor
 	public Competitor addWin(GameType type)
 	{
 		wins[type.getValue()]++;
-		System.out.println("Array index: " + type.getValue());
 		return this;
 	}
 	

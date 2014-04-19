@@ -100,9 +100,7 @@ public class Game implements Listener
 		for (Player playerInGame : allPlayers)
 		{
 			for (Player playerInArena : gameManager.getPlayersInArena(arena.getArenaName()))
-			{				
-				System.out.println("Invis call InGame " + playerInGame.getName() + " InArena " + playerInArena.getName());
-				
+			{
 				if (!allPlayers.contains(playerInArena))
 				{
 					playerInArena.hidePlayer(playerInGame);
@@ -120,7 +118,6 @@ public class Game implements Listener
 		{
 			for (Player player2 : allPlayers.subList(1, allPlayers.size()))
 			{
-				System.out.println("Invis fix p1 " + player1.getName() + " p2 " + player2.getName());
 				player1.showPlayer(player2);
 				player2.showPlayer(player1);
 			}
@@ -129,12 +126,8 @@ public class Game implements Listener
 	
 	public void distributeKits()
 	{
-		System.out.println("Kits should be given to " + allPlayers.size() + " players:");
 		for (Player p : allPlayers)
-		{
-			System.out.println("Kit given to " + p.getName());
 			playerKits.get(p).equipToPlayer(p);
-		}
 	}
 	
 	public Arena getArena()

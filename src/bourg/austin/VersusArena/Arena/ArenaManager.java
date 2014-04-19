@@ -11,6 +11,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import bourg.austin.HonorPoints.DatabaseOperations;
 import bourg.austin.VersusArena.VersusArena;
 import bourg.austin.VersusArena.Constants.GameType;
 import bourg.austin.VersusArena.Constants.Inventories;
@@ -67,13 +68,10 @@ public class ArenaManager
 	{
 		boards.remove(p);
 		playerLobbyStatuses.remove(p);
-		System.out.println(p.getName() + " has been removed from the arena");
 	}
 	
 	public void setAvailableKits(OfflinePlayer p, HashMap<String, Boolean> kits)
 	{
-		System.out.println("Player: " + p.getName());
-		System.out.println("Kits length: " + kits.size());
 		Competitor tempCompetitor = competitors.get(p);
 		if (tempCompetitor == null)
 			return;
@@ -97,6 +95,8 @@ public class ArenaManager
 	
 	public void showLobbyBoard(Player player)
 	{		
+		System.out.println("ShowLobbyBoard");
+		
 		Competitor competitor = competitors.get(player);
 		
 		boards.put(player, new DisplayBoard(player, ChatColor.AQUA + "Versus Arena", ChatColor.GOLD, ChatColor.GREEN));
@@ -107,20 +107,18 @@ public class ArenaManager
 		boards.get(player).putField("Rating: ", competitor.getRating(GameType.ONE));
 		boards.get(player).putField("Wins: ", competitor.getWins(GameType.ONE));
 		boards.get(player).putField("Losses: ", competitor.getLosses(GameType.ONE));
-		
-		boards.get(player).putSpace();
-		
+		//boards.get(player).putSpace();
 		boards.get(player).putHeader("[2v2]");
 		boards.get(player).putField("Rating: ", competitor.getRating(GameType.TWO));
 		boards.get(player).putField("Wins: ", competitor.getWins(GameType.TWO));
 		boards.get(player).putField("Losses: ", competitor.getLosses(GameType.TWO));
-		
-		boards.get(player).putSpace();
-		
+		//boards.get(player).putSpace();
 		boards.get(player).putHeader("[3v3]");
 		boards.get(player).putField("Rating: ", competitor.getRating(GameType.THREE));
 		boards.get(player).putField("Wins: ", competitor.getWins(GameType.THREE));
 		boards.get(player).putField("Losses: ", competitor.getLosses(GameType.THREE));
+		boards.get(player).putSpace();
+		boards.get(player).putField("Honor: ", DatabaseOperations.getCurrency(player));
 		
 		boards.get(player).display();
 	}
@@ -161,7 +159,6 @@ public class ArenaManager
 		p.getInventory().clear();
 		for (ItemStack i : Inventories.LOBBY_SLOTS)
 		{
-			System.out.println("ID " + i.getType().getId());
 			p.getInventory().addItem(i);
 		}
 		
@@ -191,13 +188,8 @@ public class ArenaManager
 		if (a == null)
 			return;
 		
-		
-		
 		if (validPlayers.size() >= statusType.getValue() * 2)
-		{
-			System.out.println("startgame executed");
 			gameManager.startGame(validPlayers.subList(0, statusType.getValue() * 2), a);
-		}
 	}
 	
 	

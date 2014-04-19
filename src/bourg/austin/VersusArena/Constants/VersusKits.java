@@ -23,7 +23,6 @@ public class VersusKits
 				return false;
 		
 		kits.put(name, kit);
-		System.out.println("The kit " + name + " has been added to VersusKits");
 		return true;
 	}
 }
