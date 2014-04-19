@@ -2,6 +2,7 @@ package bourg.austin.VersusArena.Arena;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 import org.bukkit.Bukkit;
@@ -17,6 +18,7 @@ import bourg.austin.VersusArena.Constants.GameType;
 import bourg.austin.VersusArena.Constants.Inventories;
 import bourg.austin.VersusArena.Constants.LobbyStatus;
 import bourg.austin.VersusArena.Game.GameManager;
+import bourg.austin.VersusArena.Game.Task.VersusMatchmakeTask;
 import bourg.austin.VersusArena.Interface.DisplayBoard;
 
 public class ArenaManager
@@ -43,10 +45,12 @@ public class ArenaManager
 		
 		competitors = new HashMap<OfflinePlayer, Competitor>();
 		playerLobbyStatuses = new HashMap<Player, LobbyStatus>();
+		
+		new VersusMatchmakeTask(this).runTaskTimer(this.plugin, 0, 300);
 	}
 	
 	public void bringPlayer(String playerName)
-	{		
+	{
 		Player player = plugin.getServer().getPlayer(playerName);
 		
 		giveLobbyInventory(player);
@@ -147,8 +151,6 @@ public class ArenaManager
 			giveQueueInventory(player, gameType.getValue());
 			player.sendMessage(ChatColor.BLUE + "You are now in the " + gameType.getValue() + "v" + gameType.getValue() + " queue.");
 			
-			matchMake(gameType);
-			
 			return true;
 		}
 	}
@@ -180,19 +182,53 @@ public class ArenaManager
 		p.updateInventory();
 	}
 	
-	public void matchMake(LobbyStatus statusType)
+	public void matchMake(LobbyStatus queueType)
 	{
-		ArrayList<Player> validPlayers = getSpecificQueue(statusType);
-		
-		Arena a = this.getRandomArenaBySize(statusType.getValue());
+		Arena a = this.getRandomArenaBySize(queueType.getValue());
 		if (a == null)
 			return;
 		
-		if (validPlayers.size() >= statusType.getValue() * 2)
-			gameManager.startGame(validPlayers.subList(0, statusType.getValue() * 2), a);
+		ArrayList<Player> validPlayers = getSpecificQueue(queueType);
+		
+		if (validPlayers.size() < queueType.getValue() * 2)
+			return;
+		
+		ArrayList<Competitor> validCompetitors = new ArrayList<Competitor>();
+		for (Player p : validPlayers)
+			validCompetitors.add(competitors.get(p));
+		
+		Competitor[] validCompetitorsArray = validCompetitors.toArray(new Competitor[validCompetitors.size()]);
+		
+		int n = validCompetitors.size();
+        Competitor tempComp;
+       
+        //Sort competitors
+        for(int i  = 0; i < n; i++)
+            for(int j = 1; j < (n - i); j++)
+                if(validCompetitorsArray[j - 1].getRating(queueType) > validCompetitorsArray[j].getRating(queueType))
+                {
+                    //swap the elements!
+                    tempComp = validCompetitorsArray[j-1];
+                    validCompetitorsArray[j-1] = validCompetitorsArray[j];
+                    validCompetitorsArray[j] = tempComp;
+                }
+        
+        //Rebuild players in order
+        List<Player> sortedValidPlayers = new ArrayList<Player>();
+        for (Competitor c : validCompetitorsArray)
+        	sortedValidPlayers.add(plugin.getServer().getPlayer(c.getCompetitorName()));
+        
+        //Drop random players to maintain fair sizing
+        int numToDrop = sortedValidPlayers.size() % (queueType.getValue() * 2);
+        for (int i = 0; i < numToDrop; i++)
+        	sortedValidPlayers.remove((int) (Math.random() * sortedValidPlayers.size()));
+		
+		while (sortedValidPlayers.size() >= queueType.getValue() * 2)
+		{
+			gameManager.startGame(sortedValidPlayers.subList(0, queueType.getValue() * 2), a);
+			sortedValidPlayers = sortedValidPlayers.subList(queueType.getValue() * 2, sortedValidPlayers.size());
+		}
 	}
-	
-	
 	
 	public ArrayList<Player> getSpecificQueue(LobbyStatus statusType)
 	{

@@ -13,8 +13,10 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.ItemStack;
 
 import bourg.austin.HonorPoints.OnlinePlayerCurrencyUpdateEvent;
 import bourg.austin.VersusArena.VersusArena;
@@ -206,5 +208,23 @@ public class MyListener implements Listener
 		{
 			plugin.getArenaManager().showLobbyBoard(event.getPlayer());
 		}
+	}
+	
+	@SuppressWarnings("deprecation")
+	@EventHandler 
+	public void onPlayerLogin(PlayerLoginEvent event)
+	{
+		if (event.getPlayer() == null)
+			System.out.println("Player in loginevent is null");
+		else if (event.getPlayer().getInventory() == null)
+			System.out.println("Player inventory in loginevent is null");
+		
+		for (ItemStack stack : Inventories.LOBBY_SLOTS)
+			if (event.getPlayer().getInventory().contains(stack))
+				event.getPlayer().getInventory().remove(stack);
+		for (ItemStack stack : Inventories.QUEUE_SLOTS)
+			if (event.getPlayer().getInventory().contains(stack))
+				event.getPlayer().getInventory().remove(stack);
+		//event.getPlayer().updateInventory();
 	}
 }

@@ -11,11 +11,13 @@ public class VersusTeam
 {
 	private List<Player> players;
 	private Game game;
+	private int pregameAverageRating;
 	
 	public VersusTeam(List<Player> players, Game game)
 	{
 		this.players = players;
 		this.game = game;
+		pregameAverageRating = getAverageRating();
 	}
 	
 	public boolean isDefeated()
@@ -70,5 +72,10 @@ public class VersusTeam
 	public Game getGame()
 	{
 		return game;
+	}
+	
+	public int getPregameAverageRating()
+	{
+		return pregameAverageRating;
 	}
 }

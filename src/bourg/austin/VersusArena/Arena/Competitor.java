@@ -5,6 +5,7 @@ import java.util.HashMap;
 import bourg.austin.VersusArena.VersusArena;
 import bourg.austin.VersusArena.Constants.GameResult;
 import bourg.austin.VersusArena.Constants.GameType;
+import bourg.austin.VersusArena.Constants.LobbyStatus;
 import bourg.austin.VersusArena.Game.VersusTeam;
 
 public class Competitor
@@ -88,9 +89,14 @@ public class Competitor
 		return rating[type.getValue()];
 	}
 	
+	public int getRating(LobbyStatus queueNum)
+	{
+		return rating[queueNum.getValue() - 1];
+	}
+	
 	public int updateRating(GameResult result, VersusTeam enemyTeam)
 	{
-		double expectedWinRate = 1.0 / (1.0 + Math.pow(10.0, (((double) enemyTeam.getAverageRating() - rating[enemyTeam.getGame().getGameType().getValue()])) / 400.0));
+		double expectedWinRate = 1.0 / (1.0 + Math.pow(10.0, (((double) enemyTeam.getPregameAverageRating() - rating[enemyTeam.getGame().getGameType().getValue()])) / 400.0));
 		Double doubleDelta = new Double(30.0 * (((double) result.getValue()) - expectedWinRate));
 		rating[enemyTeam.getGame().getGameType().getValue()] = rating[enemyTeam.getGame().getGameType().getValue()] + doubleDelta.intValue();
 		

@@ -1,10 +1,14 @@
 sql:
+  #The name of the database to be used
   database:
   ip:
   port:
   username:
   password:
+
+
 kits:
+  #Never delete the default kit. It must always be configured with something or ice will burn and pigs will fly on monkeys.
   Def:
     inventory:
       1:
