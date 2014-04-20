@@ -80,9 +80,7 @@ public class ArenaManager
 	}
 	
 	public void showLobbyBoard(Player player)
-	{		
-		System.out.println("ShowLobbyBoard");
-		
+	{
 		Competitor competitor = competitors.get(player);
 		
 		boards.put(player, new DisplayBoard(player, ChatColor.AQUA + "Versus Arena", ChatColor.GOLD, ChatColor.GREEN));

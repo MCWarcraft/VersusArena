@@ -118,6 +118,14 @@ public class Game implements Listener
 		}
 	}
 	
+	public boolean areTeammates(Player p1, Player p2)
+	{
+		for (VersusTeam team : teams)
+			if (team.containsPlayer(p1) && team.containsPlayer(p2))
+				return true;
+		return false;
+	}
+	
 	public void distributeKits()
 	{
 		for (Player p : allPlayers)

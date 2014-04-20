@@ -9,7 +9,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -139,43 +139,57 @@ public class MyListener implements Listener
 	
 	//Used to handle deaths in arena
 	@EventHandler
-	public void onPlayerDamage(EntityDamageEvent event)
+	public void onPlayerDamage(EntityDamageByEntityEvent event)
 	{		
 		if (event.getEntity() == null)
 			return;
 		else if (!(event.getEntity() instanceof Player))
 			return;
 
-		Player involvedPlayer = (Player) event.getEntity();
-
+		Player damagedPlayer = (Player) event.getEntity();
+		Player damagingPlayer = (Player) event.getDamager();
 		
-		if (involvedPlayer == null)
+		if (damagedPlayer == null)
 			return;
 		
-		Game game = plugin.getArenaManager().getGameManager().getGameByParticipant(involvedPlayer);
+		Game game = plugin.getArenaManager().getGameManager().getGameByParticipant(damagedPlayer);
 		
 		if (game == null)
 			return;
-		
-		if (!game.getPlayers().contains(involvedPlayer))
+
+		//If ghost attack
+		if (game.getGameManager().getPlayerStatus(damagingPlayer).equals(InGameStatus.DEAD))
+		{
+			damagingPlayer.sendMessage(ChatColor.DARK_RED + "You are a ghost");
+			event.setCancelled(true);
 			return;
-		if (involvedPlayer.getHealth() - event.getDamage() > 0)
+		}
+		
+		//If friendly fire
+		if (game.areTeammates(damagingPlayer, damagedPlayer))
+		{
+			damagingPlayer.sendMessage(ChatColor.DARK_RED + "Don't hit teammates");
+			event.setCancelled(true);
+			return;
+		}
+		
+		if (damagedPlayer.getHealth() - event.getDamage() > 0)
 			return;
 		
 		//To get to this point a player in a game must have died
 		event.setCancelled(true);
-		involvedPlayer.setHealth(20);
+		damagedPlayer.setHealth(20);
 		
 	
 		//Hide the player from sight
 		for (Player p : game.getPlayers())
-			if (!involvedPlayer.equals(p))
-				p.hidePlayer(involvedPlayer);
+			if (!damagedPlayer.equals(p))
+				p.hidePlayer(damagedPlayer);
 		
-		plugin.getArenaManager().getGameManager().setPlayerStatus(involvedPlayer, InGameStatus.DEAD);
+		plugin.getArenaManager().getGameManager().setPlayerStatus(damagedPlayer, InGameStatus.DEAD);
 		
 		for (Player p : game.getPlayers())
-			p.sendMessage(ChatColor.BLUE + involvedPlayer.getName() + " has fallen!");
+			p.sendMessage(ChatColor.BLUE + damagedPlayer.getName() + " has fallen!");
 		
 		game.checkGameOver();
 	}
@@ -202,8 +216,6 @@ public class MyListener implements Listener
 	@EventHandler
 	public void onPlayerCurrencyUpdateEvent(OnlinePlayerCurrencyUpdateEvent event)
 	{
-		System.out.println("CurrencyUpdateEvent");
-		
 		if (!plugin.getArenaManager().getPlayerStatus(event.getPlayer()).equals(LobbyStatus.IN_GAME))
 		{
 			plugin.getArenaManager().showLobbyBoard(event.getPlayer());
@@ -214,11 +226,6 @@ public class MyListener implements Listener
 	@EventHandler 
 	public void onPlayerLogin(PlayerLoginEvent event)
 	{
-		if (event.getPlayer() == null)
-			System.out.println("Player in loginevent is null");
-		else if (event.getPlayer().getInventory() == null)
-			System.out.println("Player inventory in loginevent is null");
-		
 		for (ItemStack stack : Inventories.LOBBY_SLOTS)
 			if (event.getPlayer().getInventory().contains(stack))
 				event.getPlayer().getInventory().remove(stack);
