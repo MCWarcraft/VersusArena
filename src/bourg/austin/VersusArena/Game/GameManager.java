@@ -10,7 +10,6 @@ import bourg.austin.VersusArena.Arena.Arena;
 import bourg.austin.VersusArena.Arena.ArenaManager;
 import bourg.austin.VersusArena.Constants.InGameStatus;
 import bourg.austin.VersusArena.Constants.LobbyStatus;
-import bourg.austin.VersusArena.Constants.VersusKit;
 
 public class GameManager
 {
@@ -36,15 +35,10 @@ public class GameManager
 	
 	public void startGame(List<Player> players, Arena a)
 	{
-		HashMap<Player, VersusKit> tempKits = new HashMap<Player, VersusKit>();
-		
 		for (Player p : players)
-		{
 			arenaManager.setPlayerStatus(p, LobbyStatus.IN_GAME);
-			tempKits.put(p, arenaManager.getPlugin().getVersusKits().getKits().get(arenaManager.getCompetitors().get(p).getSelectedKitName()));
-		}
 		
-		gamesInProgress.put(Game.getNextGameID(), new Game(this, tempKits, a));
+		gamesInProgress.put(Game.getNextGameID(), new Game(this, players, a));
 	}
 	
 	public InGameStatus getPlayerStatus(Player p)

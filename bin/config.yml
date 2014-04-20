@@ -7,21 +7,19 @@ sql:
   password:
 
 
-kits:
-  #Never delete the default kit. It must always be configured with something or ice will burn and pigs will fly on monkeys.
-  Def:
-    inventory:
-      1:
-      2:
-      3:
-      4:
-      5:
-      6:
-      7:
-      8:
-      9:
-    armor:
-      helmet:
-      chest:
-      legs:
-      boots:
+kit:
+  inventory:
+    1:
+    2:
+    3:
+    4:
+    5:
+    6:
+    7:
+    8:
+    9:
+  armor:
+    helmet:
+    chest:
+    legs:
+    boots:

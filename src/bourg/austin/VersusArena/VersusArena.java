@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -20,18 +19,15 @@ import org.bukkit.util.Vector;
 
 import bourg.austin.VersusArena.Arena.Arena;
 import bourg.austin.VersusArena.Arena.ArenaManager;
-import bourg.austin.VersusArena.Arena.Competitor;
 import bourg.austin.VersusArena.Background.MyCommandExecutor;
 import bourg.austin.VersusArena.Background.MyListener;
 import bourg.austin.VersusArena.Constants.GameType;
 import bourg.austin.VersusArena.Constants.Inventories;
 import bourg.austin.VersusArena.Constants.VersusKit;
-import bourg.austin.VersusArena.Constants.VersusKits;
 
 public final class VersusArena extends JavaPlugin
 {
 	private ArenaManager arenaManager;
-	private VersusKits versusKits;
 	
 	private HashMap<String, Location> selectedLocations;
 	
@@ -41,8 +37,6 @@ public final class VersusArena extends JavaPlugin
 	{		
 		this.saveDefaultConfig();
 		checkDatabase();
-		
-		versusKits = new VersusKits();
 		
 		Inventories.initialize();
 		
@@ -133,7 +127,6 @@ public final class VersusArena extends JavaPlugin
 						"wins3 int DEFAULT 0," +
 						"losses3 int DEFAULT 0," +
 						"rating3 int DEFAULT 1500," +
-						"selectedkit varchar(20) DEFAULT 'Default'," +
 						"PRIMARY KEY (player) " +
 					")");
 			openPlayerDataStatement.execute();
@@ -202,7 +195,7 @@ public final class VersusArena extends JavaPlugin
 
 			arenaManager.clearCompetitors();
 			
-			HashMap<String, Boolean> tempKits = new HashMap<String, Boolean>();
+			//HashMap<String, Boolean> tempKits = new HashMap<String, Boolean>();
 					
 			while (playerResults.next())
 			{
@@ -220,18 +213,8 @@ public final class VersusArena extends JavaPlugin
 						new Integer[] {
 							playerResults.getInt("rating1"),
 							playerResults.getInt("rating2"),
-							playerResults.getInt("rating3")},
-						
-						playerResults.getString("selectedkit"));
-				
-				tempKits.clear();
-				
-				for (int col = 12; col <= playerResults.getMetaData().getColumnCount(); col++)
-				{
-					tempKits.put(playerResults.getMetaData().getColumnName(col), playerResults.getBoolean(col));
-				}
-				
-				arenaManager.getCompetitors().get(Bukkit.getOfflinePlayer(playerResults.getString("player"))).setAvailableKits(tempKits);
+							playerResults.getInt("rating3")}
+						);
 			}
 			
 			getPlayerDataStatement.close();
@@ -300,18 +283,7 @@ public final class VersusArena extends JavaPlugin
 		openConnection();
 		PreparedStatement saveStatement = null;
 		try
-		{			
-			//Create columns for unlocked kits			
-			PreparedStatement addColStatement;
-			for (String key : this.getConfig().getConfigurationSection("kits").getKeys(false))
-			{
-				if (!isColInTable("player_data", key, true))
-				{
-					addColStatement = connection.prepareStatement("ALTER TABLE player_data ADD " + key + " BOOLEAN NOT NULL DEFAULT FALSE");
-					addColStatement.execute();
-				}
-			}			
-			
+		{
 			//Save competitors
 			boolean playerDataExists;
 			
@@ -320,11 +292,11 @@ public final class VersusArena extends JavaPlugin
 				playerDataExists = isStringInCol("player_data", "player", p.getName(), true);
 				
 				String query = (playerDataExists ? "UPDATE" : "INSERT INTO") + " player_data SET " +
-						"wins1=?, losses1=?, rating1=?, wins2=?, losses2=?, rating2=?, wins3=?, losses3=?, rating3=?, selectedkit=?" + (playerDataExists ? " WHERE player = '" + p.getName() + "'" : ", player=?");
+						"wins1=?, losses1=?, rating1=?, wins2=?, losses2=?, rating2=?, wins3=?, losses3=?, rating3=?" + (playerDataExists ? " WHERE player = '" + p.getName() + "'" : ", player=?");
 								
 				saveStatement = connection.prepareStatement(query);
 				if (!playerDataExists)
-					saveStatement.setString(11, p.getName());
+					saveStatement.setString(10, p.getName());
 				
 				saveStatement.setInt(1, arenaManager.getCompetitors().get(p).getWins(GameType.ONE));
 				saveStatement.setInt(4, arenaManager.getCompetitors().get(p).getWins(GameType.TWO));
@@ -338,27 +310,10 @@ public final class VersusArena extends JavaPlugin
 				saveStatement.setInt(6, arenaManager.getCompetitors().get(p).getRating(GameType.TWO));
 				saveStatement.setInt(9, arenaManager.getCompetitors().get(p).getRating(GameType.THREE));
 				
-				saveStatement.setString(10, arenaManager.getCompetitors().get(p).getSelectedKitName());
-				
 				if (playerDataExists)
 					saveStatement.executeUpdate();
 				else
 					saveStatement.execute();
-			}
-			
-			//Store unlocked kits
-			PreparedStatement saveKitsStatement;
-			
-			for (Competitor comp : arenaManager.getCompetitors().values())
-			{
-				for (String kitName : comp.getAvailableKits().keySet())
-				{
-					saveKitsStatement = connection.prepareStatement("UPDATE player_data SET " + kitName + " = ? WHERE player = ?");
-					saveKitsStatement.setBoolean(1, comp.getAvailableKits().get(kitName));
-					saveKitsStatement.setString(2, comp.getCompetitorName());
-					
-					saveKitsStatement.executeUpdate();
-				}
 			}
 			
 			//Save arenas
@@ -492,40 +447,37 @@ public final class VersusArena extends JavaPlugin
 		loadDatabase();
 		try
 		{
-			//Load kits
-			for (String kitName : this.getConfig().getConfigurationSection("kits").getKeys(false))
+			//Load kit
+			ArrayList<ItemStack> armor, inventory;
+			armor = new ArrayList<ItemStack>();
+			inventory = new ArrayList<ItemStack>();
+			
+			String[] armorPieces = new String[]{"boots", "legs", "chest", "helmet"};
+			for (String piece : armorPieces)
 			{
-				ArrayList<ItemStack> armor, inventory;
-				armor = new ArrayList<ItemStack>();
-				inventory = new ArrayList<ItemStack>();
-				
-				String[] armorPieces = new String[]{"boots", "legs", "chest", "helmet"};
-				for (String piece : armorPieces)
+				try
 				{
-					try
-					{
-						armor.add(new ItemStack(Material.getMaterial(this.getConfig().getString("kits." + kitName + ".armor." + piece)), 1));
-					}
-					catch (NullPointerException e)
-					{
-						armor.add(new ItemStack(Material.AIR, 1));
-					}
+					armor.add(new ItemStack(Material.getMaterial(this.getConfig().getString("kit.armor." + piece)), 1));
 				}
-				
-				for (int slot = 1; slot <= 9; slot++)
+				catch (NullPointerException e)
 				{
-					try
-					{
-						inventory.add(new ItemStack(Material.getMaterial(this.getConfig().getString("kits." + kitName + ".inventory." + slot)), 1));
-					}
-					catch (NullPointerException e)
-					{
-						inventory.add(new ItemStack(Material.AIR, 1));
-					}
+					armor.add(new ItemStack(Material.AIR, 1));
 				}
-				
-				versusKits.addKit(kitName, new VersusKit(Arrays.copyOf(inventory.toArray(), inventory.toArray().length, ItemStack[].class), Arrays.copyOf(armor.toArray(), armor.toArray().length, ItemStack[].class)));
 			}
+			
+			for (int slot = 1; slot <= 9; slot++)
+			{
+				try
+				{
+					inventory.add(new ItemStack(Material.getMaterial(this.getConfig().getString("kit.inventory." + slot)), 1));
+				}
+				catch (NullPointerException e)
+				{
+					inventory.add(new ItemStack(Material.AIR, 1));
+				}
+			}
+			
+			VersusKit.initialize(Arrays.copyOf(inventory.toArray(), inventory.toArray().length, ItemStack[].class), Arrays.copyOf(armor.toArray(), armor.toArray().length, ItemStack[].class));
 		}
 		catch (NullPointerException e)
 		{
@@ -589,10 +541,5 @@ public final class VersusArena extends JavaPlugin
 	public Location getSelectedLocation(String name)
 	{
 		return selectedLocations.get(name);
-	}
-	
-	public VersusKits getVersusKits()
-	{
-		return versusKits;
 	}
 }

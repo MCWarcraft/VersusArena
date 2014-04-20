@@ -5,17 +5,17 @@ import org.bukkit.inventory.ItemStack;
 
 public class VersusKit
 {
-	private ItemStack[] contents;
-	private ItemStack[] armor;
+	private static ItemStack[] contents;
+	private static ItemStack[] armor;
 	
-	public VersusKit(ItemStack[] contents, ItemStack[] armor)
+	public static void initialize(ItemStack[] contents, ItemStack[] armor)
 	{
-		this.contents = contents;
-		this.armor = armor;
+		VersusKit.contents = contents;
+		VersusKit.armor = armor;
 	}
 	
 	@SuppressWarnings(value = { "deprecation" })
-	public void equipToPlayer(Player p)
+	public static void equipToPlayer(Player p)
 	{
 		p.getInventory().clear();
 		for (ItemStack stack : contents)

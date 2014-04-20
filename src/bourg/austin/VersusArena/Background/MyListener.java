@@ -210,7 +210,7 @@ public class MyListener implements Listener
 		}
 	}
 	
-	@SuppressWarnings("deprecation")
+	//@SuppressWarnings("deprecation")
 	@EventHandler 
 	public void onPlayerLogin(PlayerLoginEvent event)
 	{

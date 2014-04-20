@@ -1,7 +1,5 @@
 package bourg.austin.VersusArena.Arena;
 
-import java.util.HashMap;
-
 import bourg.austin.VersusArena.VersusArena;
 import bourg.austin.VersusArena.Constants.GameResult;
 import bourg.austin.VersusArena.Constants.GameType;
@@ -11,50 +9,20 @@ import bourg.austin.VersusArena.Game.VersusTeam;
 public class Competitor
 {
 	private Integer[] wins, losses, rating;
-	private HashMap<String, Boolean> availableKits;
-	private String selectedKitName;
 	private String name;
 	
 	public Competitor(String name, VersusArena plugin)
 	{
-		this(name, new Integer[]{0, 0, 0}, new Integer[]{0, 0, 0}, new Integer[]{1500, 1500, 1500}, "Def", plugin);
+		this(name, new Integer[]{0, 0, 0}, new Integer[]{0, 0, 0}, new Integer[]{1500, 1500, 1500}, plugin);
 	}
 	
 	
-	public Competitor(String name, Integer[] wins, Integer[] losses, Integer[] rating, String selectedKitName, VersusArena plugin)
+	public Competitor(String name, Integer[] wins, Integer[] losses, Integer[] rating, VersusArena plugin)
 	{
 		this.name = name;
 		this.wins = wins;
 		this.losses = losses;
 		this.rating = rating;
-		
-		//Kit permissions
-		this.availableKits = new HashMap<String, Boolean>();
-		for (String kitName : plugin.getVersusKits().getKits().keySet())
-			availableKits.put(kitName, false);
-		availableKits.put("Def", true);
-		
-		this.selectedKitName = selectedKitName;
-	}
-	
-	public String getSelectedKitName()
-	{
-		return selectedKitName;
-	}
-	
-	public void setAvailableKits(HashMap<String, Boolean> kits)
-	{
-		this.availableKits = kits;
-	}
-	
-	public void setSelectedKitName(String selectedKitName)
-	{
-		this.selectedKitName = selectedKitName;
-	}
-	
-	public HashMap<String, Boolean> getAvailableKits()
-	{
-		return availableKits;
 	}
 	
 	public String getCompetitorName()

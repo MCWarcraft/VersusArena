@@ -74,24 +74,6 @@ public class ArenaManager
 		playerLobbyStatuses.remove(p);
 	}
 	
-	public void setAvailableKits(OfflinePlayer p, HashMap<String, Boolean> kits)
-	{
-		Competitor tempCompetitor = competitors.get(p);
-		if (tempCompetitor == null)
-			return;
-		tempCompetitor.setAvailableKits(kits);
-		competitors.put(p, tempCompetitor);
-	}
-	
-	public void setSelectedKit(OfflinePlayer p, String kitName)
-	{
-		Competitor tempCompetitor = competitors.get(p);
-		if (tempCompetitor == null)
-			return;
-		tempCompetitor.setSelectedKitName(kitName);
-		competitors.put(p, tempCompetitor);
-	}
-	
 	public Set<Player> getAllParticipants()
 	{
 		return playerLobbyStatuses.keySet();
@@ -296,9 +278,9 @@ public class ArenaManager
 		p.sendMessage(ChatColor.BLUE + "You have been removed from the queue");
 	}
 	
-	public void addCompetitor(String name, Integer[] wins, Integer[] losses, Integer[] rating, String selectedKitName)
+	public void addCompetitor(String name, Integer[] wins, Integer[] losses, Integer[] rating /*, String selectedKitName*/)
 	{
-		competitors.put(Bukkit.getOfflinePlayer(name), new Competitor(name, wins, losses, rating, selectedKitName, plugin));
+		competitors.put(Bukkit.getOfflinePlayer(name), new Competitor(name, wins, losses, rating, /*selectedKitName ,*/ plugin));
 	}
 	
 	public void addArena(String name, int teamSize)

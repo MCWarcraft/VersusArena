@@ -1,7 +1,5 @@
 package bourg.austin.VersusArena.Game;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import org.bukkit.ChatColor;
@@ -24,19 +22,15 @@ public class Game implements Listener
 	private static int nextGameID = 0;
 	private int gameID;
 	
-	private ArrayList<Player> allPlayers;
-	private HashMap<Player, VersusKit> playerKits;
+	private List<Player> allPlayers;
 	
 	private GameType gameType;
 	
-	public Game(GameManager gameManager, HashMap<Player, VersusKit> playerKits, Arena arena)
+	public Game(GameManager gameManager, List<Player> allPlayers, Arena arena)
 	{		
-		allPlayers = new ArrayList<Player>();
-		allPlayers.addAll(playerKits.keySet());
+		this.allPlayers = allPlayers;
 		
 		gameType = GameType.values()[allPlayers.size() / 2 - 1];
-		
-		this.playerKits = playerKits;
 		
 		this.gameManager = gameManager;
 		this.teams = new VersusTeam[]{new VersusTeam(allPlayers.subList(0, allPlayers.size()/2), this), new VersusTeam(allPlayers.subList(allPlayers.size()/2, allPlayers.size()), this)};
@@ -127,7 +121,7 @@ public class Game implements Listener
 	public void distributeKits()
 	{
 		for (Player p : allPlayers)
-			playerKits.get(p).equipToPlayer(p);
+			VersusKit.equipToPlayer(p);
 	}
 	
 	public Arena getArena()
