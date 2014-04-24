@@ -13,6 +13,8 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
@@ -32,6 +34,8 @@ public final class VersusArena extends JavaPlugin
 	private HashMap<String, Location> selectedLocations;
 	
 	private Connection connection;
+	
+	private int soupHealAmount;
 	
 	public void onEnable()
 	{		
@@ -453,11 +457,31 @@ public final class VersusArena extends JavaPlugin
 			inventory = new ArrayList<ItemStack>();
 			
 			String[] armorPieces = new String[]{"boots", "legs", "chest", "helmet"};
+			
+			ItemStack tempStack;
+
+			soupHealAmount = getConfig().getInt("soupheal");
+			
 			for (String piece : armorPieces)
 			{
 				try
 				{
-					armor.add(new ItemStack(Material.getMaterial(this.getConfig().getString("kit.armor." + piece)), 1));
+					tempStack = (new ItemStack(Material.getMaterial(this.getConfig().getString("kit.armor." + piece)), 1));
+					
+					ConfigurationSection section = getConfig().getConfigurationSection("kit.enchantments." + piece);
+					if (section != null)
+						for (String enchantName : section.getKeys(false))
+						{
+							Enchantment enchantment;
+							int enchantLevel = -1;
+							
+							enchantLevel = getConfig().getInt("kit.enchantments." + piece + "." + enchantName);
+							enchantment = Enchantment.getByName(enchantName);
+							if (enchantLevel != -1 && enchantment != null)
+								tempStack.addEnchantment(enchantment, enchantLevel);
+						}
+					
+					armor.add(tempStack);
 				}
 				catch (NullPointerException e)
 				{
@@ -466,10 +490,27 @@ public final class VersusArena extends JavaPlugin
 			}
 			
 			for (int slot = 1; slot <= 9; slot++)
-			{
+			{				
 				try
 				{
-					inventory.add(new ItemStack(Material.getMaterial(this.getConfig().getString("kit.inventory." + slot)), 1));
+					ConfigurationSection section = getConfig().getConfigurationSection("kit.enchantments." + slot);
+					
+					tempStack = (new ItemStack(Material.getMaterial(this.getConfig().getString("kit.inventory." + slot)), 1));
+					
+					if (section != null)
+						for (String enchantName : section.getKeys(false))
+						{
+							Enchantment enchantment;
+							int enchantLevel = -1;
+							
+							enchantLevel = getConfig().getInt("kit.enchantments." + slot + "." + enchantName);
+							enchantment = Enchantment.getByName(enchantName);
+							if (enchantLevel != -1 && enchantment != null)
+								tempStack.addEnchantment(enchantment, enchantLevel);
+						}
+
+					inventory.add(tempStack);
+					
 				}
 				catch (NullPointerException e)
 				{
@@ -541,5 +582,10 @@ public final class VersusArena extends JavaPlugin
 	public Location getSelectedLocation(String name)
 	{
 		return selectedLocations.get(name);
+	}
+	
+	public int getSoupHealAmount()
+	{
+		return soupHealAmount;
 	}
 }

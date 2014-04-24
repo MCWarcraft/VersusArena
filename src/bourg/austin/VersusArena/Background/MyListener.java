@@ -35,24 +35,37 @@ public class MyListener implements Listener
 		this.plugin = plugin;
 	}
 	
+	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void onRightClick(PlayerInteractEvent event)
 	{
+		Player p = event.getPlayer();
+		
+		if (p.getItemInHand().getType().equals(Material.MUSHROOM_SOUP))
+		{
+			p.getItemInHand().setType(Material.BOWL);
+			p.updateInventory();
+			if (p.getHealth() + plugin.getSoupHealAmount() <= 20)
+				event.getPlayer().setHealth(p.getHealth() + plugin.getSoupHealAmount());
+			else
+				p.setHealth(20);
+		}
+		
 		//If player is holding a stick
-		if (event.getPlayer().getItemInHand().getType().equals(Material.STICK) && event.getPlayer().hasPermission("pairspvp.select") && event.getAction().equals(Action.RIGHT_CLICK_BLOCK))
+		if (p.getItemInHand().getType().equals(Material.STICK) && p.hasPermission("pairspvp.select") && event.getAction().equals(Action.RIGHT_CLICK_BLOCK))
 		{
 			//Store the click
-			plugin.setSelectedLocation(event.getPlayer().getName(), event.getClickedBlock().getLocation());
-			event.getPlayer().sendMessage(ChatColor.YELLOW + "Location Selected");
+			plugin.setSelectedLocation(p.getName(), event.getClickedBlock().getLocation());
+			p.sendMessage(ChatColor.YELLOW + "Location Selected");
 		}
 		
 		//If the action was a right click on a sign with first line "/versus" and the player has permission
 		
-		if (event.getAction().equals(Action.RIGHT_CLICK_BLOCK) && ((event.getClickedBlock().getType().equals(Material.WALL_SIGN) || event.getClickedBlock().getType().equals(Material.SIGN_POST))) && ((Sign) event.getClickedBlock().getState()).getLine(0).equalsIgnoreCase(ChatColor.DARK_BLUE + "/versus") && event.getPlayer().hasPermission("pairspvp.arena.go"))
+		if (event.getAction().equals(Action.RIGHT_CLICK_BLOCK) && ((event.getClickedBlock().getType().equals(Material.WALL_SIGN) || event.getClickedBlock().getType().equals(Material.SIGN_POST))) && ((Sign) event.getClickedBlock().getState()).getLine(0).equalsIgnoreCase(ChatColor.DARK_BLUE + "/versus") && p.hasPermission("pairspvp.arena.go"))
 		{
 			if (plugin.getArenaManager().getNexusLocation() != null)
 			{
-				plugin.getArenaManager().bringPlayer(event.getPlayer().getName());
+				plugin.getArenaManager().bringPlayer(p.getName());
 				return;
 			}
 			//If no nexus exists
@@ -89,7 +102,7 @@ public class MyListener implements Listener
 	}
 	@EventHandler
 	public void onItemDrop(InventoryClickEvent event)
-	{
+	{		
 		if (plugin.getArenaManager().getPlayerStatus((Player) event.getWhoClicked()) != null)
 			event.setCancelled(true);
 	}
