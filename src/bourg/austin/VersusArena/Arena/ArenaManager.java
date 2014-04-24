@@ -52,6 +52,7 @@ public class ArenaManager
 	public void bringPlayer(String playerName)
 	{
 		Player player = plugin.getServer().getPlayer(playerName);
+		player.setHealth(20);
 		
 		giveLobbyInventory(player);
 		
@@ -139,6 +140,9 @@ public class ArenaManager
 	public void giveLobbyInventory(Player p)
 	{
 		p.getInventory().clear();
+		
+		p.getInventory().addItem(Inventories.COMPASS);
+		
 		for (ItemStack i : Inventories.LOBBY_SLOTS)
 		{
 			p.getInventory().addItem(i);
@@ -151,6 +155,9 @@ public class ArenaManager
 	public void giveQueueInventory(Player p, int type)
 	{
 		p.getInventory().clear();
+		
+		p.getInventory().addItem(Inventories.COMPASS);
+		
 		for (int i = 0; i < Inventories.QUEUE_SLOTS.length; i++)
 		{
 			if (i != (type - 1) && i < Inventories.LOBBY_SLOTS.length)
@@ -334,5 +341,11 @@ public class ArenaManager
 	public void clearCompetitors()
 	{
 		competitors.clear();
+	}
+	
+	public void cleanPlayer(Player p)
+	{
+		boards.remove(p);
+		gameManager.getPlayerStatuses().remove(p);
 	}
 }

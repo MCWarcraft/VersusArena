@@ -23,3 +23,24 @@ kit:
     chest:
     legs:
     boots:
+  #Write enchants with sub-categories on the item number or armor name
+  #
+  # 1:
+  #   asdfasdf: ARROW_FIRE
+  #   zxcqra1g: ARROW_INFINITE
+  #
+  #The field name doesn't matter
+  enchants:
+    1:
+    2:
+    3:
+    4:
+    5:
+    6:
+    7:
+    8:
+    9:
+    helmet:
+    chest:
+    legs:
+    boots:

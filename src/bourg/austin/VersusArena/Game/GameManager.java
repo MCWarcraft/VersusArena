@@ -36,7 +36,10 @@ public class GameManager
 	public void startGame(List<Player> players, Arena a)
 	{
 		for (Player p : players)
+		{
 			arenaManager.setPlayerStatus(p, LobbyStatus.IN_GAME);
+			p.setHealth(20);
+		}
 		
 		gamesInProgress.put(Game.getNextGameID(), new Game(this, players, a));
 	}

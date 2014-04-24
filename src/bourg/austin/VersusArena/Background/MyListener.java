@@ -10,13 +10,13 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerLoginEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.inventory.ItemStack;
 
 import bourg.austin.HonorPoints.OnlinePlayerCurrencyUpdateEvent;
 import bourg.austin.VersusArena.VersusArena;
@@ -137,9 +137,25 @@ public class MyListener implements Listener
 		}
 	}
 	
+	@EventHandler
+	public void onPlayerDamage(EntityDamageEvent event)
+	{
+		if (event.getEntity() == null)
+			return;
+		else if (!(event.getEntity() instanceof Player))
+			return;
+
+		Player damagedPlayer = (Player) event.getEntity();
+		
+		Game game = plugin.getArenaManager().getGameManager().getGameByParticipant(damagedPlayer);
+		
+		if (game != null && game.getGameManager().getPlayerStatus(damagedPlayer).equals(InGameStatus.DEAD))
+			event.setCancelled(true);
+	}
+	
 	//Used to handle deaths in arena
 	@EventHandler
-	public void onPlayerDamage(EntityDamageByEntityEvent event)
+	public void onPlayerDamageByEntity(EntityDamageByEntityEvent event)
 	{		
 		if (event.getEntity() == null)
 			return;
@@ -147,16 +163,32 @@ public class MyListener implements Listener
 			return;
 
 		Player damagedPlayer = (Player) event.getEntity();
-		Player damagingPlayer = (Player) event.getDamager();
+
 		
 		if (damagedPlayer == null)
 			return;
+		
+		if (plugin.getArenaManager().getPlayerStatus(damagedPlayer) != null && !plugin.getArenaManager().getPlayerStatus(damagedPlayer).equals(LobbyStatus.IN_GAME))
+		{
+			event.setCancelled(true);
+			return;
+		}
 		
 		Game game = plugin.getArenaManager().getGameManager().getGameByParticipant(damagedPlayer);
 		
 		if (game == null)
 			return;
 
+		Player damagingPlayer;
+		try
+		{
+			damagingPlayer = (Player) event.getDamager();
+		}
+		catch (ClassCastException e)
+		{
+			return;
+		}
+		
 		//If ghost attack
 		if (game.getGameManager().getPlayerStatus(damagingPlayer).equals(InGameStatus.DEAD))
 		{
@@ -216,22 +248,23 @@ public class MyListener implements Listener
 	@EventHandler
 	public void onPlayerCurrencyUpdateEvent(OnlinePlayerCurrencyUpdateEvent event)
 	{
-		if (!plugin.getArenaManager().getPlayerStatus(event.getPlayer()).equals(LobbyStatus.IN_GAME))
+		//If the player is in arena in some capacity and not in game
+		if (plugin.getArenaManager().getPlayerStatus(event.getPlayer()) != null && !plugin.getArenaManager().getPlayerStatus(event.getPlayer()).equals(LobbyStatus.IN_GAME))
 		{
 			plugin.getArenaManager().showLobbyBoard(event.getPlayer());
 		}
 	}
 	
-	//@SuppressWarnings("deprecation")
+	@SuppressWarnings("deprecation")
 	@EventHandler 
-	public void onPlayerLogin(PlayerLoginEvent event)
+	public void onPlayerJoin(PlayerJoinEvent event)
 	{
-		for (ItemStack stack : Inventories.LOBBY_SLOTS)
-			if (event.getPlayer().getInventory().contains(stack))
-				event.getPlayer().getInventory().remove(stack);
-		for (ItemStack stack : Inventories.QUEUE_SLOTS)
-			if (event.getPlayer().getInventory().contains(stack))
-				event.getPlayer().getInventory().remove(stack);
-		//event.getPlayer().updateInventory();
+		Player p = event.getPlayer();
+		
+		plugin.getArenaManager().cleanPlayer(p);
+		
+		p.getInventory().clear();
+		p.getInventory().addItem(Inventories.COMPASS);
+		p.updateInventory();
 	}
 }

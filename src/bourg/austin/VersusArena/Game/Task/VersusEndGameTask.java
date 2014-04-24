@@ -43,6 +43,9 @@ public class VersusEndGameTask extends BukkitRunnable
 				//If player is offline in the records
 				if (!game.getGameManager().getArenaManager().getPlayerStatus(game.getTeam(teamNum).getPlayer(playerNum)).equals(LobbyStatus.OFFLINE))
 					game.getGameManager().getArenaManager().bringPlayer(game.getTeam(teamNum).getPlayer(playerNum).getName());
+				//If player is still online, heal
+				else
+					game.getTeam(teamNum).getPlayer(playerNum).setHealth(20);
 				
 				for (Player p : game.getGameManager().getArenaManager().getAllParticipants())
 				{
