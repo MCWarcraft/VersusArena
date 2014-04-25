@@ -141,6 +141,7 @@ public final class VersusArena extends JavaPlugin
 					"( name varchar(17) not null," +
 						"team1player1 varchar(255)," +
 						"team2player1 varchar(255)," +
+						"deathlocation varchar(255)," +
 						"PRIMARY KEY (name) " +
 					")");
 			openSinglesArenaDataStatement.execute();
@@ -153,6 +154,7 @@ public final class VersusArena extends JavaPlugin
 						"team1player2 varchar(255)," +
 						"team2player1 varchar(255)," +
 						"team2player2 varchar(255)," +
+						"deathlocation varchar(255)," +
 						"PRIMARY KEY (name) " +
 					")");
 			openDoublesArenaDataStatement.execute();
@@ -167,6 +169,7 @@ public final class VersusArena extends JavaPlugin
 						"team2player1 varchar(255)," +
 						"team2player2 varchar(255)," +
 						"team2player3 varchar(255)," +
+						"deathlocation varchar(255)," +
 						"PRIMARY KEY (name) " +
 					")");
 			openTriplesArenaDataStatement.execute();
@@ -226,40 +229,29 @@ public final class VersusArena extends JavaPlugin
 		
 			
 			//Load arenas
-			PreparedStatement getSinglesDataStatement = connection.prepareStatement("SELECT * FROM singles_arena_data");
-			ResultSet singlesArenas = getSinglesDataStatement.executeQuery();
+			PreparedStatement[] getArenaDataStatements = new PreparedStatement[3];
+			ResultSet[] arenaResultSets = new ResultSet[3];
 			
-			PreparedStatement getDoublesDataStatement = connection.prepareStatement("SELECT * FROM doubles_arena_data");
-			ResultSet doublesArenas = getDoublesDataStatement.executeQuery();
+			getArenaDataStatements[0] = connection.prepareStatement("SELECT * FROM singles_arena_data");
+			arenaResultSets[0] = getArenaDataStatements[0].executeQuery();
 			
-			PreparedStatement getTriplesDataStatement = connection.prepareStatement("SELECT * FROM triples_arena_data");
-			ResultSet triplesArenas = getTriplesDataStatement.executeQuery();
+			getArenaDataStatements[1] = connection.prepareStatement("SELECT * FROM doubles_arena_data");
+			arenaResultSets[1] = getArenaDataStatements[1].executeQuery();
+			
+			getArenaDataStatements[2] = connection.prepareStatement("SELECT * FROM triples_arena_data");
+			arenaResultSets[2] = getArenaDataStatements[2].executeQuery();
 			
 			arenaManager.clearArenas();
-			//Add singles
-			while (singlesArenas.next())
-			{
-				arenaManager.addArena(singlesArenas.getString("name"), 1);
-				for (int teamNum = 0; teamNum <= 1; teamNum++)
-					for (int playerNum = 0; playerNum < 1; playerNum++)
-						arenaManager.getArena(singlesArenas.getString("name")).setSpawnLocation(teamNum, playerNum, parseLocation(singlesArenas.getString("team" + (teamNum + 1) + "player" + (playerNum + 1))));
-			}
-			//Add doubles
-			while (doublesArenas.next())
-			{
-				arenaManager.addArena(doublesArenas.getString("name"), 2);
-				for (int teamNum = 0; teamNum <= 1; teamNum++)
-					for (int playerNum = 0; playerNum < 2; playerNum++)
-						arenaManager.getArena(doublesArenas.getString("name")).setSpawnLocation(teamNum, playerNum, parseLocation(doublesArenas.getString("team" + (teamNum + 1) + "player" + (playerNum + 1))));
-			}
-			//Add triples
-			while (triplesArenas.next())
-			{
-				arenaManager.addArena(triplesArenas.getString("name"), 3);
-				for (int teamNum = 0; teamNum <= 1; teamNum++)
-					for (int playerNum = 0; playerNum < 3; playerNum++)
-						arenaManager.getArena(triplesArenas.getString("name")).setSpawnLocation(teamNum, playerNum, parseLocation(triplesArenas.getString("team" + (teamNum + 1) + "player" + (playerNum + 1))));
-			}
+			
+			for (int i = 1; i <= 3; i++)
+				while (arenaResultSets[i - 1].next())
+				{
+					arenaManager.addArena(arenaResultSets[i - 1].getString("name"), i);
+					for (int teamNum = 0; teamNum <= 1; teamNum++)
+						for (int playerNum = 0; playerNum < i; playerNum++)
+							arenaManager.getArena(arenaResultSets[i - 1].getString("name")).setSpawnLocation(teamNum, playerNum, parseLocation(arenaResultSets[i - 1].getString("team" + (teamNum + 1) + "player" + (playerNum + 1))));
+					arenaManager.getArena(arenaResultSets[i - 1].getString("name")).setDeathLocation(parseLocation(arenaResultSets[i - 1].getString("deathlocation")));
+				}
 	
 			//Load nexus location
 			PreparedStatement getNexusDataStatement = connection.prepareStatement("SELECT * FROM nexus_data");
@@ -348,18 +340,20 @@ public final class VersusArena extends JavaPlugin
 				
 				boolean arenaDataExists = isStringInCol(arenaType + "_arena_data", "name", name, true);
 				String query = (arenaDataExists ? "UPDATE" : "INSERT INTO") + " " + arenaType + "_arena_data SET " +
-					"team1player1=?, team2player1=?" + (arenaType.equals("doubles") || arenaType.equals("triples") ? ", team1player2=?, team2player2=?" : "") + (arenaType.equals("triples") ? ", team1player3=?, team2player3=?" : "") + (arenaDataExists ? " WHERE name = '" + name + "'" : ", name=?");
+					"team1player1=?, team2player1=?" + (arenaType.equals("doubles") || arenaType.equals("triples") ? ", team1player2=?, team2player2=?" : "") + (arenaType.equals("triples") ? ", team1player3=?, team2player3=?" : "") + ", deathlocation=?" + (arenaDataExists ? " WHERE name=?" : ", name=?");
 						
 				saveStatement = connection.prepareStatement(query);
 				
 				for (int i = 0; i < spawnLocations.size(); i++)
 					saveStatement.setString(i + 1, spawnLocations.get(i));
 				
+				saveStatement.setString(spawnLocations.size() + 1, locationToString(tempArena.getDeathLocation()));
+				saveStatement.setString(spawnLocations.size() + 2, name);
+				
 				if (arenaDataExists)
 					saveStatement.executeUpdate();
 				else
 				{
-					saveStatement.setString(spawnLocations.size() + 1, name);
 					saveStatement.execute();
 				}
 				

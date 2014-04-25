@@ -19,6 +19,7 @@ import bourg.austin.VersusArena.Constants.Inventories;
 import bourg.austin.VersusArena.Constants.LobbyStatus;
 import bourg.austin.VersusArena.Game.GameManager;
 import bourg.austin.VersusArena.Game.Task.VersusMatchmakeTask;
+import bourg.austin.VersusArena.Game.Task.VersusMatchmakeTimeTask;
 import bourg.austin.VersusArena.Interface.DisplayBoard;
 
 public class ArenaManager
@@ -47,6 +48,7 @@ public class ArenaManager
 		playerLobbyStatuses = new HashMap<Player, LobbyStatus>();
 		
 		new VersusMatchmakeTask(this).runTaskTimer(this.plugin, 0, 300);
+		new VersusMatchmakeTimeTask().runTaskTimer(this.plugin, 20, 20);
 	}
 	
 	public void bringPlayer(String playerName)
@@ -118,22 +120,12 @@ public class ArenaManager
 		competitors.put(player, competitors.get(player).addLoss(type));
 	}
 
-	public boolean addToQueue(Player player, LobbyStatus gameType)
+	public void addToQueue(Player player, LobbyStatus gameType)
 	{
-		if (!(gameType.getValue() > 0 || (gameType.getValue() <= 3)))
-		{
-			player.sendMessage("error1");
-			return false;
-		}
-		
-		else
-		{
-			playerLobbyStatuses.put(player, gameType);
-			giveQueueInventory(player, gameType.getValue());
-			player.sendMessage(ChatColor.BLUE + "You are now in the " + gameType.getValue() + "v" + gameType.getValue() + " queue.");
-			
-			return true;
-		}
+		playerLobbyStatuses.put(player, gameType);
+		giveQueueInventory(player, gameType.getValue());
+		player.sendMessage(ChatColor.BLUE + "You are now in the " + gameType.getValue() + "v" + gameType.getValue() + " queue.");
+		player.sendMessage(ChatColor.BLUE + "The next set of matches starts in " + ChatColor.GOLD + VersusMatchmakeTimeTask.getTimeToGame(false) + " seconds");
 	}
 	
 	@SuppressWarnings("deprecation")

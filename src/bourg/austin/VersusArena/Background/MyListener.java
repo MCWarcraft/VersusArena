@@ -41,13 +41,13 @@ public class MyListener implements Listener
 	{
 		Player p = event.getPlayer();
 		
-		if (p.getItemInHand().getType().equals(Material.MUSHROOM_SOUP))
-		{
+		if (p.getItemInHand().getType().equals(Material.MUSHROOM_SOUP) && p.getHealth() < 20)
+		{			
 			p.getItemInHand().setType(Material.BOWL);
 			p.updateInventory();
 			if (p.getHealth() + plugin.getSoupHealAmount() <= 20)
 				event.getPlayer().setHealth(p.getHealth() + plugin.getSoupHealAmount());
-			else
+			else if (p.getHealth() < 20)
 				p.setHealth(20);
 		}
 		
@@ -232,6 +232,7 @@ public class MyListener implements Listener
 				p.hidePlayer(damagedPlayer);
 		
 		plugin.getArenaManager().getGameManager().setPlayerStatus(damagedPlayer, InGameStatus.DEAD);
+		damagedPlayer.teleport(game.getArena().getDeathLocation());
 		
 		for (Player p : game.getPlayers())
 			p.sendMessage(ChatColor.BLUE + damagedPlayer.getName() + " has fallen!");

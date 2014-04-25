@@ -7,6 +7,7 @@ public class Arena
 	private String arenaName;
 	private int teamSize;
 	private Location spawnLocations[][];
+	private Location deathLocation;
 	
 	public Arena(String arenaName, int teamSize)
 	{
@@ -43,6 +44,9 @@ public class Arena
 	
 	public boolean isConfigured()
 	{
+		if (deathLocation == null)
+			return false;
+		
 		for (Location[] ls : spawnLocations)
 			for (Location l : ls)
 				if (l == null)
@@ -55,5 +59,14 @@ public class Arena
 	{
 		return spawnLocations;
 	}
-		
+	
+	public void setDeathLocation(Location deathLocation)
+	{
+		this.deathLocation = deathLocation;
+	}
+	
+	public Location getDeathLocation()
+	{
+		return deathLocation;
+	}
 }

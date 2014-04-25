@@ -56,6 +56,7 @@ permissions:
       pairspvp.arena.make: true
       pairspvp.arena.delete: true
       pairspvp.arena.setspawn: true
+      pairspvp.arena.setdeath: true
       pairspvp.arena.setfacing: true
     default: op
   pairspvp.arena.view:
@@ -81,6 +82,11 @@ permissions:
     default: op
   pairspvp.arena.setspawn:
     description: 'Allows the use of the /versus arena setspawn <teamnum> <playernum> command'
+    default: op
+    children:
+      pairspvp.select: true
+  pairspvp.arena.setspawn:
+    description: 'Allows the use of the /versus arena setdeath <name> command'
     default: op
     children:
       pairspvp.select: true
