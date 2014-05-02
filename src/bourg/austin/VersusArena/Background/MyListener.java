@@ -30,18 +30,18 @@ import bourg.austin.VersusArena.Game.Game;
 public class MyListener implements Listener
 {
 	private VersusArena plugin;
-	
+
 	public MyListener(VersusArena plugin)
 	{
 		this.plugin = plugin;
 	}
-	
+
 	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void onRightClick(PlayerInteractEvent event)
 	{
 		Player p = event.getPlayer();
-		
+
 		if (p.getItemInHand().getType().equals(Material.MUSHROOM_SOUP) && p.getHealth() < 20)
 		{	
 			if (event.getAction().equals(Action.RIGHT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_BLOCK))
@@ -54,7 +54,7 @@ public class MyListener implements Listener
 					p.setHealth(20);
 			}
 		}
-		
+
 		//If player is holding a stick
 		if (p.getItemInHand().getType().equals(Material.STICK) && p.hasPermission("pairspvp.select") && event.getAction().equals(Action.RIGHT_CLICK_BLOCK))
 		{
@@ -62,9 +62,9 @@ public class MyListener implements Listener
 			plugin.setSelectedLocation(p.getName(), event.getClickedBlock().getLocation());
 			p.sendMessage(ChatColor.YELLOW + "Location Selected");
 		}
-		
+
 		//If the action was a right click on a sign with first line "/versus" and the player has permission
-		
+
 		if (event.getAction().equals(Action.RIGHT_CLICK_BLOCK) && ((event.getClickedBlock().getType().equals(Material.WALL_SIGN) || event.getClickedBlock().getType().equals(Material.SIGN_POST))) && ((Sign) event.getClickedBlock().getState()).getLine(0).equalsIgnoreCase(ChatColor.DARK_BLUE + "/versus") && p.hasPermission("pairspvp.arena.go"))
 		{
 			if (plugin.getArenaManager().getNexusLocation() != null)
@@ -76,7 +76,7 @@ public class MyListener implements Listener
 			else
 				event.getPlayer().sendMessage(ChatColor.RED + "There is currently no PvP nexus. Please notify the mods.");
 		}
-		
+
 		else if (event.getAction().equals(Action.RIGHT_CLICK_BLOCK) || event.getAction().equals(Action.RIGHT_CLICK_AIR))
 		{
 			try
@@ -89,28 +89,32 @@ public class MyListener implements Listener
 					plugin.getArenaManager().addToQueue(event.getPlayer(), LobbyStatus.IN_3V3_QUEUE);
 				if (event.getPlayer().getItemInHand().getItemMeta().getDisplayName().equals(Inventories.QUEUE_SLOTS[3].getItemMeta().getDisplayName()) && event.getPlayer().getItemInHand().getItemMeta().getLore().equals(Inventories.QUEUE_SLOTS[3].getItemMeta().getLore()))
 					plugin.getArenaManager().removeFromQueue(event.getPlayer());
-				
+
 			}
 			catch (NullPointerException e)
 			{
-				
+
 			}
 		}
 	}
-	
+
 	@EventHandler
-	public void onItemGrab(PlayerDropItemEvent event)
+	public void onItemDrop(PlayerDropItemEvent event)
 	{
-		if (plugin.getArenaManager().getPlayerStatus(event.getPlayer()) != null)
+		if (event.getItemDrop().getItemStack().getType().equals(Material.COMPASS))
+			event.setCancelled(true);
+		if (this.plugin.getArenaManager().getPlayerStatus(event.getPlayer()) != null)
 			event.setCancelled(true);
 	}
+
 	@EventHandler
-	public void onItemDrop(InventoryClickEvent event)
-	{		
-		if (plugin.getArenaManager().getPlayerStatus((Player) event.getWhoClicked()) != null)
+	public void onInventoryClick(InventoryClickEvent event)
+	{
+		if (event.getCurrentItem().getType().equals(Material.COMPASS))
+			event.setCancelled(true);
+		if (this.plugin.getArenaManager().getPlayerStatus((Player)event.getWhoClicked()) != null)
 			event.setCancelled(true);
 	}
-	
 	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void onBlockPlace(BlockPlaceEvent event)
@@ -121,7 +125,7 @@ public class MyListener implements Listener
 			event.getPlayer().updateInventory();
 		}
 	}
-	
+
 	@EventHandler
 	public void onSignChange(SignChangeEvent event)
 	{
@@ -129,7 +133,7 @@ public class MyListener implements Listener
 			return;
 		else if (event.getPlayer().hasPermission("pairspvp.nexus.sign"))
 		{
-				event.setLine(0, ChatColor.DARK_BLUE + event.getLine(0));
+			event.setLine(0, ChatColor.DARK_BLUE + event.getLine(0));
 		}
 		else
 		{
@@ -138,7 +142,7 @@ public class MyListener implements Listener
 			event.setCancelled(true);
 		}
 	}
-	
+
 	@EventHandler
 	public void onPlayerMove(PlayerMoveEvent event)
 	{
@@ -153,7 +157,7 @@ public class MyListener implements Listener
 			return;
 		}
 	}
-	
+
 	@EventHandler
 	public void onPlayerDamage(EntityDamageEvent event)
 	{
@@ -163,104 +167,36 @@ public class MyListener implements Listener
 			return;
 
 		Player damagedPlayer = (Player) event.getEntity();
-		
+
 		System.out.println("Damage: " + getDamageArmored(damagedPlayer, event.getDamage()));
 		System.out.println("Health Before: " + (damagedPlayer.getHealth()));
 		System.out.println("Health After: " + (damagedPlayer.getHealth() - getDamageArmored(damagedPlayer, event.getDamage())));
-		
+
 		//If the player is in the arena system but not in game
 		if (plugin.getArenaManager().getPlayerStatus(damagedPlayer) != null && !plugin.getArenaManager().getPlayerStatus(damagedPlayer).equals(LobbyStatus.IN_GAME))
 		{
 			event.setCancelled(true);
 			return;
 		}
-		
+
 		Game game = plugin.getArenaManager().getGameManager().getGameByParticipant(damagedPlayer);
-		
+
 		//Return if the player is not in a game
 		if (game == null)
 			return;
-		
+
 		//Cancel damage if player is dead
 		if (game.getGameManager().getPlayerStatus(damagedPlayer).equals(InGameStatus.DEAD))
 			event.setCancelled(true);
-		
+
 		if (damagedPlayer.getHealth() - getDamageArmored(damagedPlayer, event.getDamage()) > 0)
 			return;
-		
+
 		event.setCancelled(true);
 		killPlayer(damagedPlayer, game);
-		
+
 	}
-	
-    private double getDamageArmored(Player player, double raw)
-    {
-        org.bukkit.inventory.PlayerInventory inv = player.getInventory();
-        ItemStack boots = inv.getBoots();
-        ItemStack helmet = inv.getHelmet();
-        ItemStack chest = inv.getChestplate();
-        ItemStack pants = inv.getLeggings();
-        double red = 0.0;
-        
-        if (helmet != null)
-        {
-	        if(helmet.getType() == Material.LEATHER_HELMET)
-	        	red = red + 0.04;
-	        else if(helmet.getType() == Material.GOLD_HELMET)
-	        	red = red + 0.08;
-	        else if(helmet.getType() == Material.CHAINMAIL_HELMET)
-	        	red = red + 0.08;
-	        else if(helmet.getType() == Material.IRON_HELMET)
-	        	red = red + 0.08;
-	        else if(helmet.getType() == Material.DIAMOND_HELMET)
-	        	red = red + 0.12;
-        }
-        //
-        if (boots != null)
-        {
-        	if(boots.getType() == Material.LEATHER_BOOTS)
-        		red = red + 0.04;
-	        else if(boots.getType() == Material.GOLD_BOOTS)
-	        	red = red + 0.04;
-	        else if(boots.getType() == Material.CHAINMAIL_BOOTS)
-	        	red = red + 0.04;
-	        else if(boots.getType() == Material.IRON_BOOTS)
-	        	red = red + 0.08;
-	        else if(boots.getType() == Material.DIAMOND_BOOTS)
-	        	red = red + 0.12;
-        }
-        //
-        if (pants != null)
-        {
-            if(pants.getType() == Material.LEATHER_LEGGINGS)
-            	red = red + 0.08;
-            else if(pants.getType() == Material.GOLD_LEGGINGS)
-            	red = red + 0.12;
-            else if(pants.getType() == Material.CHAINMAIL_LEGGINGS)
-            	red = red + 0.16;
-            else if(pants.getType() == Material.IRON_LEGGINGS)
-            	red = red + 0.20;
-            else if(pants.getType() == Material.DIAMOND_LEGGINGS)
-            	red = red + 0.24;
-        }
-        //
-        if (chest != null)
-        {
-	        if(chest != null && chest.getType() == Material.LEATHER_CHESTPLATE)
-	        	red = red + 0.12;
-	        else if(chest.getType() == Material.GOLD_CHESTPLATE)
-	        	red = red + 0.20;
-	        else if(chest.getType() == Material.CHAINMAIL_CHESTPLATE)
-	        	red = red + 0.20;
-	        else if(chest.getType() == Material.IRON_CHESTPLATE)
-	        	red = red + 0.24;
-	        else if(chest.getType() == Material.DIAMOND_CHESTPLATE)
-	        	red = red + 0.32;
-        }
-        
-        return raw * (1.0 - red);
-    }
-	
+
 	//Used to handle deaths in arena
 	@EventHandler
 	public void onPlayerDamageByEntity(EntityDamageByEntityEvent event)
@@ -271,16 +207,16 @@ public class MyListener implements Listener
 			return;
 
 		Player damagedPlayer = (Player) event.getEntity();
-		
+
 		//If the player is in the arena system but not in game
 		if (plugin.getArenaManager().getPlayerStatus(damagedPlayer) != null && !plugin.getArenaManager().getPlayerStatus(damagedPlayer).equals(LobbyStatus.IN_GAME))
 		{
 			event.setCancelled(true);
 			return;
 		}
-		
+
 		Game game = plugin.getArenaManager().getGameManager().getGameByParticipant(damagedPlayer);
-		
+
 		if (game == null)
 			return;
 
@@ -293,7 +229,7 @@ public class MyListener implements Listener
 		{
 			return;
 		}
-		
+
 		//If ghost attack
 		if (game.getGameManager().getPlayerStatus(damagingPlayer).equals(InGameStatus.DEAD))
 		{
@@ -301,7 +237,7 @@ public class MyListener implements Listener
 			event.setCancelled(true);
 			return;
 		}
-		
+
 		//If friendly fire
 		if (game.areTeammates(damagingPlayer, damagedPlayer))
 		{
@@ -309,50 +245,118 @@ public class MyListener implements Listener
 			event.setCancelled(true);
 			return;
 		}
-		
+
 		if (damagedPlayer.getHealth() - getDamageArmored(damagedPlayer, event.getDamage()) > 0)
 			return;
-		
+
 		//To get to this point a player in a game must have died
 		event.setCancelled(true);
 
 		killPlayer(damagedPlayer, game);
 	}
-	
+
+	private double getDamageArmored(Player player, double raw)
+	{
+		org.bukkit.inventory.PlayerInventory inv = player.getInventory();
+		ItemStack boots = inv.getBoots();
+		ItemStack helmet = inv.getHelmet();
+		ItemStack chest = inv.getChestplate();
+		ItemStack pants = inv.getLeggings();
+		double red = 0.0;
+
+		if (helmet != null)
+		{
+			if(helmet.getType() == Material.LEATHER_HELMET)
+				red = red + 0.04;
+			else if(helmet.getType() == Material.GOLD_HELMET)
+				red = red + 0.08;
+			else if(helmet.getType() == Material.CHAINMAIL_HELMET)
+				red = red + 0.08;
+			else if(helmet.getType() == Material.IRON_HELMET)
+				red = red + 0.08;
+			else if(helmet.getType() == Material.DIAMOND_HELMET)
+				red = red + 0.12;
+		}
+		//
+		if (boots != null)
+		{
+			if(boots.getType() == Material.LEATHER_BOOTS)
+				red = red + 0.04;
+			else if(boots.getType() == Material.GOLD_BOOTS)
+				red = red + 0.04;
+			else if(boots.getType() == Material.CHAINMAIL_BOOTS)
+				red = red + 0.04;
+			else if(boots.getType() == Material.IRON_BOOTS)
+				red = red + 0.08;
+			else if(boots.getType() == Material.DIAMOND_BOOTS)
+				red = red + 0.12;
+		}
+		//
+		if (pants != null)
+		{
+			if(pants.getType() == Material.LEATHER_LEGGINGS)
+				red = red + 0.08;
+			else if(pants.getType() == Material.GOLD_LEGGINGS)
+				red = red + 0.12;
+			else if(pants.getType() == Material.CHAINMAIL_LEGGINGS)
+				red = red + 0.16;
+			else if(pants.getType() == Material.IRON_LEGGINGS)
+				red = red + 0.20;
+			else if(pants.getType() == Material.DIAMOND_LEGGINGS)
+				red = red + 0.24;
+		}
+		//
+		if (chest != null)
+		{
+			if(chest != null && chest.getType() == Material.LEATHER_CHESTPLATE)
+				red = red + 0.12;
+			else if(chest.getType() == Material.GOLD_CHESTPLATE)
+				red = red + 0.20;
+			else if(chest.getType() == Material.CHAINMAIL_CHESTPLATE)
+				red = red + 0.20;
+			else if(chest.getType() == Material.IRON_CHESTPLATE)
+				red = red + 0.24;
+			else if(chest.getType() == Material.DIAMOND_CHESTPLATE)
+				red = red + 0.32;
+		}
+
+		return raw * (1.0 - red);
+	}
+
 	private void killPlayer(Player damagedPlayer, Game game)
 	{
 		damagedPlayer.setHealth(20);
-		
-		
+
+
 		//Hide the player from sight
 		for (Player p : game.getPlayers())
 			if (!damagedPlayer.equals(p))
 				p.hidePlayer(damagedPlayer);
-		
+
 		plugin.getArenaManager().getGameManager().setPlayerStatus(damagedPlayer, InGameStatus.DEAD);
 		damagedPlayer.teleport(game.getArena().getDeathLocation());
-		
+
 		for (Player p : game.getPlayers())
 			p.sendMessage(ChatColor.BLUE + damagedPlayer.getName() + " has fallen!");
-		
+
 		game.checkGameOver();
 	}
-	
+
 	@EventHandler
 	public void onLogout(PlayerQuitEvent event)
 	{
 		Player player = event.getPlayer();
 		Game game = plugin.getArenaManager().getGameManager().getGameByParticipant(player);
-		
+
 		if (game == null)
 			return;
 		if (!game.getPlayers().contains(player))
 			return;
-		
+
 		for (Player p : game.getPlayers())
 			p.sendMessage(ChatColor.DARK_RED + player.getName() + " has left the game.");
 		game.getGameManager().setPlayerStatus(player, InGameStatus.DEAD);
-		
+
 		game.checkGameOver();
 		game.getGameManager().getArenaManager().setPlayerStatus(player, LobbyStatus.OFFLINE);
 	}
@@ -366,15 +370,15 @@ public class MyListener implements Listener
 			plugin.getArenaManager().showLobbyBoard(event.getPlayer());
 		}
 	}
-	
+
 	@SuppressWarnings("deprecation")
 	@EventHandler 
 	public void onPlayerJoin(PlayerJoinEvent event)
 	{
 		Player p = event.getPlayer();
-		
+
 		plugin.getArenaManager().cleanPlayer(p);
-		
+
 		p.getInventory().clear();
 		p.getInventory().addItem(Inventories.COMPASS);
 		p.updateInventory();
