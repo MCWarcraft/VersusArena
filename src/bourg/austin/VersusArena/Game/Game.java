@@ -154,18 +154,42 @@ public class Game implements Listener
 		for (int deathTeam = 0; deathTeam < 2; deathTeam++)
 			if (teams[deathTeam].isDefeated())
 			{
-				for (Player p : teams[deathTeam].getAllPlayers())
-					p.sendMessage(ChatColor.DARK_RED + "You have lost");
-				for (Player p : teams[Math.abs(deathTeam-1)].getAllPlayers())
-					p.sendMessage(ChatColor.GREEN + "You have won");
-				
-				new VersusEndGameTask(this, deathTeam).runTaskLater(gameManager.getArenaManager().getPlugin(), 60);
+				terminateGame(deathTeam);
 				
 				return true;
 			}
 		
 		return false;
 	}
+	
+	private void terminateGame(int deathTeam)
+	{
+		for (Player p : teams[deathTeam].getAllPlayers())
+		{
+			p.sendMessage(ChatColor.DARK_RED + "You have lost");
+			//for (Player e :  teams[Math.abs(deathTeam-1)].getAllPlayers())
+				//p.sendMessage(ChatColor.DARK_RED + e.getName() + (gameManager.getPlayerStatus(e).equals(InGameStatus.DEAD) ? " died with " : " had " + e.getHealth() / 2 + " hearts and " ) + soupCount(e) + " soups" );
+		}
+		for (Player p : teams[Math.abs(deathTeam-1)].getAllPlayers())
+		{
+			p.sendMessage(ChatColor.GREEN + "You have won");
+			//for (Player e :  teams[deathTeam].getAllPlayers())
+				//p.sendMessage(ChatColor.DARK_RED + e.getName() +  " had " + soupCount(e) + " soups when he died");
+		}
+		
+		new VersusEndGameTask(this, deathTeam).runTaskLater(gameManager.getArenaManager().getPlugin(), 60);
+	}
+	
+	/*
+	private int soupCount(Player p)
+	{
+		if (gameManager.getArenaManager().getPlugin().getServer().getPlayer(p.getName()) == null)
+		{
+			
+		}
+	}
+	*/
+	
 	
 	public int getNumberOfTeams()
 	{

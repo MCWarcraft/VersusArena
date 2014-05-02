@@ -17,6 +17,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.ItemStack;
 
 import bourg.austin.HonorPoints.OnlinePlayerCurrencyUpdateEvent;
 import bourg.austin.VersusArena.VersusArena;
@@ -42,13 +43,16 @@ public class MyListener implements Listener
 		Player p = event.getPlayer();
 		
 		if (p.getItemInHand().getType().equals(Material.MUSHROOM_SOUP) && p.getHealth() < 20)
-		{			
-			p.getItemInHand().setType(Material.BOWL);
-			p.updateInventory();
-			if (p.getHealth() + plugin.getSoupHealAmount() <= 20)
-				event.getPlayer().setHealth(p.getHealth() + plugin.getSoupHealAmount());
-			else if (p.getHealth() < 20)
-				p.setHealth(20);
+		{	
+			if (event.getAction().equals(Action.RIGHT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_BLOCK))
+			{
+				p.getItemInHand().setType(Material.BOWL);
+				p.updateInventory();
+				if (p.getHealth() + plugin.getSoupHealAmount() <= 20)
+					event.getPlayer().setHealth(p.getHealth() + plugin.getSoupHealAmount());
+				else if (p.getHealth() < 20)
+					p.setHealth(20);
+			}
 		}
 		
 		//If player is holding a stick
@@ -160,11 +164,102 @@ public class MyListener implements Listener
 
 		Player damagedPlayer = (Player) event.getEntity();
 		
+		System.out.println("Damage: " + getDamageArmored(damagedPlayer, event.getDamage()));
+		System.out.println("Health Before: " + (damagedPlayer.getHealth()));
+		System.out.println("Health After: " + (damagedPlayer.getHealth() - getDamageArmored(damagedPlayer, event.getDamage())));
+		
+		//If the player is in the arena system but not in game
+		if (plugin.getArenaManager().getPlayerStatus(damagedPlayer) != null && !plugin.getArenaManager().getPlayerStatus(damagedPlayer).equals(LobbyStatus.IN_GAME))
+		{
+			event.setCancelled(true);
+			return;
+		}
+		
 		Game game = plugin.getArenaManager().getGameManager().getGameByParticipant(damagedPlayer);
 		
-		if (game != null && game.getGameManager().getPlayerStatus(damagedPlayer).equals(InGameStatus.DEAD))
+		//Return if the player is not in a game
+		if (game == null)
+			return;
+		
+		//Cancel damage if player is dead
+		if (game.getGameManager().getPlayerStatus(damagedPlayer).equals(InGameStatus.DEAD))
 			event.setCancelled(true);
+		
+		if (damagedPlayer.getHealth() - getDamageArmored(damagedPlayer, event.getDamage()) > 0)
+			return;
+		
+		event.setCancelled(true);
+		killPlayer(damagedPlayer, game);
+		
 	}
+	
+    private double getDamageArmored(Player player, double raw)
+    {
+        org.bukkit.inventory.PlayerInventory inv = player.getInventory();
+        ItemStack boots = inv.getBoots();
+        ItemStack helmet = inv.getHelmet();
+        ItemStack chest = inv.getChestplate();
+        ItemStack pants = inv.getLeggings();
+        double red = 0.0;
+        
+        if (helmet != null)
+        {
+	        if(helmet.getType() == Material.LEATHER_HELMET)
+	        	red = red + 0.04;
+	        else if(helmet.getType() == Material.GOLD_HELMET)
+	        	red = red + 0.08;
+	        else if(helmet.getType() == Material.CHAINMAIL_HELMET)
+	        	red = red + 0.08;
+	        else if(helmet.getType() == Material.IRON_HELMET)
+	        	red = red + 0.08;
+	        else if(helmet.getType() == Material.DIAMOND_HELMET)
+	        	red = red + 0.12;
+        }
+        //
+        if (boots != null)
+        {
+        	if(boots.getType() == Material.LEATHER_BOOTS)
+        		red = red + 0.04;
+	        else if(boots.getType() == Material.GOLD_BOOTS)
+	        	red = red + 0.04;
+	        else if(boots.getType() == Material.CHAINMAIL_BOOTS)
+	        	red = red + 0.04;
+	        else if(boots.getType() == Material.IRON_BOOTS)
+	        	red = red + 0.08;
+	        else if(boots.getType() == Material.DIAMOND_BOOTS)
+	        	red = red + 0.12;
+        }
+        //
+        if (pants != null)
+        {
+            if(pants.getType() == Material.LEATHER_LEGGINGS)
+            	red = red + 0.08;
+            else if(pants.getType() == Material.GOLD_LEGGINGS)
+            	red = red + 0.12;
+            else if(pants.getType() == Material.CHAINMAIL_LEGGINGS)
+            	red = red + 0.16;
+            else if(pants.getType() == Material.IRON_LEGGINGS)
+            	red = red + 0.20;
+            else if(pants.getType() == Material.DIAMOND_LEGGINGS)
+            	red = red + 0.24;
+        }
+        //
+        if (chest != null)
+        {
+	        if(chest != null && chest.getType() == Material.LEATHER_CHESTPLATE)
+	        	red = red + 0.12;
+	        else if(chest.getType() == Material.GOLD_CHESTPLATE)
+	        	red = red + 0.20;
+	        else if(chest.getType() == Material.CHAINMAIL_CHESTPLATE)
+	        	red = red + 0.20;
+	        else if(chest.getType() == Material.IRON_CHESTPLATE)
+	        	red = red + 0.24;
+	        else if(chest.getType() == Material.DIAMOND_CHESTPLATE)
+	        	red = red + 0.32;
+        }
+        
+        return raw * (1.0 - red);
+    }
 	
 	//Used to handle deaths in arena
 	@EventHandler
@@ -176,11 +271,8 @@ public class MyListener implements Listener
 			return;
 
 		Player damagedPlayer = (Player) event.getEntity();
-
 		
-		if (damagedPlayer == null)
-			return;
-		
+		//If the player is in the arena system but not in game
 		if (plugin.getArenaManager().getPlayerStatus(damagedPlayer) != null && !plugin.getArenaManager().getPlayerStatus(damagedPlayer).equals(LobbyStatus.IN_GAME))
 		{
 			event.setCancelled(true);
@@ -218,14 +310,20 @@ public class MyListener implements Listener
 			return;
 		}
 		
-		if (damagedPlayer.getHealth() - event.getDamage() > 0)
+		if (damagedPlayer.getHealth() - getDamageArmored(damagedPlayer, event.getDamage()) > 0)
 			return;
 		
 		//To get to this point a player in a game must have died
 		event.setCancelled(true);
+
+		killPlayer(damagedPlayer, game);
+	}
+	
+	private void killPlayer(Player damagedPlayer, Game game)
+	{
 		damagedPlayer.setHealth(20);
 		
-	
+		
 		//Hide the player from sight
 		for (Player p : game.getPlayers())
 			if (!damagedPlayer.equals(p))
