@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
@@ -27,7 +26,6 @@ public class ArenaManager
 	private HashMap<String, Arena> arenas;
 	private Location nexusLocation;
 	
-	private HashMap<OfflinePlayer, Competitor> competitors;
 	private HashMap<Player, LobbyStatus> playerLobbyStatuses;
 	private HashMap<OfflinePlayer, DisplayBoard> boards;
 	
@@ -44,7 +42,6 @@ public class ArenaManager
 		
 		boards = new HashMap<OfflinePlayer, DisplayBoard>();
 		
-		competitors = new HashMap<OfflinePlayer, Competitor>();
 		playerLobbyStatuses = new HashMap<Player, LobbyStatus>();
 		
 		new VersusMatchmakeTask(this).runTaskTimer(this.plugin, 0, 300);
@@ -57,10 +54,6 @@ public class ArenaManager
 		player.setHealth(20);
 		
 		giveLobbyInventory(player);
-		
-		//Create a new profile
-		if (competitors.get(player) == null)
-			competitors.put(player, new Competitor(player.getName(), plugin));
 		
 		showLobbyBoard(player);
 		
@@ -84,7 +77,7 @@ public class ArenaManager
 	
 	public void showLobbyBoard(Player player)
 	{
-		Competitor competitor = competitors.get(player);
+		Competitor competitor = plugin.getCompetitorManager().getCompetitor(player);
 		
 		boards.put(player, new DisplayBoard(player, ChatColor.AQUA + "Versus Arena", ChatColor.GOLD, ChatColor.GREEN));
 		
@@ -108,16 +101,6 @@ public class ArenaManager
 		boards.get(player).putField("Honor: ", DatabaseOperations.getCurrency(player));
 		
 		boards.get(player).display();
-	}
-	
-	public void addWin(OfflinePlayer player, GameType type)
-	{
-		competitors.put(player, competitors.get(player).addWin(type));
-	}
-	
-	public void addLoss(OfflinePlayer player, GameType type)
-	{
-		competitors.put(player, competitors.get(player).addLoss(type));
 	}
 
 	public void addToQueue(Player player, LobbyStatus gameType)
@@ -174,7 +157,7 @@ public class ArenaManager
 		
 		ArrayList<Competitor> validCompetitors = new ArrayList<Competitor>();
 		for (Player p : validPlayers)
-			validCompetitors.add(competitors.get(p));
+			validCompetitors.add(plugin.getCompetitorManager().getCompetitor(p));
 		
 		Competitor[] validCompetitorsArray = validCompetitors.toArray(new Competitor[validCompetitors.size()]);
 		
@@ -225,11 +208,6 @@ public class ArenaManager
 		playerLobbyStatuses.put(player,  status);
 	}
 	
-	public HashMap<OfflinePlayer, Competitor> getCompetitors()
-	{
-		return competitors;
-	}
-	
 	public ArrayList<Arena> getArenasBySize(int size)
 	{
 		ArrayList<Arena> validArenas = new ArrayList<Arena>();
@@ -273,11 +251,6 @@ public class ArenaManager
 		playerLobbyStatuses.put(p, LobbyStatus.IN_LOBBY);
 		this.giveLobbyInventory(p);
 		p.sendMessage(ChatColor.BLUE + "You have been removed from the queue");
-	}
-	
-	public void addCompetitor(String name, Integer[] wins, Integer[] losses, Integer[] rating /*, String selectedKitName*/)
-	{
-		competitors.put(Bukkit.getOfflinePlayer(name), new Competitor(name, wins, losses, rating, /*selectedKitName ,*/ plugin));
 	}
 	
 	public void addArena(String name, int teamSize)
@@ -329,12 +302,7 @@ public class ArenaManager
 	{
 		arenas.clear();
 	}
-	
-	public void clearCompetitors()
-	{
-		competitors.clear();
-	}
-	
+
 	public void cleanPlayer(Player p)
 	{
 		boards.remove(p);

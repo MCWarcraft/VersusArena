@@ -11,7 +11,6 @@ import java.util.HashMap;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
@@ -21,9 +20,9 @@ import org.bukkit.util.Vector;
 
 import bourg.austin.VersusArena.Arena.Arena;
 import bourg.austin.VersusArena.Arena.ArenaManager;
+import bourg.austin.VersusArena.Arena.CompetitorManager;
 import bourg.austin.VersusArena.Background.MyCommandExecutor;
 import bourg.austin.VersusArena.Background.MyListener;
-import bourg.austin.VersusArena.Constants.GameType;
 import bourg.austin.VersusArena.Constants.Inventories;
 import bourg.austin.VersusArena.Constants.VersusKit;
 import bourg.austin.VersusArena.Rating.RatingBoards;
@@ -36,6 +35,7 @@ public final class VersusArena extends JavaPlugin
 	
 	private Connection connection;
 	private RatingBoards ratingBoards;
+	private CompetitorManager competitorManager;
 	
 	private int soupHealAmount;
 	
@@ -46,6 +46,9 @@ public final class VersusArena extends JavaPlugin
 		
 		Inventories.initialize();
 		ratingBoards = new RatingBoards(this);
+		ratingBoards.updateBoards();
+		
+		competitorManager = new CompetitorManager(this);
 		
 		//Declare variables
 		arenaManager = new ArenaManager(this);
@@ -63,6 +66,7 @@ public final class VersusArena extends JavaPlugin
 	
 	public void onDisable()
 	{
+		ratingBoards.updateBoards();
 		saveDatabase();
 	}
 	
@@ -200,38 +204,6 @@ public final class VersusArena extends JavaPlugin
 		
 		try
 		{		
-			//Load players
-			PreparedStatement getPlayerDataStatement = connection.prepareStatement("SELECT * FROM player_data");
-			ResultSet playerResults = getPlayerDataStatement.executeQuery();
-
-			arenaManager.clearCompetitors();
-			
-			//HashMap<String, Boolean> tempKits = new HashMap<String, Boolean>();
-					
-			while (playerResults.next())
-			{
-				arenaManager.addCompetitor(playerResults.getString("player"),
-						new Integer[] {
-						playerResults.getInt("wins1"),
-						playerResults.getInt("wins2"),
-						playerResults.getInt("wins3")},
-						
-						new Integer[] {
-							playerResults.getInt("losses1"),
-							playerResults.getInt("losses2"),
-							playerResults.getInt("losses3")},
-						
-						new Integer[] {
-							playerResults.getInt("rating1"),
-							playerResults.getInt("rating2"),
-							playerResults.getInt("rating3")}
-						);
-			}
-			
-			getPlayerDataStatement.close();
-			playerResults.close();
-		
-			
 			//Load arenas
 			PreparedStatement[] getArenaDataStatements = new PreparedStatement[3];
 			ResultSet[] arenaResultSets = new ResultSet[3];
@@ -283,39 +255,7 @@ public final class VersusArena extends JavaPlugin
 		openConnection();
 		PreparedStatement saveStatement = null;
 		try
-		{
-			//Save competitors
-			boolean playerDataExists;
-			
-			for (OfflinePlayer p : arenaManager.getCompetitors().keySet())
-			{
-				playerDataExists = isStringInCol("player_data", "player", p.getName(), true);
-				
-				String query = (playerDataExists ? "UPDATE" : "INSERT INTO") + " player_data SET " +
-						"wins1=?, losses1=?, rating1=?, wins2=?, losses2=?, rating2=?, wins3=?, losses3=?, rating3=?" + (playerDataExists ? " WHERE player = '" + p.getName() + "'" : ", player=?");
-								
-				saveStatement = connection.prepareStatement(query);
-				if (!playerDataExists)
-					saveStatement.setString(10, p.getName());
-				
-				saveStatement.setInt(1, arenaManager.getCompetitors().get(p).getWins(GameType.ONE));
-				saveStatement.setInt(4, arenaManager.getCompetitors().get(p).getWins(GameType.TWO));
-				saveStatement.setInt(7, arenaManager.getCompetitors().get(p).getWins(GameType.THREE));
-				
-				saveStatement.setInt(2, arenaManager.getCompetitors().get(p).getLosses(GameType.ONE));
-				saveStatement.setInt(5, arenaManager.getCompetitors().get(p).getLosses(GameType.TWO));
-				saveStatement.setInt(8, arenaManager.getCompetitors().get(p).getLosses(GameType.THREE));
-				
-				saveStatement.setInt(3, arenaManager.getCompetitors().get(p).getRating(GameType.ONE));
-				saveStatement.setInt(6, arenaManager.getCompetitors().get(p).getRating(GameType.TWO));
-				saveStatement.setInt(9, arenaManager.getCompetitors().get(p).getRating(GameType.THREE));
-				
-				if (playerDataExists)
-					saveStatement.executeUpdate();
-				else
-					saveStatement.execute();
-			}
-			
+		{			
 			//Save arenas
 			ArrayList<String> spawnLocations = new ArrayList<String>();
 			
@@ -594,5 +534,10 @@ public final class VersusArena extends JavaPlugin
 	public Connection getConnection()
 	{
 		return connection;
+	}
+	
+	public CompetitorManager getCompetitorManager()
+	{
+		return competitorManager;
 	}
 }

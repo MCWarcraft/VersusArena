@@ -65,7 +65,7 @@ public class VersusTeam
 		int totalRating = 0;
 		
 		for (Player p : players)
-			totalRating += game.getGameManager().getArenaManager().getCompetitors().get(p).getRating(game.getGameType());
+			totalRating += game.getGameManager().getArenaManager().getPlugin().getCompetitorManager().getCompetitor(p).getRating(game.getGameType());
 		return totalRating / players.size();
 	}
 	
