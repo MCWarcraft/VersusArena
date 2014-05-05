@@ -26,6 +26,7 @@ import bourg.austin.VersusArena.Background.MyListener;
 import bourg.austin.VersusArena.Constants.GameType;
 import bourg.austin.VersusArena.Constants.Inventories;
 import bourg.austin.VersusArena.Constants.VersusKit;
+import bourg.austin.VersusArena.Rating.RatingBoards;
 
 public final class VersusArena extends JavaPlugin
 {
@@ -34,6 +35,7 @@ public final class VersusArena extends JavaPlugin
 	private HashMap<String, Location> selectedLocations;
 	
 	private Connection connection;
+	private RatingBoards ratingBoards;
 	
 	private int soupHealAmount;
 	
@@ -43,6 +45,7 @@ public final class VersusArena extends JavaPlugin
 		checkDatabase();
 		
 		Inventories.initialize();
+		ratingBoards = new RatingBoards(this);
 		
 		//Declare variables
 		arenaManager = new ArenaManager(this);
@@ -50,6 +53,7 @@ public final class VersusArena extends JavaPlugin
 
 		//Set event listeners
 		this.getServer().getPluginManager().registerEvents(new MyListener(this), this);
+		this.getServer().getPluginManager().registerEvents(ratingBoards, this);
 		
 		//Set command executors
 		this.getCommand("versus").setExecutor(new MyCommandExecutor(this));
@@ -410,10 +414,9 @@ public final class VersusArena extends JavaPlugin
 		}
 	}
 	
-	private synchronized boolean openConnection()
+	public synchronized boolean openConnection()
 	{
 		String connectionString = "jdbc:mysql://" + this.getConfig().getString("sql.ip") + ":" + this.getConfig().getString("sql.port") + "/" + this.getConfig().getString("sql.database");
-		getServer().getLogger().info("Attempting to connect to database: " + connectionString);
 		
 		try
 		{
@@ -427,7 +430,7 @@ public final class VersusArena extends JavaPlugin
 		return true;
 	}
 	
-	private synchronized boolean closeConnection()
+	public synchronized boolean closeConnection()
 	{
 		try
 		{
@@ -563,6 +566,11 @@ public final class VersusArena extends JavaPlugin
 		return new Location(world, x, y, z).setDirection(new Vector().setX(facingX).setZ(facingZ));
 	}
 	
+	public RatingBoards getRatingBoards()
+	{
+		return ratingBoards;
+	}
+	
 	public ArenaManager getArenaManager()
 	{
 		return arenaManager;
@@ -581,5 +589,10 @@ public final class VersusArena extends JavaPlugin
 	public int getSoupHealAmount()
 	{
 		return soupHealAmount;
+	}
+	
+	public Connection getConnection()
+	{
+		return connection;
 	}
 }

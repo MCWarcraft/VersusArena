@@ -60,11 +60,10 @@ public class MyListener implements Listener
 		{
 			//Store the click
 			plugin.setSelectedLocation(p.getName(), event.getClickedBlock().getLocation());
-			p.sendMessage(ChatColor.YELLOW + "Location Selected");
+			p.sendMessage(ChatColor.YELLOW + "Location Selected " + event.getClickedBlock().getLocation().getBlockX() + " "  + event.getClickedBlock().getLocation().getBlockY() + " " + event.getClickedBlock().getLocation().getBlockZ() + " ");
 		}
 
-		//If the action was a right click on a sign with first line "/versus" and the player has permission
-
+		//If the action was a right click on a sign with first line "/versus" and the player has permission		
 		if (event.getAction().equals(Action.RIGHT_CLICK_BLOCK) && ((event.getClickedBlock().getType().equals(Material.WALL_SIGN) || event.getClickedBlock().getType().equals(Material.SIGN_POST))) && ((Sign) event.getClickedBlock().getState()).getLine(0).equalsIgnoreCase(ChatColor.DARK_BLUE + "/versus") && p.hasPermission("pairspvp.arena.go"))
 		{
 			if (plugin.getArenaManager().getNexusLocation() != null)
@@ -167,11 +166,7 @@ public class MyListener implements Listener
 			return;
 
 		Player damagedPlayer = (Player) event.getEntity();
-
-		System.out.println("Damage: " + getDamageArmored(damagedPlayer, event.getDamage()));
-		System.out.println("Health Before: " + (damagedPlayer.getHealth()));
-		System.out.println("Health After: " + (damagedPlayer.getHealth() - getDamageArmored(damagedPlayer, event.getDamage())));
-
+		
 		//If the player is in the arena system but not in game
 		if (plugin.getArenaManager().getPlayerStatus(damagedPlayer) != null && !plugin.getArenaManager().getPlayerStatus(damagedPlayer).equals(LobbyStatus.IN_GAME))
 		{

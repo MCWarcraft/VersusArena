@@ -103,3 +103,16 @@ permissions:
   pairspvp.config.load:
     description: Allows the use of the /versus config load command. This shouldn't be used outside of debugging.
     default: op
+
+  pairspvp.rating.*:
+    description: Allows full control of rating signs
+    default: op
+    children:
+      pairspvp.rating.make: true
+      pairspvp.rating.break: true
+  pairspvp.rating.make:
+    description: Allows the player to make rating signs
+    default: op
+  pairspvp.rating.break:
+    description: Allows the player to break rating signs
+    default: op

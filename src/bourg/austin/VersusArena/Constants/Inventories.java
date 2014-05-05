@@ -11,7 +11,7 @@ public class Inventories
 {
 	public static ItemStack[] LOBBY_SLOTS;
 	public static ItemStack[] QUEUE_SLOTS;
-	public static ItemStack COMPASS; //, CLOCK, STAR;
+	public static ItemStack COMPASS;
 	
 	public static void initialize()
 	{
@@ -24,21 +24,6 @@ public class Inventories
 		tempMeta.setDisplayName(ChatColor.RESET + "" + ChatColor.GREEN + "" + ChatColor.BOLD + "Game Menu");
 		tempMeta.setLore(Arrays.asList(ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Right click to go"));
 		COMPASS.setItemMeta(tempMeta);
-		
-		/*
-		//Clock
-		CLOCK = new ItemStack(Material.WATCH);
-		tempMeta = CLOCK.getItemMeta();
-		tempMeta.setDisplayName(ChatColor.RESET + "" + ChatColor.GREEN + "" + ChatColor.BOLD + "Kits");
-		tempMeta.setLore(Arrays.asList(ChatColor.DARK_PURPLE + "Select your kit"));
-		CLOCK.setItemMeta(tempMeta);
-		//Clock
-		STAR = new ItemStack(Material.NETHER_STAR);
-		tempMeta = STAR.getItemMeta();
-		tempMeta.setDisplayName(ChatColor.RESET + "" + ChatColor.GREEN + "" + ChatColor.BOLD + "Kits");
-		tempMeta.setLore(Arrays.asList(ChatColor.DARK_PURPLE + "Upgrade your kits"));
-		STAR.setItemMeta(tempMeta);
-		*/
 		
 		LOBBY_SLOTS[0] = new ItemStack(Material.CLAY_BALL, 1);
 		tempMeta = LOBBY_SLOTS[0].getItemMeta();
