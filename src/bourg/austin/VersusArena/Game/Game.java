@@ -168,7 +168,7 @@ public class Game implements Listener
 		{
 			p.sendMessage(ChatColor.DARK_RED + "You have lost");
 			//for (Player e :  teams[Math.abs(deathTeam-1)].getAllPlayers())
-				//p.sendMessage(ChatColor.DARK_RED + e.getName() + (gameManager.getPlayerStatus(e).equals(InGameStatus.DEAD) ? " died with " : " had " + e.getHealth() / 2 + " hearts and " ) + soupCount(e) + " soups" );
+				//p.sendMessage(ChatColor.DARK_RED + e.getName() + (gameManager.getPlayerStatus(e) == InGameStatus.DEAD) ? " died with " : " had " + e.getHealth() / 2 + " hearts and " ) + soupCount(e) + " soups" );
 		}
 		for (Player p : teams[Math.abs(deathTeam-1)].getAllPlayers())
 		{

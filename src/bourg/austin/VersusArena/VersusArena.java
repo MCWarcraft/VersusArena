@@ -16,6 +16,8 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 import bourg.austin.VersusArena.Arena.Arena;
@@ -60,6 +62,7 @@ public final class VersusArena extends JavaPlugin
 		
 		//Set command executors
 		this.getCommand("versus").setExecutor(new MyCommandExecutor(this));
+		this.getCommand("logstatus").setExecutor(new MyCommandExecutor(this));
 		
 		this.loadData();
 	} 		  
@@ -139,6 +142,8 @@ public final class VersusArena extends JavaPlugin
 						"wins3 int DEFAULT 0," +
 						"losses3 int DEFAULT 0," +
 						"rating3 int DEFAULT 1500," +
+						"kills int DEFAULT 0," +
+						"deaths int DEFAULT 0," +
 						"PRIMARY KEY (player) " +
 					")");
 			openPlayerDataStatement.execute();
@@ -390,8 +395,11 @@ public final class VersusArena extends JavaPlugin
 		{
 			//Load kit
 			ArrayList<ItemStack> armor, inventory;
+			ArrayList<PotionEffect> effects;
+			
 			armor = new ArrayList<ItemStack>();
 			inventory = new ArrayList<ItemStack>();
+			effects = new ArrayList<PotionEffect>();
 			
 			String[] armorPieces = new String[]{"boots", "legs", "chest", "helmet"};
 			
@@ -455,7 +463,16 @@ public final class VersusArena extends JavaPlugin
 				}
 			}
 			
-			VersusKit.initialize(Arrays.copyOf(inventory.toArray(), inventory.toArray().length, ItemStack[].class), Arrays.copyOf(armor.toArray(), armor.toArray().length, ItemStack[].class));
+			ConfigurationSection potionSection = getConfig().getConfigurationSection("kit.potions");
+			for (String potionName : potionSection.getKeys(false))
+			{
+				int amplifier;
+				
+				amplifier = getConfig().getInt("kit.potions." + potionName);
+				effects.add(new PotionEffect(PotionEffectType.getByName(potionName), 1000, amplifier, false));
+			}
+			
+			VersusKit.initialize(Arrays.copyOf(inventory.toArray(), inventory.toArray().length, ItemStack[].class), Arrays.copyOf(armor.toArray(), armor.toArray().length, ItemStack[].class), Arrays.copyOf(effects.toArray(), effects.toArray().length, PotionEffect[].class));
 		}
 		catch (NullPointerException e)
 		{

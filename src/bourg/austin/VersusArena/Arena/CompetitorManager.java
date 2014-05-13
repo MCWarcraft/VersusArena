@@ -48,6 +48,10 @@ public class CompetitorManager
 							competitorResult.getInt("rating2"),
 							competitorResult.getInt("rating3")},
 							
+						competitorResult.getInt("kills"),
+						
+						competitorResult.getInt("deaths"),
+							
 							plugin
 						);
 			}
@@ -80,11 +84,11 @@ public class CompetitorManager
 			playerDataExists = plugin.isStringInCol("player_data", "player", p.getName(), true);
 			
 			String query = (playerDataExists ? "UPDATE" : "INSERT INTO") + " player_data SET " +
-					"wins1=?, losses1=?, rating1=?, wins2=?, losses2=?, rating2=?, wins3=?, losses3=?, rating3=?" + (playerDataExists ? " WHERE player = '" + p.getName() + "'" : ", player=?");
+					"wins1=?, losses1=?, rating1=?, wins2=?, losses2=?, rating2=?, wins3=?, losses3=?, rating3=?, kills=?, deaths=?" + (playerDataExists ? " WHERE player = '" + p.getName() + "'" : ", player=?");
 							
 			saveStatement = plugin.getConnection().prepareStatement(query);
 			if (!playerDataExists)
-				saveStatement.setString(10, p.getName());
+				saveStatement.setString(12, p.getName());
 			
 			saveStatement.setInt(1, updatedCompetitor.getWins(GameType.ONE));
 			saveStatement.setInt(4, updatedCompetitor.getWins(GameType.TWO));
@@ -97,6 +101,9 @@ public class CompetitorManager
 			saveStatement.setInt(3, updatedCompetitor.getRating(GameType.ONE));
 			saveStatement.setInt(6, updatedCompetitor.getRating(GameType.TWO));
 			saveStatement.setInt(9, updatedCompetitor.getRating(GameType.THREE));
+			
+			saveStatement.setInt(10, updatedCompetitor.getKills());
+			saveStatement.setInt(11, updatedCompetitor.getDeaths());
 			
 			if (playerDataExists)
 				saveStatement.executeUpdate();

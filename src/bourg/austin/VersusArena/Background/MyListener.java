@@ -68,7 +68,7 @@ public class MyListener implements Listener
 		{
 			if (plugin.getArenaManager().getNexusLocation() != null)
 			{
-				plugin.getArenaManager().bringPlayer(p.getName());
+				plugin.getArenaManager().bringPlayer(p.getName(), true);
 				return;
 			}
 			//If no nexus exists
@@ -109,6 +109,9 @@ public class MyListener implements Listener
 	@EventHandler
 	public void onInventoryClick(InventoryClickEvent event)
 	{
+		if (event.getCurrentItem() == null)
+			return;
+		
 		if (event.getCurrentItem().getType().equals(Material.COMPASS))
 			event.setCancelled(true);
 		if (this.plugin.getArenaManager().getPlayerStatus((Player)event.getWhoClicked()) != null)
@@ -147,7 +150,7 @@ public class MyListener implements Listener
 	{
 		try
 		{
-			if (plugin.getArenaManager().getGameManager().getPlayerStatus(event.getPlayer()).equals(InGameStatus.LOCKED))
+			if (plugin.getArenaManager().getGameManager().getPlayerStatus(event.getPlayer()) == InGameStatus.LOCKED)
 				if (event.getFrom().getBlockX() != event.getTo().getBlockX() || event.getFrom().getBlockY() != event.getTo().getBlockY() || event.getFrom().getBlockZ() != event.getTo().getBlockZ())
 					event.setCancelled(true);
 		}
@@ -168,7 +171,7 @@ public class MyListener implements Listener
 		Player damagedPlayer = (Player) event.getEntity();
 		
 		//If the player is in the arena system but not in game
-		if (plugin.getArenaManager().getPlayerStatus(damagedPlayer) != null && !plugin.getArenaManager().getPlayerStatus(damagedPlayer).equals(LobbyStatus.IN_GAME))
+		if (plugin.getArenaManager().getPlayerStatus(damagedPlayer) != null && !(plugin.getArenaManager().getPlayerStatus(damagedPlayer) == LobbyStatus.IN_GAME))
 		{
 			event.setCancelled(true);
 			return;
@@ -181,13 +184,15 @@ public class MyListener implements Listener
 			return;
 
 		//Cancel damage if player is dead
-		if (game.getGameManager().getPlayerStatus(damagedPlayer).equals(InGameStatus.DEAD))
+		if (game.getGameManager().getPlayerStatus(damagedPlayer) == InGameStatus.DEAD)
 			event.setCancelled(true);
 
 		if (damagedPlayer.getHealth() - getDamageArmored(damagedPlayer, event.getDamage()) > 0)
 			return;
 
 		event.setCancelled(true);
+		System.out.println("General damage");
+		plugin.getCompetitorManager().updateCompetitor(plugin.getCompetitorManager().getCompetitor(damagedPlayer).addDeath());
 		killPlayer(damagedPlayer, game);
 
 	}
@@ -204,7 +209,7 @@ public class MyListener implements Listener
 		Player damagedPlayer = (Player) event.getEntity();
 
 		//If the player is in the arena system but not in game
-		if (plugin.getArenaManager().getPlayerStatus(damagedPlayer) != null && !plugin.getArenaManager().getPlayerStatus(damagedPlayer).equals(LobbyStatus.IN_GAME))
+		if (plugin.getArenaManager().getPlayerStatus(damagedPlayer) != null && !(plugin.getArenaManager().getPlayerStatus(damagedPlayer) == LobbyStatus.IN_GAME))
 		{
 			event.setCancelled(true);
 			return;
@@ -226,7 +231,7 @@ public class MyListener implements Listener
 		}
 
 		//If ghost attack
-		if (game.getGameManager().getPlayerStatus(damagingPlayer).equals(InGameStatus.DEAD))
+		if (game.getGameManager().getPlayerStatus(damagingPlayer) == InGameStatus.DEAD)
 		{
 			damagingPlayer.sendMessage(ChatColor.DARK_RED + "You are a ghost");
 			event.setCancelled(true);
@@ -247,6 +252,10 @@ public class MyListener implements Listener
 		//To get to this point a player in a game must have died
 		event.setCancelled(true);
 
+		plugin.getCompetitorManager().updateCompetitor(plugin.getCompetitorManager().getCompetitor(damagedPlayer).addDeath());
+		plugin.getCompetitorManager().updateCompetitor(plugin.getCompetitorManager().getCompetitor(damagingPlayer).addKill());
+		System.out.println("Damage by player");
+		
 		killPlayer(damagedPlayer, game);
 	}
 
@@ -340,9 +349,18 @@ public class MyListener implements Listener
 	@EventHandler
 	public void onLogout(PlayerQuitEvent event)
 	{
+		
 		Player player = event.getPlayer();
+
+		System.out.println("Before change: " + plugin.getArenaManager().getPlayerStatuses().size());
+		
+		plugin.getArenaManager().setPlayerStatus(player, LobbyStatus.OFFLINE);
+		
+		System.out.println("Afer change: " + plugin.getArenaManager().getPlayerStatuses().size());
+		
 		Game game = plugin.getArenaManager().getGameManager().getGameByParticipant(player);
 
+		
 		if (game == null)
 			return;
 		if (!game.getPlayers().contains(player))
@@ -353,14 +371,13 @@ public class MyListener implements Listener
 		game.getGameManager().setPlayerStatus(player, InGameStatus.DEAD);
 
 		game.checkGameOver();
-		game.getGameManager().getArenaManager().setPlayerStatus(player, LobbyStatus.OFFLINE);
 	}
 
 	@EventHandler
 	public void onPlayerCurrencyUpdateEvent(OnlinePlayerCurrencyUpdateEvent event)
 	{
 		//If the player is in arena in some capacity and not in game
-		if (plugin.getArenaManager().getPlayerStatus(event.getPlayer()) != null && !plugin.getArenaManager().getPlayerStatus(event.getPlayer()).equals(LobbyStatus.IN_GAME))
+		if (plugin.getArenaManager().getPlayerStatus(event.getPlayer()) != null && !(plugin.getArenaManager().getPlayerStatus(event.getPlayer()) == LobbyStatus.IN_GAME))
 		{
 			plugin.getArenaManager().showLobbyBoard(event.getPlayer());
 		}

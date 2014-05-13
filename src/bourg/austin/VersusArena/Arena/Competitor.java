@@ -9,20 +9,23 @@ import bourg.austin.VersusArena.Game.VersusTeam;
 public class Competitor
 {
 	private Integer[] wins, losses, rating;
+	private int kills, deaths;
 	private String name;
 	
 	public Competitor(String name, VersusArena plugin)
 	{
-		this(name, new Integer[]{0, 0, 0}, new Integer[]{0, 0, 0}, new Integer[]{1500, 1500, 1500}, plugin);
+		this(name, new Integer[]{0, 0, 0}, new Integer[]{0, 0, 0}, new Integer[]{1500, 1500, 1500}, 0, 0, plugin);
 	}
 	
 	
-	public Competitor(String name, Integer[] wins, Integer[] losses, Integer[] rating, VersusArena plugin)
+	public Competitor(String name, Integer[] wins, Integer[] losses, Integer[] rating, int kills, int deaths, VersusArena plugin)
 	{
 		this.name = name;
 		this.wins = wins;
 		this.losses = losses;
 		this.rating = rating;
+		this.kills = kills;
+		this.deaths = deaths;
 	}
 	
 	public String getCompetitorName()
@@ -60,6 +63,28 @@ public class Competitor
 	public int getRating(LobbyStatus queueNum)
 	{
 		return rating[queueNum.getValue() - 1];
+	}
+	
+	public int getKills()
+	{
+		return kills;
+	}
+	
+	public int getDeaths()
+	{
+		return deaths;
+	}
+	
+	public Competitor addKill()
+	{
+		kills++;
+		return this;
+	}
+	
+	public Competitor addDeath()
+	{
+		deaths++;
+		return this;
 	}
 	
 	public int updateRating(GameResult result, VersusTeam enemyTeam)

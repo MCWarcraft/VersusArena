@@ -68,7 +68,7 @@ public class GameManager
 	{
 		for (Player p : gamesInProgress.get(id).getPlayers())
 		{
-			if (arenaManager.getPlayerStatus(p).equals(LobbyStatus.OFFLINE));
+			if (arenaManager.getPlayerStatus(p) == LobbyStatus.OFFLINE)
 				arenaManager.removePlayer(p);
 		}
 		gamesInProgress.remove(id);

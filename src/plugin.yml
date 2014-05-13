@@ -7,6 +7,10 @@ commands:
     description: 'The root command for the Versus Arena Plugin'
     usage: '/<command> subject action'
     permission-message: 'You don''t have <permission>'
+  logstatus:
+    description: 'shit'
+    usage: 'lol'
+    permission-message: 'Delete this, lol'
     
 permissions:
   pairspvp.*:
@@ -17,6 +21,7 @@ permissions:
       pairspvp.nexus.*: true
       pairspvp.arena.*: true
       pairspvp.config.*: true
+      pairspvp.rating.*: true
   
   pairspvp.go:
     description: 'Allows the use of the /versus command to go to the nexus'

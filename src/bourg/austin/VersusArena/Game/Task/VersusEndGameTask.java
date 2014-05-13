@@ -1,6 +1,7 @@
 package bourg.austin.VersusArena.Game.Task;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -52,17 +53,29 @@ public class VersusEndGameTask extends BukkitRunnable
 					tempCompetitor.addWin(game.getGameType());
 					tempCompetitor.updateRating(GameResult.WIN, game.getTeam(Math.abs(teamNum - 1)));
 					tempCompManager.updateCompetitor(tempCompetitor);
-					DatabaseOperations.setCurrency(game.getTeam(teamNum).getPlayer(playerNum), DatabaseOperations.getCurrency(game.getTeam(teamNum).getPlayer(playerNum)) + (game.getGameType().equals(GameType.ONE) ? 10 : 50));
+					
+					int money = 0;
+					if (game.getGameType() == GameType.ONE)
+						money = 10;
+					else if (game.getGameType() == GameType.TWO)
+						money = 20;
+					else if (game.getGameType() == GameType.THREE)
+						money = 50;
+					else
+						System.out.println(ChatColor.RED + "Gametype is invalid. Check VersusEndGameTask");
+					
+					DatabaseOperations.setCurrency(game.getTeam(teamNum).getPlayer(playerNum), DatabaseOperations.getCurrency(game.getTeam(teamNum).getPlayer(playerNum)) + money);
 				}
 				
 				//If player is offline in the records
-				if (!game.getGameManager().getArenaManager().getPlayerStatus(game.getTeam(teamNum).getPlayer(playerNum)).equals(LobbyStatus.OFFLINE))
-					game.getGameManager().getArenaManager().bringPlayer(game.getTeam(teamNum).getPlayer(playerNum).getName());
+				if (game.getGameManager().getArenaManager().getPlayerStatus(game.getTeam(teamNum).getPlayer(playerNum)) != LobbyStatus.OFFLINE)
+					game.getGameManager().getArenaManager().bringPlayer(game.getTeam(teamNum).getPlayer(playerNum).getName(), false);
 				//If player is still online, heal
 				else
 					game.getTeam(teamNum).getPlayer(playerNum).setHealth(20);
 				
-				for (Player p : game.getGameManager().getArenaManager().getAllParticipants())
+				//Fix invis
+				for (Player p : game.getGameManager().getArenaManager().getOnlinePlayersInLobby())
 				{
 					p.showPlayer(game.getTeam(teamNum).getPlayer(playerNum));
 					game.getTeam(teamNum).getPlayer(playerNum).showPlayer(p);

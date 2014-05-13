@@ -2,6 +2,7 @@ package bourg.austin.VersusArena.Background;
 
 import java.util.ArrayList;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
@@ -31,6 +32,15 @@ public class MyCommandExecutor implements CommandExecutor
 		else
 			player = null;
 			
+		//TODO: DELETE TEST CODE
+		if (cmd.getName().equalsIgnoreCase("logstatus"))
+		{
+			for (String p : plugin.getArenaManager().getPlayerStatuses().keySet())
+				sender.sendMessage(p + ": " + plugin.getArenaManager().getPlayerStatus(Bukkit.getOfflinePlayer(p)));
+			return true;
+		}
+		
+		
 		if (cmd.getName().equalsIgnoreCase("versus"))
 		{
 			//root command to go to nexus
@@ -45,7 +55,7 @@ public class MyCommandExecutor implements CommandExecutor
 						//If a nexus exists
 						if (plugin.getArenaManager().getNexusLocation() != null)
 						{
-							plugin.getArenaManager().bringPlayer(player.getName());
+							plugin.getArenaManager().bringPlayer(player.getName(), true);
 						}
 						//If no nexus exists
 						else

@@ -10,6 +10,7 @@ import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
 
 import bourg.austin.HonorPoints.DatabaseOperations;
 import bourg.austin.VersusArena.VersusArena;
@@ -26,7 +27,7 @@ public class ArenaManager
 	private HashMap<String, Arena> arenas;
 	private Location nexusLocation;
 	
-	private HashMap<Player, LobbyStatus> playerLobbyStatuses;
+	private HashMap<String, LobbyStatus> playerLobbyStatuses;
 	private HashMap<OfflinePlayer, DisplayBoard> boards;
 	
 	private GameManager gameManager;
@@ -42,35 +43,41 @@ public class ArenaManager
 		
 		boards = new HashMap<OfflinePlayer, DisplayBoard>();
 		
-		playerLobbyStatuses = new HashMap<Player, LobbyStatus>();
+		playerLobbyStatuses = new HashMap<String, LobbyStatus>();
 		
 		new VersusMatchmakeTask(this).runTaskTimer(this.plugin, 0, 300);
 		new VersusMatchmakeTimeTask().runTaskTimer(this.plugin, 20, 20);
 	}
 	
-	public void bringPlayer(String playerName)
+	public void bringPlayer(String playerName, boolean message)
 	{
 		Player player = plugin.getServer().getPlayer(playerName);
 		player.setHealth(20);
+		player.setFireTicks(0);
+		for (PotionEffect effect : player.getActivePotionEffects())
+			player.removePotionEffect(effect.getType());
 		
 		giveLobbyInventory(player);
 		
 		showLobbyBoard(player);
 		
-		player.sendMessage(ChatColor.BLUE + "Welcome to the Versus Arena!");
+		if (message)
+			player.sendMessage(ChatColor.AQUA + "Welcome to the Versus Arena!");
+		
 		player.teleport(plugin.getArenaManager().getNexusLocation());
 		
 		//Store data about players in the arena
-		playerLobbyStatuses.put(player, LobbyStatus.IN_LOBBY);
+		playerLobbyStatuses.put(player.getName(), LobbyStatus.IN_LOBBY);
 	}
 	
 	public void removePlayer(Player p)
 	{
+		System.out.println("Remove");
 		boards.remove(p);
-		playerLobbyStatuses.remove(p);
+		playerLobbyStatuses.remove(p.getName());
 	}
 	
-	public Set<Player> getAllParticipants()
+	public Set<String> getAllParticipantNames()
 	{
 		return playerLobbyStatuses.keySet();
 	}
@@ -105,7 +112,7 @@ public class ArenaManager
 
 	public void addToQueue(Player player, LobbyStatus gameType)
 	{
-		playerLobbyStatuses.put(player, gameType);
+		playerLobbyStatuses.put(player.getName(), gameType);
 		giveQueueInventory(player, gameType.getValue());
 		player.sendMessage(ChatColor.BLUE + "You are now in the " + gameType.getValue() + "v" + gameType.getValue() + " queue.");
 		player.sendMessage(ChatColor.BLUE + "The next set of matches starts in " + ChatColor.GOLD + VersusMatchmakeTimeTask.getTimeToGame(false) + " seconds");
@@ -147,18 +154,25 @@ public class ArenaManager
 	public void matchMake(LobbyStatus queueType)
 	{
 		Arena a = this.getRandomArenaBySize(queueType.getValue());
-		if (a == null)
-			return;
 		
 		ArrayList<Player> validPlayers = getSpecificQueue(queueType);
 		
+		//If there aren't any configured arenas
+		if (a == null)
+			return;
+		
+		//If there aren't enough players to start a game
 		if (validPlayers.size() < queueType.getValue() * 2)
 			return;
 		
+		//New ArrayList of competitors
 		ArrayList<Competitor> validCompetitors = new ArrayList<Competitor>();
+		
+		//Add the valid players' competitor objects to an ArrayList
 		for (Player p : validPlayers)
 			validCompetitors.add(plugin.getCompetitorManager().getCompetitor(p));
 		
+		//Convert to an array
 		Competitor[] validCompetitorsArray = validCompetitors.toArray(new Competitor[validCompetitors.size()]);
 		
 		int n = validCompetitors.size();
@@ -180,11 +194,12 @@ public class ArenaManager
         for (Competitor c : validCompetitorsArray)
         	sortedValidPlayers.add(plugin.getServer().getPlayer(c.getCompetitorName()));
         
-        //Drop random players to maintain fair sizing
+        //Drop random players to maintain proper sizing
         int numToDrop = sortedValidPlayers.size() % (queueType.getValue() * 2);
         for (int i = 0; i < numToDrop; i++)
         	sortedValidPlayers.remove((int) (Math.random() * sortedValidPlayers.size()));
 		
+        //Make games with players
 		while (sortedValidPlayers.size() >= queueType.getValue() * 2)
 		{
 			gameManager.startGame(sortedValidPlayers.subList(0, queueType.getValue() * 2), a);
@@ -196,16 +211,32 @@ public class ArenaManager
 	{
 		ArrayList<Player> validPlayers = new ArrayList<Player>();
 		
-		for (Player p : playerLobbyStatuses.keySet())
-			if (playerLobbyStatuses.get(p).equals(statusType))
+		for (Player p : getOnlinePlayersInLobby())
+			if (playerLobbyStatuses.get(p.getName()) == (statusType))
 				validPlayers.add(p);
 		
 		return validPlayers;
 	}
 	
-	public void setPlayerStatus(Player player, LobbyStatus status)
+	public ArrayList<Player> getOnlinePlayersInLobby()
 	{
-		playerLobbyStatuses.put(player,  status);
+		ArrayList<Player> playersOnline = new ArrayList<Player>();
+		
+		for (String p : playerLobbyStatuses.keySet())
+			if (plugin.getServer().getPlayer(p) != null)
+				playersOnline.add(plugin.getServer().getPlayer(p));
+		
+		return playersOnline;
+	}
+	
+	public void setPlayerStatus(OfflinePlayer player, LobbyStatus status)
+	{
+		playerLobbyStatuses.put(player.getName(), status);
+	}
+	
+	public HashMap<String, LobbyStatus> getPlayerStatuses()
+	{
+		return playerLobbyStatuses;
 	}
 	
 	public ArrayList<Arena> getArenasBySize(int size)
@@ -233,22 +264,12 @@ public class ArenaManager
 	
 	public LobbyStatus getPlayerStatus(OfflinePlayer p)
 	{
-		return playerLobbyStatuses.get(p);
-	}
-	
-	public ArrayList<Player> getPlayersInGame()
-	{
-		ArrayList<Player> tempList = new ArrayList<Player>();
-		
-		for (Player p : playerLobbyStatuses.keySet())
-			if (playerLobbyStatuses.get(p).equals(LobbyStatus.IN_GAME))
-				tempList.add(p);
-		return tempList;
+		return playerLobbyStatuses.get(p.getName());
 	}
 	
 	public void removeFromQueue(Player p)
 	{
-		playerLobbyStatuses.put(p, LobbyStatus.IN_LOBBY);
+		playerLobbyStatuses.put(p.getName(), LobbyStatus.IN_LOBBY);
 		this.giveLobbyInventory(p);
 		p.sendMessage(ChatColor.BLUE + "You have been removed from the queue");
 	}
@@ -305,6 +326,7 @@ public class ArenaManager
 
 	public void cleanPlayer(Player p)
 	{
+		System.out.println("Clean");
 		boards.remove(p);
 		gameManager.getPlayerStatuses().remove(p);
 	}

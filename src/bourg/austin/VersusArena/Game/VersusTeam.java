@@ -25,7 +25,7 @@ public class VersusTeam
 		HashMap<Player, InGameStatus> statuses = game.getGameManager().getPlayerStatuses();
 		for (Player p : statuses.keySet())
 			if (players.contains(p))
-				if (statuses.get(p).equals(InGameStatus.ALIVE))
+				if (statuses.get(p) == InGameStatus.ALIVE)
 					return false;
 		return true;
 	}
