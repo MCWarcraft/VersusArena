@@ -34,12 +34,16 @@ public class MyListener implements Listener
 	public MyListener(VersusArena plugin)
 	{
 		this.plugin = plugin;
+		
+		System.out.println("Finishing listener init");
 	}
 
 	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void onRightClick(PlayerInteractEvent event)
 	{
+		System.out.println("On right click");
+		
 		Player p = event.getPlayer();
 
 		if (p.getItemInHand().getType().equals(Material.MUSHROOM_SOUP) && p.getHealth() < 20)

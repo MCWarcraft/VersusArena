@@ -43,7 +43,6 @@ kit:
     legs:
     boots:
   potions:
-    POTION_NAME_HERE: 1
     
 
 # 1 heart is 2 hp ex if you want 5.5 hearts, put 11 here

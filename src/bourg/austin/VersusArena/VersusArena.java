@@ -63,8 +63,9 @@ public final class VersusArena extends JavaPlugin
 		//Set command executors
 		this.getCommand("versus").setExecutor(new MyCommandExecutor(this));
 		this.getCommand("logstatus").setExecutor(new MyCommandExecutor(this));
-		
+		System.out.println("Before load");
 		this.loadData();
+		System.out.println("After load");
 	} 		  
 	
 	public void onDisable()
@@ -352,10 +353,7 @@ public final class VersusArena extends JavaPlugin
 			{
 				saveStatement.close();
 			}
-			catch (Exception e)
-			{
-				e.printStackTrace();
-			}
+			catch (Exception e) {}
 		}
 	}
 	
