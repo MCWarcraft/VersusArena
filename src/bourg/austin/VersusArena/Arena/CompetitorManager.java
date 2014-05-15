@@ -23,7 +23,6 @@ public class CompetitorManager
 	{
 		Competitor tempCompetitor = new Competitor(player.getName(), plugin);
 		
-		plugin.openConnection();
 		try
 		{
 			PreparedStatement getCompetitorStatement = plugin.getConnection().prepareStatement("SELECT * FROM player_data WHERE player=?");
@@ -64,24 +63,19 @@ public class CompetitorManager
 		{
 			e.printStackTrace();
 		}
-		finally
-		{
-			plugin.closeConnection();
-		}
 		
 		return tempCompetitor;
 	}
 	
 	public void updateCompetitor(Competitor updatedCompetitor)
 	{
-		plugin.openConnection();
 		OfflinePlayer p = Bukkit.getOfflinePlayer(updatedCompetitor.getCompetitorName());
 
 		PreparedStatement saveStatement = null;
 		try
 		{
 			boolean playerDataExists;
-			playerDataExists = plugin.isStringInCol("player_data", "player", p.getName(), true);
+			playerDataExists = plugin.isStringInCol("player_data", "player", p.getName());
 			
 			String query = (playerDataExists ? "UPDATE" : "INSERT INTO") + " player_data SET " +
 					"wins1=?, losses1=?, rating1=?, wins2=?, losses2=?, rating2=?, wins3=?, losses3=?, rating3=?, kills=?, deaths=?" + (playerDataExists ? " WHERE player = '" + p.getName() + "'" : ", player=?");
@@ -114,11 +108,6 @@ public class CompetitorManager
 		{
 			e.printStackTrace();
 		}
-		finally
-		{
-			plugin.closeConnection();
-		}
-
 	}
 	
 	public VersusArena getPlugin()

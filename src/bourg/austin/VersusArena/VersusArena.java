@@ -43,6 +43,8 @@ public final class VersusArena extends JavaPlugin
 	
 	public void onEnable()
 	{		
+		openConnection();
+		
 		this.saveDefaultConfig();
 		checkDatabase();
 		
@@ -74,10 +76,8 @@ public final class VersusArena extends JavaPlugin
 		saveDatabase();
 	}
 	
-	public synchronized boolean isStringInCol(String table, String colName, String rowName, boolean maintainConnection)
+	public synchronized boolean isStringInCol(String table, String colName, String rowName)
 	{
-		if (!maintainConnection)
-			openConnection();
 		try
 		{
 			PreparedStatement statement = connection.prepareStatement("SELECT * FROM " + table + " WHERE " + colName + " = '" + rowName +"'");
@@ -93,18 +93,10 @@ public final class VersusArena extends JavaPlugin
 		{
 			return false;
 		}
-		finally
-		{
-			if (!maintainConnection)
-				closeConnection();
-		}
 	}
 	
-	public synchronized boolean isColInTable(String table, String colName, boolean maintainConnection)
-	{
-		if (!maintainConnection)
-			openConnection();
-		
+	public synchronized boolean isColInTable(String table, String colName)
+	{		
 		try
 		{
 			PreparedStatement getIfColExistsStatement = connection.prepareStatement("SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = ? AND COLUMN_NAME = ?");
@@ -117,18 +109,10 @@ public final class VersusArena extends JavaPlugin
 			e.printStackTrace();
 			return false;
 		}
-		finally
-		{
-			if (!maintainConnection)
-				closeConnection();
-		}
 	}
 	
 	private synchronized void checkDatabase()
 	{
-		if (!openConnection())
-			return;
-		
 		try
 		{
 			//Configure main player data table
@@ -198,16 +182,10 @@ public final class VersusArena extends JavaPlugin
 		{
 			e.printStackTrace();
 		}
-		finally
-		{
-			closeConnection();
-		}
 	}
 	
 	public synchronized void loadDatabase()
 	{
-		openConnection();
-		
 		try
 		{		
 			//Load arenas
@@ -250,15 +228,10 @@ public final class VersusArena extends JavaPlugin
 		{
 			e.printStackTrace();
 		}
-		finally
-		{
-			closeConnection();
-		}
 	}
 	
 	public synchronized void saveDatabase()
 	{
-		openConnection();
 		PreparedStatement saveStatement = null;
 		try
 		{			
@@ -288,7 +261,7 @@ public final class VersusArena extends JavaPlugin
 				else if (spawnLocations.size() == 6)
 					arenaType = "triples";
 				
-				boolean arenaDataExists = isStringInCol(arenaType + "_arena_data", "name", name, true);
+				boolean arenaDataExists = isStringInCol(arenaType + "_arena_data", "name", name);
 				String query = (arenaDataExists ? "UPDATE" : "INSERT INTO") + " " + arenaType + "_arena_data SET " +
 					"team1player1=?, team2player1=?" + (arenaType.equals("doubles") || arenaType.equals("triples") ? ", team1player2=?, team2player2=?" : "") + (arenaType.equals("triples") ? ", team1player3=?, team2player3=?" : "") + ", deathlocation=?" + (arenaDataExists ? " WHERE name=?" : ", name=?");
 						
@@ -328,7 +301,7 @@ public final class VersusArena extends JavaPlugin
 					}
 				}				
 			}
-			boolean nexusDataExists = isStringInCol("nexus_data", "name", "nexus", true);
+			boolean nexusDataExists = isStringInCol("nexus_data", "name", "nexus");
 			
 			String nexusQuery = (nexusDataExists ? "UPDATE" : "INSERT INTO") + " nexus_data SET " +
 					"location=?" + (nexusDataExists ? " WHERE name = 'nexus'" : ", name='nexus'");
@@ -347,8 +320,7 @@ public final class VersusArena extends JavaPlugin
 			e.printStackTrace();
 		}
 		finally
-		{		
-			closeConnection();
+		{
 			try
 			{
 				saveStatement.close();

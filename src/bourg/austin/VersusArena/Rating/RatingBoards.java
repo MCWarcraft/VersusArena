@@ -27,7 +27,6 @@ public class RatingBoards implements Listener
 		PreparedStatement openSignDataStatement;
 		try
 		{
-			plugin.openConnection();
 			openSignDataStatement = plugin.getConnection().prepareStatement("CREATE TABLE IF NOT EXISTS rating_signs " +
 					"( id int NOT NULL AUTO_INCREMENT," +
 						"location varchar(255)," +
@@ -40,10 +39,6 @@ public class RatingBoards implements Listener
 		catch (SQLException e)
 		{
 			e.printStackTrace();
-		}
-		finally
-		{
-			plugin.closeConnection();
 		}
 	}
 	
@@ -84,7 +79,6 @@ public class RatingBoards implements Listener
 			if (board == null)
 				return;
 			
-			plugin.openConnection();
 			PreparedStatement addNewSignStatement = plugin.getConnection().prepareStatement("INSERT INTO rating_signs SET location=?");
 			addNewSignStatement.setString(1, VersusArena.locationToString(event.getBlock().getLocation()));
 			addNewSignStatement.execute();
@@ -92,10 +86,6 @@ public class RatingBoards implements Listener
 		catch (SQLException e)
 		{
 			e.printStackTrace();
-		}
-		finally
-		{
-			plugin.closeConnection();
 		}
 		
 		Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new RatingBoardUpdateDelayTask(plugin), 1);
@@ -122,7 +112,6 @@ public class RatingBoards implements Listener
 	{
 		try
 		{
-			plugin.openConnection();
 			PreparedStatement deleteSignStatement = plugin.getConnection().prepareStatement("DELETE FROM rating_signs WHERE location = ?");
 			deleteSignStatement.setString(1, VersusArena.locationToString(loc));
 			deleteSignStatement.execute();							
@@ -135,7 +124,6 @@ public class RatingBoards implements Listener
 	
 	public void updateBoards()
 	{
-		plugin.openConnection();
 		try
 		{
 			PreparedStatement getAllSignsStatement = plugin.getConnection().prepareStatement("SELECT location FROM rating_signs");
