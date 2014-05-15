@@ -13,7 +13,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.SignChangeEvent;
 
 import bourg.austin.VersusArena.VersusArena;
-import bourg.austin.VersusArena.Game.Task.RatingBoardUpdateDelayTask;
+import bourg.austin.VersusArena.Tasks.RatingBoardUpdateDelayTask;
 
 public class RatingBoards implements Listener
 {

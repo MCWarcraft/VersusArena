@@ -1,36 +1,32 @@
 name: VersusArena
 main: bourg.austin.VersusArena.VersusArena
-version: 0
-
+version: 1.0.0
 commands:
   versus:
     description: 'The root command for the Versus Arena Plugin'
     usage: '/<command> subject action'
     permission-message: 'You don''t have <permission>'
   logstatus:
-    description: 'shit'
-    usage: 'lol'
+    description: shit
+    usage: lol
     permission-message: 'Delete this, lol'
-    
 permissions:
-  pairspvp.*:
-    description: Gives access to everything
+  'pairspvp.*':
+    description: 'Gives access to everything'
     default: op
     children:
       pairspvp.go: true
-      pairspvp.nexus.*: true
-      pairspvp.arena.*: true
-      pairspvp.config.*: true
-      pairspvp.rating.*: true
-  
+      'pairspvp.nexus.*': true
+      'pairspvp.arena.*': true
+      'pairspvp.config.*': true
+      'pairspvp.rating.*': true
   pairspvp.go:
     description: 'Allows the use of the /versus command to go to the nexus'
     default: true
   pairspvp.select:
     description: 'Allows a player to select a block for use with other commands'
     default: false
-    
-  pairspvp.nexus.*:
+  'pairspvp.nexus.*':
     description: 'Allows full control over nexus related commands'
     default: op
     children:
@@ -46,10 +42,9 @@ permissions:
       pairspvp.select: true
     default: op
   pairspvp.nexus.sign:
-    description: Allows the user to place signs with /versus as the first line in order to go to arena.
+    description: 'Allows the user to place signs with /versus as the first line in order to go to arena.'
     default: op
-    
-  pairspvp.arena.*:
+  'pairspvp.arena.*':
     description: 'Allows full control over arena related commands'
     children:
       pairspvp.arena.modify: true
@@ -86,38 +81,31 @@ permissions:
     description: 'Allows the use of the /versus arena details <name> command'
     default: op
   pairspvp.arena.setspawn:
-    description: 'Allows the use of the /versus arena setspawn <teamnum> <playernum> command'
-    default: op
-    children:
-      pairspvp.select: true
-  pairspvp.arena.setspawn:
     description: 'Allows the use of the /versus arena setdeath <name> command'
     default: op
     children:
       pairspvp.select: true
-  
-  pairspvp.config.*:
-    description: Allows the use of any commands relating to the config file.
+  'pairspvp.config.*':
+    description: 'Allows the use of any commands relating to the config file.'
     default: op
     children:
       pairspvp.config.save: true
       pairspvp.config.load: true
   pairspvp.config.save:
-    description: Allows the use of the /versus config save command.
+    description: 'Allows the use of the /versus config save command.'
     default: op
   pairspvp.config.load:
-    description: Allows the use of the /versus config load command. This shouldn't be used outside of debugging.
+    description: 'Allows the use of the /versus config load command. This shouldn''t be used outside of debugging.'
     default: op
-
-  pairspvp.rating.*:
-    description: Allows full control of rating signs
+  'pairspvp.rating.*':
+    description: 'Allows full control of rating signs'
     default: op
     children:
       pairspvp.rating.make: true
       pairspvp.rating.break: true
   pairspvp.rating.make:
-    description: Allows the player to make rating signs
+    description: 'Allows the player to make rating signs'
     default: op
   pairspvp.rating.break:
-    description: Allows the player to break rating signs
+    description: 'Allows the player to break rating signs'
     default: op

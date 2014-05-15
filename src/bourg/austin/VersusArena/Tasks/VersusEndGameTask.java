@@ -1,4 +1,4 @@
-package bourg.austin.VersusArena.Game.Task;
+package bourg.austin.VersusArena.Tasks;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -62,7 +62,7 @@ public class VersusEndGameTask extends BukkitRunnable
 					else if (game.getGameType() == GameType.THREE)
 						money = 50;
 					else
-						System.out.println(ChatColor.RED + "Gametype is invalid. Check VersusEndGameTask");
+						game.getGameManager().getArenaManager().getPlugin().getLogger().info(ChatColor.RED + "Gametype is invalid. Check VersusEndGameTask");
 					
 					DatabaseOperations.setCurrency(game.getTeam(teamNum).getPlayer(playerNum), DatabaseOperations.getCurrency(game.getTeam(teamNum).getPlayer(playerNum)) + money);
 				}

@@ -1,4 +1,4 @@
-package bourg.austin.VersusArena.Game.Task;
+package bourg.austin.VersusArena.Tasks;
 
 import org.bukkit.scheduler.BukkitRunnable;
 

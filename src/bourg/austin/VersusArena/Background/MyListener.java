@@ -34,16 +34,12 @@ public class MyListener implements Listener
 	public MyListener(VersusArena plugin)
 	{
 		this.plugin = plugin;
-		
-		System.out.println("Finishing listener init");
 	}
 
 	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void onRightClick(PlayerInteractEvent event)
-	{
-		System.out.println("On right click");
-		
+	{		
 		Player p = event.getPlayer();
 
 		if (p.getItemInHand().getType().equals(Material.MUSHROOM_SOUP) && p.getHealth() < 20)
@@ -195,7 +191,6 @@ public class MyListener implements Listener
 			return;
 
 		event.setCancelled(true);
-		System.out.println("General damage");
 		plugin.getCompetitorManager().updateCompetitor(plugin.getCompetitorManager().getCompetitor(damagedPlayer).addDeath());
 		killPlayer(damagedPlayer, game);
 
@@ -258,7 +253,6 @@ public class MyListener implements Listener
 
 		plugin.getCompetitorManager().updateCompetitor(plugin.getCompetitorManager().getCompetitor(damagedPlayer).addDeath());
 		plugin.getCompetitorManager().updateCompetitor(plugin.getCompetitorManager().getCompetitor(damagingPlayer).addKill());
-		System.out.println("Damage by player");
 		
 		killPlayer(damagedPlayer, game);
 	}
@@ -353,18 +347,10 @@ public class MyListener implements Listener
 	@EventHandler
 	public void onLogout(PlayerQuitEvent event)
 	{
-		
 		Player player = event.getPlayer();
-
-		System.out.println("Before change: " + plugin.getArenaManager().getPlayerStatuses().size());
-		
 		plugin.getArenaManager().setPlayerStatus(player, LobbyStatus.OFFLINE);
-		
-		System.out.println("Afer change: " + plugin.getArenaManager().getPlayerStatuses().size());
-		
 		Game game = plugin.getArenaManager().getGameManager().getGameByParticipant(player);
 
-		
 		if (game == null)
 			return;
 		if (!game.getPlayers().contains(player))

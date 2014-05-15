@@ -18,9 +18,9 @@ import bourg.austin.VersusArena.Constants.GameType;
 import bourg.austin.VersusArena.Constants.Inventories;
 import bourg.austin.VersusArena.Constants.LobbyStatus;
 import bourg.austin.VersusArena.Game.GameManager;
-import bourg.austin.VersusArena.Game.Task.VersusMatchmakeTask;
-import bourg.austin.VersusArena.Game.Task.VersusMatchmakeTimeTask;
 import bourg.austin.VersusArena.Interface.DisplayBoard;
+import bourg.austin.VersusArena.Tasks.VersusMatchmakeTask;
+import bourg.austin.VersusArena.Tasks.VersusMatchmakeTimeTask;
 
 public class ArenaManager
 {
@@ -72,7 +72,6 @@ public class ArenaManager
 	
 	public void removePlayer(Player p)
 	{
-		System.out.println("Remove");
 		boards.remove(p);
 		playerLobbyStatuses.remove(p.getName());
 	}
@@ -326,7 +325,6 @@ public class ArenaManager
 
 	public void cleanPlayer(Player p)
 	{
-		System.out.println("Clean");
 		boards.remove(p);
 		gameManager.getPlayerStatuses().remove(p);
 	}
