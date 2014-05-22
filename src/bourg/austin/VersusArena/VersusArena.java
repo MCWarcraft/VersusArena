@@ -27,6 +27,8 @@ import bourg.austin.VersusArena.Background.MyCommandExecutor;
 import bourg.austin.VersusArena.Background.MyListener;
 import bourg.austin.VersusArena.Constants.Inventories;
 import bourg.austin.VersusArena.Constants.VersusKit;
+import bourg.austin.VersusArena.Party.PartyCommandExecutor;
+import bourg.austin.VersusArena.Party.PartyManager;
 import bourg.austin.VersusArena.Rating.RatingBoards;
 
 public final class VersusArena extends JavaPlugin
@@ -38,6 +40,7 @@ public final class VersusArena extends JavaPlugin
 	private Connection connection;
 	private RatingBoards ratingBoards;
 	private CompetitorManager competitorManager;
+	private PartyManager partyManager;
 	
 	private int soupHealAmount;
 	
@@ -56,6 +59,7 @@ public final class VersusArena extends JavaPlugin
 		
 		//Declare variables
 		arenaManager = new ArenaManager(this);
+		partyManager = new PartyManager(this);
 		selectedLocations = new HashMap<String, Location>();
 
 		//Set event listeners
@@ -64,7 +68,7 @@ public final class VersusArena extends JavaPlugin
 		
 		//Set command executors
 		this.getCommand("versus").setExecutor(new MyCommandExecutor(this));
-		this.getCommand("logstatus").setExecutor(new MyCommandExecutor(this));
+		this.getCommand("party").setExecutor(new PartyCommandExecutor(partyManager));
 		this.loadData();
 	} 		  
 	

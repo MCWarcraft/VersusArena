@@ -35,7 +35,7 @@ public class DisplayBoard
 		values = new HashMap<OfflinePlayer, Score>();
 	}
 	
-	private void put(String text)
+	public void put(String text)
 	{
 		String displayText = text;
 		//Add spaces to the end

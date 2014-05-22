@@ -4,12 +4,12 @@ version: 1.0.0
 commands:
   versus:
     description: 'The root command for the Versus Arena Plugin'
-    usage: '/<command> subject action'
+    usage: '/versus subject action'
     permission-message: 'You don''t have <permission>'
-  logstatus:
-    description: shit
-    usage: lol
-    permission-message: 'Delete this, lol'
+  party:
+    description: 'The root command for the Party system'
+    usage: '/party subject action'
+    permission-message: 'You don''t have <permission>'
 permissions:
   'pairspvp.*':
     description: 'Gives access to everything'
@@ -20,6 +20,7 @@ permissions:
       'pairspvp.arena.*': true
       'pairspvp.config.*': true
       'pairspvp.rating.*': true
+      'pairspvp.party': true
   pairspvp.go:
     description: 'Allows the use of the /versus command to go to the nexus'
     default: true
@@ -109,3 +110,6 @@ permissions:
   pairspvp.rating.break:
     description: 'Allows the player to break rating signs'
     default: op
+  pairspvp.party:
+    description: 'Allows the player to use the party system'
+    default: true
