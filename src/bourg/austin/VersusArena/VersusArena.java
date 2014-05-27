@@ -20,6 +20,9 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
+import bourg.austin.CavemanSQL.DatabaseConnection;
+import bourg.austin.CavemanSQL.DatabaseQueryAction;
+import bourg.austin.CavemanSQL.DatabaseUpdateAction;
 import bourg.austin.VersusArena.Arena.Arena;
 import bourg.austin.VersusArena.Arena.ArenaManager;
 import bourg.austin.VersusArena.Arena.CompetitorManager;
@@ -38,6 +41,7 @@ public final class VersusArena extends JavaPlugin
 	private HashMap<String, Location> selectedLocations;
 	
 	private Connection connection;
+	private DatabaseConnection databaseConnection;
 	private RatingBoards ratingBoards;
 	private CompetitorManager competitorManager;
 	private PartyManager partyManager;
@@ -46,6 +50,8 @@ public final class VersusArena extends JavaPlugin
 	
 	public void onEnable()
 	{		
+		databaseConnection = new DatabaseConnection(this.getConfig().getString("sql.ip"), this.getConfig().getString("sql.port"), this.getConfig().getString("sql.database"), this.getConfig().getString("sql.username"), this.getConfig().getString("sql.password"));
+		
 		openConnection();
 		
 		this.saveDefaultConfig();
@@ -66,9 +72,12 @@ public final class VersusArena extends JavaPlugin
 		this.getServer().getPluginManager().registerEvents(new MyListener(this), this);
 		this.getServer().getPluginManager().registerEvents(ratingBoards, this);
 		
+		PartyCommandExecutor partyExecutor = new PartyCommandExecutor(partyManager);
+		
 		//Set command executors
 		this.getCommand("versus").setExecutor(new MyCommandExecutor(this));
-		this.getCommand("party").setExecutor(new PartyCommandExecutor(partyManager));
+		this.getCommand("party").setExecutor(partyExecutor);
+		this.getCommand("pc").setExecutor(partyExecutor);
 		this.loadData();
 	} 		  
 	
@@ -82,11 +91,11 @@ public final class VersusArena extends JavaPlugin
 	{
 		try
 		{
-			PreparedStatement statement = connection.prepareStatement("SELECT * FROM " + table + " WHERE " + colName + " = '" + rowName +"'");
-			ResultSet result = statement.executeQuery();
+			DatabaseQueryAction action = databaseConnection.getDatabaseQueryAction(table);
+			action.addConstraint(colName, rowName);
+			ResultSet result = action.executeQuery();
 			boolean isInRow = result.next();
-			
-			statement.close();
+
 			result.close();
 			
 			return isInRow;
@@ -191,16 +200,16 @@ public final class VersusArena extends JavaPlugin
 		try
 		{		
 			//Load arenas
-			PreparedStatement[] getArenaDataStatements = new PreparedStatement[3];
+			DatabaseQueryAction[] getArenaDataStatements = new DatabaseQueryAction[3];
 			ResultSet[] arenaResultSets = new ResultSet[3];
 			
-			getArenaDataStatements[0] = connection.prepareStatement("SELECT * FROM singles_arena_data");
+			getArenaDataStatements[0] = databaseConnection.getDatabaseQueryAction("singles_arena_data");
 			arenaResultSets[0] = getArenaDataStatements[0].executeQuery();
 			
-			getArenaDataStatements[1] = connection.prepareStatement("SELECT * FROM doubles_arena_data");
+			getArenaDataStatements[1] = databaseConnection.getDatabaseQueryAction("doubles_arena_data");
 			arenaResultSets[1] = getArenaDataStatements[1].executeQuery();
 			
-			getArenaDataStatements[2] = connection.prepareStatement("SELECT * FROM triples_arena_data");
+			getArenaDataStatements[2] = databaseConnection.getDatabaseQueryAction("triples_arena_data");
 			arenaResultSets[2] = getArenaDataStatements[2].executeQuery();
 			
 			arenaManager.clearArenas();
@@ -216,14 +225,14 @@ public final class VersusArena extends JavaPlugin
 				}
 	
 			//Load nexus location
-			PreparedStatement getNexusDataStatement = connection.prepareStatement("SELECT * FROM nexus_data");
-			ResultSet nexusLocation = getNexusDataStatement.executeQuery();
+			DatabaseQueryAction getNexusDataAction = databaseConnection.getDatabaseQueryAction("nexus_data");
+			ResultSet nexusLocation = getNexusDataAction.executeQuery();
 			String locationRaw;
 			if (!nexusLocation.next())
 				locationRaw = "null";
 			else
 				locationRaw = nexusLocation.getString("location");
-			 
+			
 			arenaManager.setNexusLocation(this.parseLocation(locationRaw));
 		}
 		catch (SQLException e)
@@ -234,7 +243,6 @@ public final class VersusArena extends JavaPlugin
 	
 	public synchronized void saveDatabase()
 	{
-		PreparedStatement saveStatement = null;
 		try
 		{			
 			//Save arenas
@@ -262,39 +270,42 @@ public final class VersusArena extends JavaPlugin
 					arenaType = "doubles";
 				else if (spawnLocations.size() == 6)
 					arenaType = "triples";
+
+				DatabaseUpdateAction updateAction = databaseConnection.getDatabaseUpdateAction(arenaType + "_arena_data");
 				
-				boolean arenaDataExists = isStringInCol(arenaType + "_arena_data", "name", name);
-				String query = (arenaDataExists ? "UPDATE" : "INSERT INTO") + " " + arenaType + "_arena_data SET " +
-					"team1player1=?, team2player1=?" + (arenaType.equals("doubles") || arenaType.equals("triples") ? ", team1player2=?, team2player2=?" : "") + (arenaType.equals("triples") ? ", team1player3=?, team2player3=?" : "") + ", deathlocation=?" + (arenaDataExists ? " WHERE name=?" : ", name=?");
-						
-				saveStatement = connection.prepareStatement(query);
-				
-				for (int i = 0; i < spawnLocations.size(); i++)
-					saveStatement.setString(i + 1, spawnLocations.get(i));
-				
-				saveStatement.setString(spawnLocations.size() + 1, locationToString(tempArena.getDeathLocation()));
-				saveStatement.setString(spawnLocations.size() + 2, name);
-				
-				if (arenaDataExists)
-					saveStatement.executeUpdate();
-				else
+				updateAction.setString("team1player1", spawnLocations.get(0));
+				updateAction.setString("team2player1", spawnLocations.get(1));
+				if (arenaType.equals("doubles") || arenaType.equals("triples"))
 				{
-					saveStatement.execute();
+					updateAction.setString("team1player2", spawnLocations.get(2));
+					updateAction.setString("team2player2", spawnLocations.get(3));
+				}
+				if (arenaType.equals("triples"))
+				{
+					updateAction.setString("team1player3", spawnLocations.get(4));
+					updateAction.setString("team2player3", spawnLocations.get(5));
 				}
 				
+				updateAction.setString("deathlocation", locationToString(tempArena.getDeathLocation()));
+				updateAction.setPrimaryValue(tempArena.getArenaName());
+				
+				updateAction.executeUpdate();
+				
 				//Remove arenas that have been deleted
-				PreparedStatement getArenasStatement, deleteArenaStatement;
+				PreparedStatement deleteArenaStatement;
+				DatabaseQueryAction getArenaAction;
 				String prefixes[] = new String[]{"singles", "doubles", "triples"};
 
 				for (String prefix : prefixes)
 				{
-					getArenasStatement = connection.prepareStatement("SELECT name FROM " + prefix + "_arena_data");
-					ResultSet arenas = getArenasStatement.executeQuery();
+					getArenaAction = databaseConnection.getDatabaseQueryAction(prefix + "_arena_data");
+					//getArenaAction.setFields("*");
+					ResultSet arenas = getArenaAction.executeQuery();
 					
 					while (arenas.next())
 					{
 						if (arenaManager.getArena(arenas.getString("name")) == null)
-						{
+						{							
 							deleteArenaStatement = connection.prepareStatement("DELETE FROM " + prefix + "_arena_data WHERE name = ?");
 							deleteArenaStatement.setString(1, arenas.getString("name"));
 							
@@ -303,31 +314,15 @@ public final class VersusArena extends JavaPlugin
 					}
 				}				
 			}
-			boolean nexusDataExists = isStringInCol("nexus_data", "name", "nexus");
 			
-			String nexusQuery = (nexusDataExists ? "UPDATE" : "INSERT INTO") + " nexus_data SET " +
-					"location=?" + (nexusDataExists ? " WHERE name = 'nexus'" : ", name='nexus'");
-			
-			PreparedStatement nexusStatement = connection.prepareStatement(nexusQuery);
-			
-			nexusStatement.setString(1, locationToString(this.getArenaManager().getNexusLocation()));
-			if (nexusDataExists)
-				nexusStatement.executeUpdate();
-			else
-				nexusStatement.execute();
-			
+			DatabaseUpdateAction nexusAction = databaseConnection.getDatabaseUpdateAction("nexus_data");
+			nexusAction.setString("location", locationToString(this.getArenaManager().getNexusLocation()));	
+			nexusAction.setPrimaryValue("nexus");
+			nexusAction.executeUpdate();
 		}
 		catch (SQLException e)
 		{
 			e.printStackTrace();
-		}
-		finally
-		{
-			try
-			{
-				saveStatement.close();
-			}
-			catch (Exception e) {}
 		}
 	}
 	

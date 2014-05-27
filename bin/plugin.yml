@@ -10,6 +10,10 @@ commands:
     description: 'The root command for the Party system'
     usage: '/party subject action'
     permission-message: 'You don''t have <permission>'
+  pc:
+    description: 'Party chat'
+    usage: '/pc <message>'
+    permission-message: 'You don''t have <permission>'
 permissions:
   'pairspvp.*':
     description: 'Gives access to everything'
