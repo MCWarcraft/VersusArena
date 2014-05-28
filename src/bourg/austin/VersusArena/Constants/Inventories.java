@@ -12,6 +12,8 @@ public class Inventories
 	public static ItemStack[] LOBBY_SLOTS;
 	public static ItemStack[] QUEUE_SLOTS;
 	public static ItemStack COMPASS;
+	public static ItemStack PARTY_QUEUE;
+	public static ItemStack PARTY_LOBBY;
 	
 	public static void initialize()
 	{
@@ -43,7 +45,6 @@ public class Inventories
 		tempMeta.setLore(Arrays.asList("Join the 3v3 queue"));
 		LOBBY_SLOTS[2].setItemMeta(tempMeta);
 		
-		//TODO: Fix dye coloring
 		QUEUE_SLOTS = new ItemStack[4];
 		
 		QUEUE_SLOTS[0] = new ItemStack(Material.SLIME_BALL, 1);
@@ -69,6 +70,18 @@ public class Inventories
 		tempMeta.setDisplayName(ChatColor.RESET + "" + ChatColor.DARK_RED + "" + ChatColor.BOLD + "Exit queue");
 		tempMeta.setLore(Arrays.asList("Remove yourself from the matchmaking queue"));
 		QUEUE_SLOTS[3].setItemMeta(tempMeta);
+		
+		PARTY_LOBBY = new ItemStack(Material.CLAY_BALL, 1);
+		tempMeta = PARTY_LOBBY.getItemMeta();
+		tempMeta.setDisplayName(ChatColor.RESET + "" + ChatColor.DARK_RED + "" + ChatColor.BOLD + "Party Queue");
+		tempMeta.setLore(Arrays.asList("Join the proper queue"));
+		PARTY_LOBBY.setItemMeta(tempMeta);
+		
+		PARTY_QUEUE = new ItemStack(Material.SLIME_BALL, 1);
+		tempMeta = PARTY_QUEUE.getItemMeta();
+		tempMeta.setDisplayName(ChatColor.RESET + "" + ChatColor.DARK_RED + "" + ChatColor.BOLD + "Party Queue");
+		tempMeta.setLore(Arrays.asList("You are in the proper queue"));
+		PARTY_QUEUE.setItemMeta(tempMeta);
 		
 	}
 }

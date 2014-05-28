@@ -2,7 +2,6 @@ package bourg.austin.VersusArena.Arena;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Set;
 
 import org.bukkit.ChatColor;
@@ -13,12 +12,14 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 
 import bourg.austin.HonorPoints.DatabaseOperations;
+import bourg.austin.VersusArena.MatchmakingEntity;
 import bourg.austin.VersusArena.VersusArena;
 import bourg.austin.VersusArena.Constants.GameType;
 import bourg.austin.VersusArena.Constants.Inventories;
 import bourg.austin.VersusArena.Constants.LobbyStatus;
 import bourg.austin.VersusArena.Game.GameManager;
 import bourg.austin.VersusArena.Interface.DisplayBoard;
+import bourg.austin.VersusArena.Party.Party;
 import bourg.austin.VersusArena.Tasks.VersusMatchmakeTask;
 import bourg.austin.VersusArena.Tasks.VersusMatchmakeTimeTask;
 
@@ -28,6 +29,8 @@ public class ArenaManager
 	private Location nexusLocation;
 	
 	private HashMap<String, LobbyStatus> playerLobbyStatuses;
+	private ArrayList<Integer> partyInQueue;
+	
 	private HashMap<OfflinePlayer, DisplayBoard> boards;
 	
 	private GameManager gameManager;
@@ -44,6 +47,7 @@ public class ArenaManager
 		boards = new HashMap<OfflinePlayer, DisplayBoard>();
 		
 		playerLobbyStatuses = new HashMap<String, LobbyStatus>();
+		partyInQueue = new ArrayList<Integer>();
 		
 		new VersusMatchmakeTask(this).runTaskTimer(this.plugin, 0, 300);
 		new VersusMatchmakeTimeTask().runTaskTimer(this.plugin, 20, 20);
@@ -57,7 +61,19 @@ public class ArenaManager
 		for (PotionEffect effect : player.getActivePotionEffects())
 			player.removePotionEffect(effect.getType());
 		
-		giveLobbyInventory(player);
+		//Store data about players in the arena
+		
+		
+		if (plugin.getPartyManager().isInParty(player.getName()))
+		{
+			playerLobbyStatuses.put(player.getName(), LobbyStatus.IN_PARTY);
+			plugin.getPartyManager().getParty(player.getName()).giveLobbyInventory();
+		}
+		else
+		{
+			playerLobbyStatuses.put(player.getName(), LobbyStatus.IN_LOBBY);
+			giveLobbyInventory(player);
+		}
 		
 		showLobbyBoard(player);
 		
@@ -65,9 +81,23 @@ public class ArenaManager
 			player.sendMessage(ChatColor.AQUA + "Welcome to the Versus Arena!");
 		
 		player.teleport(plugin.getArenaManager().getNexusLocation());
+	}
+	
+	public void addPartyToQueue(int id)
+	{
+		partyInQueue.add(id);
+		plugin.getPartyManager().getParty(id).giveQueueInventory();
 		
-		//Store data about players in the arena
-		playerLobbyStatuses.put(player.getName(), LobbyStatus.IN_LOBBY);
+		Party party = plugin.getPartyManager().getParty(id);
+		
+		party.broadcast(ChatColor.BLUE + "You are now in the " + party.getSize() + "v" + party.getSize() + " queue.");
+		party.broadcast(ChatColor.BLUE + "The next set of matches starts in " + ChatColor.GOLD + VersusMatchmakeTimeTask.getTimeToGame(false) + " seconds");
+	}
+	
+	public void removePartyFromQueue(int id)
+	{
+		partyInQueue.remove(new Integer(id));
+		try{plugin.getPartyManager().getParty(id).giveLobbyInventory();} catch(NullPointerException e){}
 	}
 	
 	public void removePlayer(Player p)
@@ -150,6 +180,15 @@ public class ArenaManager
 		p.updateInventory();
 	}
 	
+	private int trueSize(ArrayList<MatchmakingEntity> entities)
+	{
+		int playersInQueue = 0;
+		for (MatchmakingEntity e : entities)
+			playersInQueue += e.getSize();
+		
+		return playersInQueue;
+	}
+	
 	public void matchMake(LobbyStatus queueType)
 	{
 		Arena a = this.getRandomArenaBySize(queueType.getValue());
@@ -160,49 +199,84 @@ public class ArenaManager
 		if (a == null)
 			return;
 		
-		//If there aren't enough players to start a game
-		if (validPlayers.size() < queueType.getValue() * 2)
-			return;
-		
 		//New ArrayList of competitors
-		ArrayList<Competitor> validCompetitors = new ArrayList<Competitor>();
+		ArrayList<MatchmakingEntity> validMatchmakingEntities = new ArrayList<MatchmakingEntity>();
 		
 		//Add the valid players' competitor objects to an ArrayList
 		for (Player p : validPlayers)
-			validCompetitors.add(plugin.getCompetitorManager().getCompetitor(p));
+			validMatchmakingEntities.add(plugin.getCompetitorManager().getCompetitor(p));
+		
+		//Add the parties from the party queue of proper size
+		for (int id : partyInQueue)
+		{
+			Party tempParty = plugin.getPartyManager().getParty(id);
+			if (tempParty.getSize() == queueType.getValue())
+				validMatchmakingEntities.add(tempParty);
+		}
+		
+		int playersInQueue = trueSize(validMatchmakingEntities);
+		
+		//If there aren't enough players to start a game
+		if (playersInQueue < queueType.getValue() * 2)
+			return;
 		
 		//Convert to an array
-		Competitor[] validCompetitorsArray = validCompetitors.toArray(new Competitor[validCompetitors.size()]);
+		MatchmakingEntity[] validMatchmakingEntitiesArray = validMatchmakingEntities.toArray(new MatchmakingEntity[validMatchmakingEntities.size()]);
 		
-		int n = validCompetitors.size();
-        Competitor tempComp;
+		int n = validMatchmakingEntities.size();
+        MatchmakingEntity tempEntity;
        
-        //Sort competitors
+        //Sort entities
         for(int i  = 0; i < n; i++)
             for(int j = 1; j < (n - i); j++)
-                if(validCompetitorsArray[j - 1].getRating(queueType) > validCompetitorsArray[j].getRating(queueType))
+                if(validMatchmakingEntitiesArray[j - 1].getRating(queueType) > validMatchmakingEntitiesArray[j].getRating(queueType))
                 {
                     //swap the elements!
-                    tempComp = validCompetitorsArray[j-1];
-                    validCompetitorsArray[j-1] = validCompetitorsArray[j];
-                    validCompetitorsArray[j] = tempComp;
+                    tempEntity = validMatchmakingEntitiesArray[j-1];
+                    validMatchmakingEntitiesArray[j-1] = validMatchmakingEntitiesArray[j];
+                    validMatchmakingEntitiesArray[j] = tempEntity;
                 }
         
-        //Rebuild players in order
-        List<Player> sortedValidPlayers = new ArrayList<Player>();
-        for (Competitor c : validCompetitorsArray)
-        	sortedValidPlayers.add(plugin.getServer().getPlayer(c.getCompetitorName()));
+        //Turn back to an arraylist
+        ArrayList<MatchmakingEntity> sortedMatchmakingEntities = new ArrayList<MatchmakingEntity>();
+		for (MatchmakingEntity e : validMatchmakingEntitiesArray)
+        	sortedMatchmakingEntities.add(e);
         
         //Drop random players to maintain proper sizing
-        int numToDrop = sortedValidPlayers.size() % (queueType.getValue() * 2);
-        for (int i = 0; i < numToDrop; i++)
-        	sortedValidPlayers.remove((int) (Math.random() * sortedValidPlayers.size()));
-		
-        //Make games with players
-		while (sortedValidPlayers.size() >= queueType.getValue() * 2)
-		{
-			gameManager.startGame(sortedValidPlayers.subList(0, queueType.getValue() * 2), a);
-			sortedValidPlayers = sortedValidPlayers.subList(queueType.getValue() * 2, sortedValidPlayers.size());
+        int numToDrop = playersInQueue % (queueType.getValue() * 2);
+        while (numToDrop != 0)
+        {
+        	int indexToDrop = ((int) (Math.random() * sortedMatchmakingEntities.size()));
+        	if (sortedMatchmakingEntities.get(indexToDrop).getSize() <= numToDrop)
+        		sortedMatchmakingEntities.remove(indexToDrop);
+        }
+        
+        
+        //While there are enough players to make a team
+		while (trueSize(sortedMatchmakingEntities) >= queueType.getValue() * 2)
+		{			
+			ArrayList<ArrayList<Player>> players = new ArrayList<ArrayList<Player>>();
+			players.add(new ArrayList<Player>());
+			players.add(new ArrayList<Player>());
+			int attemptIndex = 0;
+			
+			while (players.get(0).size() < queueType.getValue() || players.get(1).size() < queueType.getValue())
+			{
+				for (int i = 0; i < 2; i++)
+				{
+					if (players.get(i).size() + sortedMatchmakingEntities.get(attemptIndex).getSize() <= queueType.getValue())
+					{
+						players.get(i).addAll(sortedMatchmakingEntities.get(attemptIndex).getPlayers());
+						if (sortedMatchmakingEntities.get(attemptIndex) instanceof Party)
+							removePartyFromQueue(((Party) sortedMatchmakingEntities.get(attemptIndex)).getID());
+						sortedMatchmakingEntities.remove(attemptIndex);
+						i = 3;
+					}
+					else if (i == 1)
+						attemptIndex =+ 1;
+				}
+			}
+			gameManager.startGame(players.get(0), players.get(1), a);
 		}
 	}
 	

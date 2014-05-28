@@ -33,15 +33,26 @@ public class GameManager
 		return null;
 	}
 	
-	public void startGame(List<Player> players, Arena a)
+	public void startGame(List<Player> team1, List<Player> team2, Arena a)
 	{
-		for (Player p : players)
+		for (Player p : team1)
+		{
+			arenaManager.setPlayerStatus(p, LobbyStatus.IN_GAME);
+			p.setHealth(20);
+		}
+		for (Player p : team2)
 		{
 			arenaManager.setPlayerStatus(p, LobbyStatus.IN_GAME);
 			p.setHealth(20);
 		}
 		
-		gamesInProgress.put(Game.getNextGameID(), new Game(this, players, a));
+		ArrayList<Player> all = new ArrayList<Player>();
+		for (Player p : team1)
+			all.add(p);
+		for (Player p : team2)
+			all.add(p);
+		
+		gamesInProgress.put(Game.getNextGameID(), new Game(this, all, a));
 	}
 	
 	public InGameStatus getPlayerStatus(Player p)

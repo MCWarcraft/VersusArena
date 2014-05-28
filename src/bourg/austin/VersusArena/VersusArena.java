@@ -524,4 +524,9 @@ public final class VersusArena extends JavaPlugin
 	{
 		return competitorManager;
 	}
+	
+	public PartyManager getPartyManager()
+	{
+		return partyManager;
+	}
 }

@@ -102,6 +102,11 @@ public class PartyManager
 		return null;
 	}
 	
+	public Party getParty(int id)
+	{
+		return parties.get(id);
+	}
+	
 	public boolean hasOpenInvite(String playerName)
 	{
 		return openInvites.keySet().contains(playerName);

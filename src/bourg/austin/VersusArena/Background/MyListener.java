@@ -86,9 +86,13 @@ public class MyListener implements Listener
 					plugin.getArenaManager().addToQueue(event.getPlayer(), LobbyStatus.IN_2V2_QUEUE);
 				else if (event.getPlayer().getItemInHand().getItemMeta().getDisplayName().equals(Inventories.LOBBY_SLOTS[2].getItemMeta().getDisplayName()) && event.getPlayer().getItemInHand().getItemMeta().getLore().equals(Inventories.LOBBY_SLOTS[2].getItemMeta().getLore()))
 					plugin.getArenaManager().addToQueue(event.getPlayer(), LobbyStatus.IN_3V3_QUEUE);
+				else if (event.getPlayer().getItemInHand().getItemMeta().getDisplayName().equals(Inventories.PARTY_LOBBY.getItemMeta().getDisplayName()) && event.getPlayer().getItemInHand().getItemMeta().getLore().equals(Inventories.PARTY_LOBBY.getItemMeta().getLore()))
+					plugin.getArenaManager().addPartyToQueue(plugin.getPartyManager().getParty(event.getPlayer().getName()).getID());
 				if (event.getPlayer().getItemInHand().getItemMeta().getDisplayName().equals(Inventories.QUEUE_SLOTS[3].getItemMeta().getDisplayName()) && event.getPlayer().getItemInHand().getItemMeta().getLore().equals(Inventories.QUEUE_SLOTS[3].getItemMeta().getLore()))
+				{
 					plugin.getArenaManager().removeFromQueue(event.getPlayer());
-
+					plugin.getArenaManager().removePartyFromQueue(plugin.getPartyManager().getParty(event.getPlayer().getName()).getID());
+				}
 			}
 			catch (NullPointerException e)
 			{

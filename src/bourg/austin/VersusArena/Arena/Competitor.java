@@ -1,16 +1,22 @@
 package bourg.austin.VersusArena.Arena;
 
+import java.util.ArrayList;
+
+import org.bukkit.entity.Player;
+
+import bourg.austin.VersusArena.MatchmakingEntity;
 import bourg.austin.VersusArena.VersusArena;
 import bourg.austin.VersusArena.Constants.GameResult;
 import bourg.austin.VersusArena.Constants.GameType;
 import bourg.austin.VersusArena.Constants.LobbyStatus;
 import bourg.austin.VersusArena.Game.VersusTeam;
 
-public class Competitor
+public class Competitor implements MatchmakingEntity
 {
 	private Integer[] wins, losses, rating;
 	private int kills, deaths;
 	private String name;
+	private VersusArena plugin;
 	
 	public Competitor(String name, VersusArena plugin)
 	{
@@ -26,6 +32,7 @@ public class Competitor
 		this.rating = rating;
 		this.kills = kills;
 		this.deaths = deaths;
+		this.plugin = plugin;
 	}
 	
 	public String getCompetitorName()
@@ -94,5 +101,26 @@ public class Competitor
 		rating[enemyTeam.getGame().getGameType().getValue()] = rating[enemyTeam.getGame().getGameType().getValue()] + doubleDelta.intValue();
 		
 		return rating[enemyTeam.getGame().getGameType().getValue()];
+	}
+	
+	public int getSize()
+	{
+		return 1;
+	}
+	
+	public ArrayList<Competitor> getCompetitors()
+	{
+		ArrayList<Competitor> list = new ArrayList<Competitor>();
+		list.add(this);
+		
+		return list;
+	}
+	
+	public ArrayList<Player> getPlayers()
+	{
+		ArrayList<Player> list = new ArrayList<Player>();
+		list.add(plugin.getServer().getPlayer(name));
+		
+		return list;
 	}
 }
