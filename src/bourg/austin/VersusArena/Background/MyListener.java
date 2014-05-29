@@ -179,6 +179,8 @@ public class MyListener implements Listener
 
 		Player damagedPlayer = (Player) event.getEntity();
 		
+		if (plugin.getArenaManager().getPlayerStatus(damagedPlayer.getName()) == null)
+			return;
 		//If the player is in the arena system but not in game
 		if (plugin.getArenaManager().getPlayerStatus(damagedPlayer.getName()) != LobbyStatus.IN_GAME)
 		{
@@ -216,6 +218,8 @@ public class MyListener implements Listener
 
 		Player damagedPlayer = (Player) event.getEntity();
 
+		if (plugin.getArenaManager().getPlayerStatus(damagedPlayer.getName()) == null)
+			return;
 		//If the player is in the arena system but not in game
 		if (plugin.getArenaManager().getPlayerStatus(damagedPlayer.getName()) != LobbyStatus.IN_GAME)
 		{
