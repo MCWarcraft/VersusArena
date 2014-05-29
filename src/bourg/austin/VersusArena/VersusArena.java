@@ -438,7 +438,7 @@ public final class VersusArena extends JavaPlugin
 				int amplifier;
 				
 				amplifier = getConfig().getInt("kit.potions." + potionName);
-				effects.add(new PotionEffect(PotionEffectType.getByName(potionName), 1000, amplifier, false));
+				effects.add(new PotionEffect(PotionEffectType.getByName(potionName), 6000, amplifier, false));
 			}
 			
 			VersusKit.initialize(Arrays.copyOf(inventory.toArray(), inventory.toArray().length, ItemStack[].class), Arrays.copyOf(armor.toArray(), armor.toArray().length, ItemStack[].class), Arrays.copyOf(effects.toArray(), effects.toArray().length, PotionEffect[].class));
