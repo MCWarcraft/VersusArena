@@ -11,7 +11,6 @@ import bourg.austin.VersusArena.Arena.Competitor;
 import bourg.austin.VersusArena.Arena.CompetitorManager;
 import bourg.austin.VersusArena.Constants.GameResult;
 import bourg.austin.VersusArena.Constants.GameType;
-import bourg.austin.VersusArena.Constants.LobbyStatus;
 import bourg.austin.VersusArena.Game.Game;
 
 public class VersusEndGameTask extends BukkitRunnable
@@ -64,11 +63,11 @@ public class VersusEndGameTask extends BukkitRunnable
 					else
 						game.getGameManager().getArenaManager().getPlugin().getLogger().info(ChatColor.RED + "Gametype is invalid. Check VersusEndGameTask");
 					
-					DatabaseOperations.setCurrency(game.getTeam(teamNum).getPlayer(playerNum), DatabaseOperations.getCurrency(game.getTeam(teamNum).getPlayer(playerNum)) + money);
+					DatabaseOperations.giveCurrency(game.getTeam(teamNum).getPlayer(playerNum), money, true);
 				}
 				
 				//If player is offline in the records
-				if (game.getGameManager().getArenaManager().getPlayerStatus(game.getTeam(teamNum).getPlayer(playerNum)) != LobbyStatus.OFFLINE)
+				if (game.getGameManager().getArenaManager().getPlayerStatus(game.getTeam(teamNum).getPlayer(playerNum).getName()) != null)
 					game.getGameManager().getArenaManager().bringPlayer(game.getTeam(teamNum).getPlayer(playerNum).getName(), false);
 				//If player is still online, heal
 				else

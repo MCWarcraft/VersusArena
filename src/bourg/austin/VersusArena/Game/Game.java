@@ -1,11 +1,13 @@
 package bourg.austin.VersusArena.Game;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 
+import bourg.austin.VersusArena.VersusArena;
 import bourg.austin.VersusArena.Arena.Arena;
 import bourg.austin.VersusArena.Constants.GameType;
 import bourg.austin.VersusArena.Constants.InGameStatus;
@@ -23,12 +25,14 @@ public class Game implements Listener
 	private int gameID;
 	
 	private List<Player> allPlayers;
+	private ArrayList<String> quitters;
 	
 	private GameType gameType;
 	
 	public Game(GameManager gameManager, List<Player> allPlayers, Arena arena)
 	{		
 		this.allPlayers = allPlayers;
+		quitters = new ArrayList<String>();
 		
 		gameType = GameType.values()[allPlayers.size() / 2 - 1];
 		
@@ -70,9 +74,7 @@ public class Game implements Listener
 		//Teleport
 		for (int teamNum = 0; teamNum < 2; teamNum++)
 			for (int playerNum = 0; playerNum < teams[teamNum].getNumberOfPlayers(); playerNum++)
-			{
-				teams[teamNum].getPlayer(playerNum).teleport(arena.getSpawnLocations()[teamNum][playerNum]);
-			}
+				VersusArena.versusTeleport(teams[teamNum].getPlayer(playerNum), arena.getSpawnLocations()[teamNum][playerNum]);
 		
 		distributeKits();
 		
@@ -87,6 +89,32 @@ public class Game implements Listener
 	private void lockPlayer(Player player)
 	{
 		gameManager.setPlayerStatus(player, InGameStatus.LOCKED);
+	}
+	
+	public void quit(String leaverName)
+	{
+		quitters.add(leaverName);
+		
+		Player leaver = gameManager.getArenaManager().getPlugin().getServer().getPlayer(leaverName);
+		
+		if (leaver != null)
+			for (Player p : gameManager.getArenaManager().getOnlinePlayersInLobby())
+			{
+				p.showPlayer(leaver);
+				leaver.showPlayer(p);
+			}
+	}
+	
+	public void broadcast(String message)
+	{
+		for (Player p : allPlayers)
+			if (!quitters.contains(p.getName()))
+				p.sendMessage(message);
+	}
+	
+	public boolean isQuitter(String playerName)
+	{
+		return quitters.contains(playerName);
 	}
 	
 	private void setInGameVisibility()
@@ -165,31 +193,14 @@ public class Game implements Listener
 	private void terminateGame(int deathTeam)
 	{
 		for (Player p : teams[deathTeam].getAllPlayers())
-		{
-			p.sendMessage(ChatColor.DARK_RED + "You have lost");
-			//for (Player e :  teams[Math.abs(deathTeam-1)].getAllPlayers())
-				//p.sendMessage(ChatColor.DARK_RED + e.getName() + (gameManager.getPlayerStatus(e) == InGameStatus.DEAD) ? " died with " : " had " + e.getHealth() / 2 + " hearts and " ) + soupCount(e) + " soups" );
-		}
+			if (!quitters.contains(p.getName()))
+				p.sendMessage(ChatColor.DARK_RED + "You have lost");
 		for (Player p : teams[Math.abs(deathTeam-1)].getAllPlayers())
-		{
+			if (!quitters.contains(p.getName()))
 			p.sendMessage(ChatColor.GREEN + "You have won");
-			//for (Player e :  teams[deathTeam].getAllPlayers())
-				//p.sendMessage(ChatColor.DARK_RED + e.getName() +  " had " + soupCount(e) + " soups when he died");
-		}
 		
 		new VersusEndGameTask(this, deathTeam).runTaskLater(gameManager.getArenaManager().getPlugin(), 60);
 	}
-	
-	/*
-	private int soupCount(Player p)
-	{
-		if (gameManager.getArenaManager().getPlugin().getServer().getPlayer(p.getName()) == null)
-		{
-			
-		}
-	}
-	*/
-	
 	
 	public int getNumberOfTeams()
 	{

@@ -31,7 +31,7 @@ public class PartyCommandExecutor implements CommandExecutor
 		//If the player isn't in arena
 		if (!partyManager.getPlugin().getArenaManager().getOnlinePlayersInLobby().contains(player))
 		{
-			player.sendMessage(ChatColor.RED + "You must be in the Versus Arena to use party commands.");
+			player.sendMessage(ChatColor.RED + "You must be in the Arena to use party commands.");
 			return true;
 		}
 		

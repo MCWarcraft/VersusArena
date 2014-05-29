@@ -37,12 +37,12 @@ public class GameManager
 	{
 		for (Player p : team1)
 		{
-			arenaManager.setPlayerStatus(p, LobbyStatus.IN_GAME);
+			arenaManager.setPlayerStatus(p.getName(), LobbyStatus.IN_GAME);
 			p.setHealth(20);
 		}
 		for (Player p : team2)
 		{
-			arenaManager.setPlayerStatus(p, LobbyStatus.IN_GAME);
+			arenaManager.setPlayerStatus(p.getName(), LobbyStatus.IN_GAME);
 			p.setHealth(20);
 		}
 		
@@ -77,11 +77,13 @@ public class GameManager
 	
 	public void endGame(int id)
 	{
+		/*
 		for (Player p : gamesInProgress.get(id).getPlayers())
 		{
-			if (arenaManager.getPlayerStatus(p) == LobbyStatus.OFFLINE)
+			if (arenaManager.getPlayerStatus(p) == null)
 				arenaManager.removePlayer(p);
 		}
+		*/
 		gamesInProgress.remove(id);
 	}
 	

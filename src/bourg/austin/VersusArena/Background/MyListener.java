@@ -5,6 +5,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPlaceEvent;
@@ -17,10 +18,12 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 
 import bourg.austin.HonorPoints.OnlinePlayerCurrencyUpdateEvent;
 import bourg.austin.VersusArena.VersusArena;
+import bourg.austin.VersusArena.VersusTeleportEvent;
 import bourg.austin.VersusArena.Constants.InGameStatus;
 import bourg.austin.VersusArena.Constants.Inventories;
 import bourg.austin.VersusArena.Constants.LobbyStatus;
@@ -30,10 +33,12 @@ import bourg.austin.VersusArena.Game.Game;
 public class MyListener implements Listener
 {
 	private VersusArena plugin;
+	private String validTeleportee;
 
 	public MyListener(VersusArena plugin)
 	{
 		this.plugin = plugin;
+		validTeleportee = "";
 	}
 
 	@SuppressWarnings("deprecation")
@@ -106,7 +111,7 @@ public class MyListener implements Listener
 	{
 		if (event.getItemDrop().getItemStack().getType().equals(Material.COMPASS))
 			event.setCancelled(true);
-		if (this.plugin.getArenaManager().getPlayerStatus(event.getPlayer()) != null)
+		if (this.plugin.getArenaManager().getPlayerStatus(event.getPlayer().getName()) != null)
 			event.setCancelled(true);
 	}
 
@@ -118,14 +123,14 @@ public class MyListener implements Listener
 		
 		if (event.getCurrentItem().getType().equals(Material.COMPASS))
 			event.setCancelled(true);
-		if (this.plugin.getArenaManager().getPlayerStatus((Player)event.getWhoClicked()) != null)
+		if (this.plugin.getArenaManager().getPlayerStatus(((Player)event.getWhoClicked()).getName()) != null)
 			event.setCancelled(true);
 	}
 	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void onBlockPlace(BlockPlaceEvent event)
 	{
-		if (plugin.getArenaManager().getPlayerStatus(event.getPlayer()) != null)
+		if (plugin.getArenaManager().getPlayerStatus(event.getPlayer().getName()) != null)
 		{
 			event.setCancelled(true);
 			event.getPlayer().updateInventory();
@@ -175,7 +180,7 @@ public class MyListener implements Listener
 		Player damagedPlayer = (Player) event.getEntity();
 		
 		//If the player is in the arena system but not in game
-		if (plugin.getArenaManager().getPlayerStatus(damagedPlayer) != null && !(plugin.getArenaManager().getPlayerStatus(damagedPlayer) == LobbyStatus.IN_GAME))
+		if (plugin.getArenaManager().getPlayerStatus(damagedPlayer.getName()) != LobbyStatus.IN_GAME)
 		{
 			event.setCancelled(true);
 			return;
@@ -212,7 +217,7 @@ public class MyListener implements Listener
 		Player damagedPlayer = (Player) event.getEntity();
 
 		//If the player is in the arena system but not in game
-		if (plugin.getArenaManager().getPlayerStatus(damagedPlayer) != null && !(plugin.getArenaManager().getPlayerStatus(damagedPlayer) == LobbyStatus.IN_GAME))
+		if (plugin.getArenaManager().getPlayerStatus(damagedPlayer.getName()) != LobbyStatus.IN_GAME)
 		{
 			event.setCancelled(true);
 			return;
@@ -340,10 +345,9 @@ public class MyListener implements Listener
 				p.hidePlayer(damagedPlayer);
 
 		plugin.getArenaManager().getGameManager().setPlayerStatus(damagedPlayer, InGameStatus.DEAD);
-		damagedPlayer.teleport(game.getArena().getDeathLocation());
+		VersusArena.versusTeleport(damagedPlayer, game.getArena().getDeathLocation());
 
-		for (Player p : game.getPlayers())
-			p.sendMessage(ChatColor.BLUE + damagedPlayer.getName() + " has fallen!");
+		game.broadcast(ChatColor.BLUE + damagedPlayer.getName() + " has fallen!");
 
 		game.checkGameOver();
 	}
@@ -351,27 +355,30 @@ public class MyListener implements Listener
 	@EventHandler
 	public void onLogout(PlayerQuitEvent event)
 	{
-		Player player = event.getPlayer();
-		plugin.getArenaManager().setPlayerStatus(player, LobbyStatus.OFFLINE);
-		Game game = plugin.getArenaManager().getGameManager().getGameByParticipant(player);
-
-		if (game == null)
-			return;
-		if (!game.getPlayers().contains(player))
-			return;
-
-		for (Player p : game.getPlayers())
-			p.sendMessage(ChatColor.DARK_RED + player.getName() + " has left the game.");
-		game.getGameManager().setPlayerStatus(player, InGameStatus.DEAD);
-
-		game.checkGameOver();
+		executeExit(event.getPlayer());
+	}
+	
+	@EventHandler (priority = EventPriority.HIGHEST)
+	public void onInternalTeleport(VersusTeleportEvent event)
+	{
+		validTeleportee = event.getPlayer().getName();
+	}
+	
+	@EventHandler (priority = EventPriority.HIGH)
+	public void onAnyTeleport(PlayerTeleportEvent event)
+	{
+		if (!validTeleportee.equals(event.getPlayer().getName()))
+		{
+			executeExit(event.getPlayer());
+		}
+		validTeleportee = "";
 	}
 
 	@EventHandler
 	public void onPlayerCurrencyUpdateEvent(OnlinePlayerCurrencyUpdateEvent event)
 	{
 		//If the player is in arena in some capacity and not in game
-		if (plugin.getArenaManager().getPlayerStatus(event.getPlayer()) != null && !(plugin.getArenaManager().getPlayerStatus(event.getPlayer()) == LobbyStatus.IN_GAME))
+		if (plugin.getArenaManager().getPlayerStatus(event.getPlayer().getName()) != null && !(plugin.getArenaManager().getPlayerStatus(event.getPlayer().getName()) == LobbyStatus.IN_GAME))
 		{
 			plugin.getArenaManager().showLobbyBoard(event.getPlayer());
 		}
@@ -388,5 +395,24 @@ public class MyListener implements Listener
 		p.getInventory().clear();
 		p.getInventory().addItem(Inventories.COMPASS);
 		p.updateInventory();
+	}
+	
+	private void executeExit(Player player)
+	{
+		plugin.getArenaManager().removePlayer(player);
+
+		Game game = plugin.getArenaManager().getGameManager().getGameByParticipant(player);
+
+		if (game == null)
+			return;
+		if (!game.getPlayers().contains(player))
+			return;
+
+		game.quit(player.getName());
+		game.broadcast(ChatColor.DARK_RED + player.getName() + " has left the game.");
+		
+		game.getGameManager().setPlayerStatus(player, InGameStatus.DEAD);
+
+		game.checkGameOver();
 	}
 }

@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -58,6 +59,13 @@ public class ArenaManager
 		Player player = plugin.getServer().getPlayer(playerName);
 		player.setHealth(20);
 		player.setFireTicks(0);
+
+		//Clear armor
+		player.getInventory().setHelmet(new ItemStack(Material.AIR, 1));
+		player.getInventory().setChestplate(new ItemStack(Material.AIR, 1));
+		player.getInventory().setLeggings(new ItemStack(Material.AIR, 1));
+		player.getInventory().setBoots(new ItemStack(Material.AIR, 1));
+		
 		for (PotionEffect effect : player.getActivePotionEffects())
 			player.removePotionEffect(effect.getType());
 		
@@ -78,9 +86,9 @@ public class ArenaManager
 		showLobbyBoard(player);
 		
 		if (message)
-			player.sendMessage(ChatColor.AQUA + "Welcome to the Versus Arena!");
+			player.sendMessage(ChatColor.AQUA + "Welcome to the Arena!");
 		
-		player.teleport(plugin.getArenaManager().getNexusLocation());
+		VersusArena.versusTeleport(player, plugin.getArenaManager().getNexusLocation());
 	}
 	
 	public void addPartyToQueue(int id)
@@ -115,7 +123,7 @@ public class ArenaManager
 	{
 		Competitor competitor = plugin.getCompetitorManager().getCompetitor(player);
 		
-		boards.put(player, new DisplayBoard(player, ChatColor.AQUA + "Versus Arena", ChatColor.GOLD, ChatColor.GREEN));
+		boards.put(player, new DisplayBoard(player, ChatColor.AQUA + "Arena", ChatColor.GOLD, ChatColor.GREEN));
 		
 		boards.get(player).putSpace();
 		
@@ -248,7 +256,10 @@ public class ArenaManager
         {
         	int indexToDrop = ((int) (Math.random() * sortedMatchmakingEntities.size()));
         	if (sortedMatchmakingEntities.get(indexToDrop).getSize() <= numToDrop)
+        	{
         		sortedMatchmakingEntities.remove(indexToDrop);
+        		numToDrop -= sortedMatchmakingEntities.get(indexToDrop).getSize();
+        	}
         }
         
         
@@ -302,14 +313,14 @@ public class ArenaManager
 		return playersOnline;
 	}
 	
-	public void setPlayerStatus(OfflinePlayer player, LobbyStatus status)
+	public void setPlayerStatus(String playerName, LobbyStatus status)
 	{
-		playerLobbyStatuses.put(player.getName(), status);
+		playerLobbyStatuses.put(playerName, status);
 	}
 	
-	public HashMap<String, LobbyStatus> getPlayerStatuses()
+	public LobbyStatus getPlayerStatus(String playerName)
 	{
-		return playerLobbyStatuses;
+		return playerLobbyStatuses.get(playerName);
 	}
 	
 	public ArrayList<Arena> getArenasBySize(int size)
@@ -334,12 +345,7 @@ public class ArenaManager
 			return null;
 		return validArenas.get((int)(Math.random() * validArenas.size()));
 	}
-	
-	public LobbyStatus getPlayerStatus(OfflinePlayer p)
-	{
-		return playerLobbyStatuses.get(p.getName());
-	}
-	
+
 	public void removeFromQueue(Player p)
 	{
 		playerLobbyStatuses.put(p.getName(), LobbyStatus.IN_LOBBY);

@@ -53,7 +53,7 @@ public class Party implements MatchmakingEntity
 	public void addPlayer(String playerToAdd)
 	{
 		partyManager.getPlugin().getArenaManager().removePartyFromQueue(partyID);
-		partyManager.getPlugin().getArenaManager().setPlayerStatus(Bukkit.getOfflinePlayer(playerToAdd), LobbyStatus.IN_PARTY);
+		partyManager.getPlugin().getArenaManager().setPlayerStatus(playerToAdd, LobbyStatus.IN_PARTY);
 		members.add(playerToAdd);
 		
 		giveLobbyInventory();
@@ -96,7 +96,7 @@ public class Party implements MatchmakingEntity
 		
 		Player p = partyManager.getPlugin().getServer().getPlayer(playerName);
 		partyManager.getPlugin().getArenaManager().giveLobbyInventory(p);
-		partyManager.getPlugin().getArenaManager().setPlayerStatus(Bukkit.getOfflinePlayer(playerName), LobbyStatus.IN_LOBBY);
+		partyManager.getPlugin().getArenaManager().setPlayerStatus(playerName, LobbyStatus.IN_LOBBY);
 		
 		boolean isLeader = leader.equals(playerName);
 		members.remove(playerName);
@@ -173,7 +173,7 @@ public class Party implements MatchmakingEntity
 	{
 		for (String playerName : members)
 		{
-			if (!partyManager.getPlugin().getArenaManager().getPlayerStatus(Bukkit.getOfflinePlayer(playerName)).equals(LobbyStatus.IN_GAME))
+			if (partyManager.getPlugin().getArenaManager().getPlayerStatus(playerName) != LobbyStatus.IN_GAME)
 			{
 				Player p = partyManager.getPlugin().getServer().getPlayer(playerName);
 				
@@ -195,7 +195,7 @@ public class Party implements MatchmakingEntity
 	{
 		for (String playerName : members)
 		{
-			if (!partyManager.getPlugin().getArenaManager().getPlayerStatus(Bukkit.getOfflinePlayer(playerName)).equals(LobbyStatus.IN_GAME))
+			if (partyManager.getPlugin().getArenaManager().getPlayerStatus(playerName) != LobbyStatus.IN_GAME)
 			{
 				Player p = partyManager.getPlugin().getServer().getPlayer(playerName);
 				
