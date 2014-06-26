@@ -63,7 +63,8 @@ public class VersusEndGameTask extends BukkitRunnable
 					else
 						game.getGameManager().getArenaManager().getPlugin().getLogger().info(ChatColor.RED + "Gametype is invalid. Check VersusEndGameTask");
 					
-					DatabaseOperations.giveCurrency(game.getTeam(teamNum).getPlayer(playerNum), money, true);
+					OfflinePlayer op = Bukkit.getOfflinePlayer(game.getTeam(teamNum).getPlayer(playerNum).getName());
+					DatabaseOperations.setCurrency(op, DatabaseOperations.getCurrency(op) + money);
 				}
 				
 				//If player is offline in the records

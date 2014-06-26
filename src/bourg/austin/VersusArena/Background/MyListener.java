@@ -3,6 +3,7 @@ package bourg.austin.VersusArena.Background;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Sign;
+import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -32,12 +33,12 @@ import bourg.austin.VersusArena.Game.Game;
 
 public class MyListener implements Listener
 {
-	private VersusArena plugin;
+	private static VersusArena plugin;
 	private String validTeleportee;
 
 	public MyListener(VersusArena plugin)
 	{
-		this.plugin = plugin;
+		MyListener.plugin = plugin;
 		validTeleportee = "";
 	}
 
@@ -46,16 +47,17 @@ public class MyListener implements Listener
 	public void onRightClick(PlayerInteractEvent event)
 	{		
 		Player p = event.getPlayer();
-
-		if (p.getItemInHand().getType().equals(Material.MUSHROOM_SOUP) && p.getHealth() < 20)
+		Damageable pl = (Damageable)p;
+		
+		if (p.getItemInHand().getType().equals(Material.MUSHROOM_SOUP) && pl.getHealth() < 20)
 		{	
 			if (event.getAction().equals(Action.RIGHT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_BLOCK))
 			{
 				p.getItemInHand().setType(Material.BOWL);
 				p.updateInventory();
-				if (p.getHealth() + plugin.getSoupHealAmount() <= 20)
-					event.getPlayer().setHealth(p.getHealth() + plugin.getSoupHealAmount());
-				else if (p.getHealth() < 20)
+				if (pl.getHealth() + plugin.getSoupHealAmount() <= 20)
+					event.getPlayer().setHealth(pl.getHealth() + plugin.getSoupHealAmount());
+				else if (pl.getHealth() < 20)
 					p.setHealth(20);
 			}
 		}
@@ -111,7 +113,7 @@ public class MyListener implements Listener
 	{
 		if (event.getItemDrop().getItemStack().getType().equals(Material.COMPASS))
 			event.setCancelled(true);
-		if (this.plugin.getArenaManager().getPlayerStatus(event.getPlayer().getName()) != null)
+		if (MyListener.plugin.getArenaManager().getPlayerStatus(event.getPlayer().getName()) != null)
 			event.setCancelled(true);
 	}
 
@@ -123,7 +125,7 @@ public class MyListener implements Listener
 		
 		if (event.getCurrentItem().getType().equals(Material.COMPASS))
 			event.setCancelled(true);
-		if (this.plugin.getArenaManager().getPlayerStatus(((Player)event.getWhoClicked()).getName()) != null)
+		if (MyListener.plugin.getArenaManager().getPlayerStatus(((Player)event.getWhoClicked()).getName()) != null)
 			event.setCancelled(true);
 	}
 	@SuppressWarnings("deprecation")
@@ -178,6 +180,7 @@ public class MyListener implements Listener
 			return;
 
 		Player damagedPlayer = (Player) event.getEntity();
+		Damageable dp = (Damageable)damagedPlayer;
 		
 		if (plugin.getArenaManager().getPlayerStatus(damagedPlayer.getName()) == null)
 			return;
@@ -198,7 +201,7 @@ public class MyListener implements Listener
 		if (game.getGameManager().getPlayerStatus(damagedPlayer) == InGameStatus.DEAD)
 			event.setCancelled(true);
 
-		if (damagedPlayer.getHealth() - getDamageArmored(damagedPlayer, event.getDamage()) > 0)
+		if (dp.getHealth() - getDamageArmored(damagedPlayer, event.getDamage()) > 0)
 			return;
 
 		event.setCancelled(true);
@@ -217,6 +220,7 @@ public class MyListener implements Listener
 			return;
 
 		Player damagedPlayer = (Player) event.getEntity();
+		Damageable dp = (Damageable)damagedPlayer;
 
 		if (plugin.getArenaManager().getPlayerStatus(damagedPlayer.getName()) == null)
 			return;
@@ -258,7 +262,7 @@ public class MyListener implements Listener
 			return;
 		}
 
-		if (damagedPlayer.getHealth() - getDamageArmored(damagedPlayer, event.getDamage()) > 0)
+		if (dp.getHealth() - getDamageArmored(damagedPlayer, event.getDamage()) > 0)
 			return;
 
 		//To get to this point a player in a game must have died
@@ -401,7 +405,7 @@ public class MyListener implements Listener
 		p.updateInventory();
 	}
 	
-	private void executeExit(Player player)
+	public static void executeExit(Player player)
 	{
 		plugin.getArenaManager().removePlayer(player);
 

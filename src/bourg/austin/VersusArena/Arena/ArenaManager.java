@@ -199,8 +199,10 @@ public class ArenaManager
 	
 	public void matchMake(LobbyStatus queueType)
 	{
+		//Random arena
 		Arena a = this.getRandomArenaBySize(queueType.getValue());
 		
+		//Get players for the queue type
 		ArrayList<Player> validPlayers = getSpecificQueue(queueType);
 		
 		//If there aren't any configured arenas
@@ -271,22 +273,31 @@ public class ArenaManager
 			players.add(new ArrayList<Player>());
 			int attemptIndex = 0;
 			
+			//While team 1 size is less than team amount needed OR team 2 size is less than team amount needed
 			while (players.get(0).size() < queueType.getValue() || players.get(1).size() < queueType.getValue())
 			{
 				for (int i = 0; i < 2; i++)
 				{
+					
+					//Get first team with the same queue size
 					if (players.get(i).size() + sortedMatchmakingEntities.get(attemptIndex).getSize() <= queueType.getValue())
 					{
 						players.get(i).addAll(sortedMatchmakingEntities.get(attemptIndex).getPlayers());
 						if (sortedMatchmakingEntities.get(attemptIndex) instanceof Party)
 							removePartyFromQueue(((Party) sortedMatchmakingEntities.get(attemptIndex)).getID());
 						sortedMatchmakingEntities.remove(attemptIndex);
+						
+						//Break loop
 						i = 3;
 					}
 					else if (i == 1)
 						attemptIndex =+ 1;
 				}
 			}
+			
+			//Start game with teams
+			System.out.print("Team 1: " + players.get(0));
+			System.out.print("Team 2: " + players.get(1));
 			gameManager.startGame(players.get(0), players.get(1), a);
 		}
 	}
