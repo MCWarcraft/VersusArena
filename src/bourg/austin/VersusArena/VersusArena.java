@@ -22,9 +22,9 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
-import bourg.austin.CavemanSQL.DatabaseConnection;
-import bourg.austin.CavemanSQL.DatabaseQueryAction;
-import bourg.austin.CavemanSQL.DatabaseUpdateAction;
+import austin.CavemanSQL.DatabaseConnection;
+import austin.CavemanSQL.DatabaseQueryAction;
+import austin.CavemanSQL.DatabaseUpdateAction;
 import bourg.austin.VersusArena.Arena.Arena;
 import bourg.austin.VersusArena.Arena.ArenaManager;
 import bourg.austin.VersusArena.Arena.CompetitorManager;
