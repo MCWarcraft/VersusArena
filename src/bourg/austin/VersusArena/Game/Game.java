@@ -7,7 +7,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 
-import bourg.austin.VersusArena.VersusArena;
 import bourg.austin.VersusArena.Arena.Arena;
 import bourg.austin.VersusArena.Constants.GameType;
 import bourg.austin.VersusArena.Constants.InGameStatus;
@@ -74,7 +73,7 @@ public class Game implements Listener
 		//Teleport
 		for (int teamNum = 0; teamNum < 2; teamNum++)
 			for (int playerNum = 0; playerNum < teams[teamNum].getNumberOfPlayers(); playerNum++)
-				VersusArena.versusTeleport(teams[teamNum].getPlayer(playerNum), arena.getSpawnLocations()[teamNum][playerNum]);
+				teams[teamNum].getPlayer(playerNum).teleport(arena.getSpawnLocations()[teamNum][playerNum]);
 		
 		distributeKits();
 		

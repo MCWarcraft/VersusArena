@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 
+import core.Custody.Custody;
 import bourg.austin.HonorPoints.DatabaseOperations;
 import bourg.austin.VersusArena.MatchmakingEntity;
 import bourg.austin.VersusArena.VersusArena;
@@ -54,8 +55,11 @@ public class ArenaManager
 		new VersusMatchmakeTimeTask().runTaskTimer(this.plugin, 20, 20);
 	}
 	
-	public void bringPlayer(String playerName, boolean message)
+	public void bringPlayer(String playerName, boolean entry)
 	{
+		if (entry)
+			Custody.switchCustody(plugin.getServer().getPlayer(playerName));
+		
 		Player player = plugin.getServer().getPlayer(playerName);
 		player.setHealth(20);
 		player.setFireTicks(0);
@@ -85,10 +89,10 @@ public class ArenaManager
 		
 		showLobbyBoard(player);
 		
-		if (message)
+		if (entry)
 			player.sendMessage(ChatColor.AQUA + "Welcome to the Arena!");
 		
-		VersusArena.versusTeleport(player, plugin.getArenaManager().getNexusLocation());
+		player.teleport(plugin.getArenaManager().getNexusLocation());
 	}
 	
 	public void addPartyToQueue(int id)
@@ -259,11 +263,10 @@ public class ArenaManager
         	int indexToDrop = ((int) (Math.random() * sortedMatchmakingEntities.size()));
         	if (sortedMatchmakingEntities.get(indexToDrop).getSize() <= numToDrop)
         	{
-        		sortedMatchmakingEntities.remove(indexToDrop);
         		numToDrop -= sortedMatchmakingEntities.get(indexToDrop).getSize();
+        		sortedMatchmakingEntities.remove(indexToDrop);
         	}
         }
-        
         
         //While there are enough players to make a team
 		while (trueSize(sortedMatchmakingEntities) >= queueType.getValue() * 2)

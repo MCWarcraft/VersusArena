@@ -6,7 +6,6 @@ import org.bukkit.block.Sign;
 import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPlaceEvent;
@@ -19,12 +18,11 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 
+import core.Custody.CustodySwitchEvent;
 import bourg.austin.HonorPoints.OnlinePlayerCurrencyUpdateEvent;
 import bourg.austin.VersusArena.VersusArena;
-import bourg.austin.VersusArena.VersusTeleportEvent;
 import bourg.austin.VersusArena.Constants.InGameStatus;
 import bourg.austin.VersusArena.Constants.Inventories;
 import bourg.austin.VersusArena.Constants.LobbyStatus;
@@ -34,12 +32,10 @@ import bourg.austin.VersusArena.Game.Game;
 public class MyListener implements Listener
 {
 	private static VersusArena plugin;
-	private String validTeleportee;
 
 	public MyListener(VersusArena plugin)
 	{
 		MyListener.plugin = plugin;
-		validTeleportee = "";
 	}
 
 	@SuppressWarnings("deprecation")
@@ -353,7 +349,6 @@ public class MyListener implements Listener
 				p.hidePlayer(damagedPlayer);
 
 		plugin.getArenaManager().getGameManager().setPlayerStatus(damagedPlayer, InGameStatus.DEAD);
-		VersusArena.versusTeleport(damagedPlayer, game.getArena().getDeathLocation());
 
 		game.broadcast(ChatColor.BLUE + damagedPlayer.getName() + " has fallen!");
 
@@ -366,20 +361,10 @@ public class MyListener implements Listener
 		executeExit(event.getPlayer());
 	}
 	
-	@EventHandler (priority = EventPriority.HIGHEST)
-	public void onInternalTeleport(VersusTeleportEvent event)
+	@EventHandler
+	public void onCustodySwitch(CustodySwitchEvent event)
 	{
-		validTeleportee = event.getPlayer().getName();
-	}
-	
-	@EventHandler (priority = EventPriority.HIGH)
-	public void onAnyTeleport(PlayerTeleportEvent event)
-	{
-		if (!validTeleportee.equals(event.getPlayer().getName()))
-		{
-			executeExit(event.getPlayer());
-		}
-		validTeleportee = "";
+		executeExit(event.getPlayer());
 	}
 
 	@EventHandler
