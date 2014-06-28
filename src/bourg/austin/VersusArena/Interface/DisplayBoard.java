@@ -1,7 +1,10 @@
 package bourg.austin.VersusArena.Interface;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -11,6 +14,8 @@ import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 
+import randy.core.ScoreboardValue;
+
 public class DisplayBoard
 {
 	private Player player;
@@ -18,7 +23,8 @@ public class DisplayBoard
 	private Scoreboard board;
 	private Objective o;
 	private HashMap<OfflinePlayer, Score> values;
-	
+	private ArrayList<String> titles, fixedValues;
+	private ArrayList<ScoreboardValue> dynamicValues;
 	private ChatColor scoreColor, headerColor;
 	
 	public DisplayBoard(Player player, String title, ChatColor scoreColor, ChatColor headerColor)
@@ -33,50 +39,97 @@ public class DisplayBoard
 		o.setDisplaySlot(DisplaySlot.SIDEBAR);
 		
 		values = new HashMap<OfflinePlayer, Score>();
-	}
-
-	public void put(String text)
-	{
-		String displayText = text;
-		//Add spaces to the end
-		while (displayText.length() < 16)
-			displayText += " ";
-
-		//Loop and remove spaces for duplicates
-		while (true)
-		{
-			if (!values.keySet().contains(Bukkit.getOfflinePlayer(displayText)))
-				break;
-
-			displayText = displayText.substring(0, displayText.length() - 1);
-
-			if (displayText.length() < (text).length())
-				return;
-		}
-
-		values.put(Bukkit.getOfflinePlayer(displayText), o.getScore(Bukkit.getOfflinePlayer(displayText)));
-		values.get(Bukkit.getOfflinePlayer(displayText)).setScore(0);
-		for (OfflinePlayer p : values.keySet())
-			values.get(p).setScore(values.get(p).getScore() + 1);
+		titles = new ArrayList<String>();
+		fixedValues = new ArrayList<String>();
+		dynamicValues = new ArrayList<ScoreboardValue>();
 	}
 	
-	public void putField(String name, int value)
+	public void putField(String title, String value)
 	{
-		put(name + scoreColor + value);
+		titles.add(title);
+		fixedValues.add(value);
+		dynamicValues.add(null);
+	}
+	
+	public void putField(String title, int value)
+	{
+		putField(title, "" + value);
+	}
+	
+	public void putField(String title, ScoreboardValue value)
+	{
+		titles.add(title);
+		fixedValues.add(null);
+		dynamicValues.add(value);
 	}
 	
 	public void putHeader(String text)
 	{
-		put(headerColor + text);
+		titles.add(text);
+		fixedValues.add(null);
+		dynamicValues.add(null);
 	}
 	
 	public void putSpace()
 	{
-		put("");
+		titles.add(" ");
+		fixedValues.add(null);
+		dynamicValues.add(null);
 	}
 	
-	public void display()
-	{
+	public void update()
+	{		
+		ArrayList<String> finalStrings = padDuplicates(constructLines());
+		values.clear();
+		
+		for (int i = 0; i < finalStrings.size(); i++)
+		{
+			values.put(Bukkit.getOfflinePlayer(finalStrings.get(i)), o.getScore(Bukkit.getOfflinePlayer(finalStrings.get(i))));
+			values.get(Bukkit.getOfflinePlayer(finalStrings.get(i))).setScore(finalStrings.size() - i);
+		}
 		player.setScoreboard(board);
+	}
+	
+	public void hide()
+	{
+		player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
+	}
+	
+	private String constructLine(int line)
+	{
+		//If dynamic value
+		if (fixedValues.get(line) == null && dynamicValues.get(line) != null)
+			return titles.get(line) + scoreColor + dynamicValues.get(line).getScoreboardValue();
+		//If static value
+		else if (dynamicValues.get(line) == null && fixedValues.get(line) != null)
+			return titles.get(line) + scoreColor + fixedValues.get(line);
+		//If header
+		else if (dynamicValues.get(line) == null && fixedValues.get(line) == null && titles.get(line) != null)
+			return headerColor + titles.get(line);
+		//Else if it's just a space
+		else
+			return " ";
+	}
+	
+	private ArrayList<String> constructLines()
+	{
+		ArrayList<String> lines = new ArrayList<String>();
+		for (int i = 0; i < titles.size(); i++)
+			lines.add(constructLine(i));
+		return lines;
+	}
+	
+	private ArrayList<String> padDuplicates(ArrayList<String> original)
+	{
+		ArrayList<String> padded = new ArrayList<String>();
+		
+		for (int i = 0; i < original.size(); i++)
+		{
+			padded.add(original.get(i) + StringUtils.repeat(" ", Collections.frequency(original.subList(0, i), original.get(i))));
+			if (padded.get(padded.size() - 1).length() > 16)
+				padded.remove(padded.size() - 1);				
+		}
+		
+		return padded;		
 	}
 }

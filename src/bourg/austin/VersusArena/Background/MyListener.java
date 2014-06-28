@@ -349,9 +349,9 @@ public class MyListener implements Listener
 				p.hidePlayer(damagedPlayer);
 
 		plugin.getArenaManager().getGameManager().setPlayerStatus(damagedPlayer, InGameStatus.DEAD);
-
+		
 		game.broadcast(ChatColor.BLUE + damagedPlayer.getName() + " has fallen!");
-
+		damagedPlayer.teleport(game.getArena().getDeathLocation());
 		game.checkGameOver();
 	}
 
@@ -373,7 +373,7 @@ public class MyListener implements Listener
 		//If the player is in arena in some capacity and not in game
 		if (plugin.getArenaManager().getPlayerStatus(event.getPlayer().getName()) != null && !(plugin.getArenaManager().getPlayerStatus(event.getPlayer().getName()) == LobbyStatus.IN_GAME))
 		{
-			plugin.getArenaManager().showLobbyBoard(event.getPlayer());
+			plugin.getArenaManager().generateLobbyBoard(event.getPlayer());
 		}
 	}
 

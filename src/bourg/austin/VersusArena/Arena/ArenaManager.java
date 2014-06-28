@@ -7,12 +7,10 @@ import java.util.Set;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 
-import core.Custody.Custody;
 import bourg.austin.HonorPoints.DatabaseOperations;
 import bourg.austin.VersusArena.MatchmakingEntity;
 import bourg.austin.VersusArena.VersusArena;
@@ -24,6 +22,7 @@ import bourg.austin.VersusArena.Interface.DisplayBoard;
 import bourg.austin.VersusArena.Party.Party;
 import bourg.austin.VersusArena.Tasks.VersusMatchmakeTask;
 import bourg.austin.VersusArena.Tasks.VersusMatchmakeTimeTask;
+import core.Custody.Custody;
 
 public class ArenaManager
 {
@@ -33,7 +32,7 @@ public class ArenaManager
 	private HashMap<String, LobbyStatus> playerLobbyStatuses;
 	private ArrayList<Integer> partyInQueue;
 	
-	private HashMap<OfflinePlayer, DisplayBoard> boards;
+	private HashMap<String, DisplayBoard> boards;
 	
 	private GameManager gameManager;
 	private VersusArena plugin;
@@ -46,7 +45,7 @@ public class ArenaManager
 		
 		gameManager = new GameManager(this);
 		
-		boards = new HashMap<OfflinePlayer, DisplayBoard>();
+		boards = new HashMap<String, DisplayBoard>();
 		
 		playerLobbyStatuses = new HashMap<String, LobbyStatus>();
 		partyInQueue = new ArrayList<Integer>();
@@ -74,8 +73,6 @@ public class ArenaManager
 			player.removePotionEffect(effect.getType());
 		
 		//Store data about players in the arena
-		
-		
 		if (plugin.getPartyManager().isInParty(player.getName()))
 		{
 			playerLobbyStatuses.put(player.getName(), LobbyStatus.IN_PARTY);
@@ -87,10 +84,12 @@ public class ArenaManager
 			giveLobbyInventory(player);
 		}
 		
-		showLobbyBoard(player);
-		
 		if (entry)
+		{
+			generateLobbyBoard(player);
 			player.sendMessage(ChatColor.AQUA + "Welcome to the Arena!");
+		}
+		getDisplayBoard(playerName).update();
 		
 		player.teleport(plugin.getArenaManager().getNexusLocation());
 	}
@@ -114,7 +113,7 @@ public class ArenaManager
 	
 	public void removePlayer(Player p)
 	{
-		boards.remove(p);
+		boards.remove(p.getName());
 		playerLobbyStatuses.remove(p.getName());
 	}
 	
@@ -123,32 +122,34 @@ public class ArenaManager
 		return playerLobbyStatuses.keySet();
 	}
 	
-	public void showLobbyBoard(Player player)
+	public void generateLobbyBoard(Player player)
 	{
+		String name = player.getName();
+		
 		Competitor competitor = plugin.getCompetitorManager().getCompetitor(player);
 		
-		boards.put(player, new DisplayBoard(player, ChatColor.AQUA + "Arena", ChatColor.GOLD, ChatColor.GREEN));
+		boards.put(name, new DisplayBoard(player, ChatColor.AQUA + "Arena", ChatColor.GOLD, ChatColor.GREEN));
 		
-		boards.get(player).putSpace();
+		boards.get(name).putSpace();
 		
-		boards.get(player).putHeader("[1v1]");
-		boards.get(player).putField("Rating: ", competitor.getRating(GameType.ONE));
-		boards.get(player).putField("Wins: ", competitor.getWins(GameType.ONE));
-		boards.get(player).putField("Losses: ", competitor.getLosses(GameType.ONE));
-		//boards.get(player).putSpace();
-		boards.get(player).putHeader("[2v2]");
-		boards.get(player).putField("Rating: ", competitor.getRating(GameType.TWO));
-		boards.get(player).putField("Wins: ", competitor.getWins(GameType.TWO));
-		boards.get(player).putField("Losses: ", competitor.getLosses(GameType.TWO));
-		//boards.get(player).putSpace();
-		boards.get(player).putHeader("[3v3]");
-		boards.get(player).putField("Rating: ", competitor.getRating(GameType.THREE));
-		boards.get(player).putField("Wins: ", competitor.getWins(GameType.THREE));
-		boards.get(player).putField("Losses: ", competitor.getLosses(GameType.THREE));
-		boards.get(player).putSpace();
-		boards.get(player).putField("Honor: ", DatabaseOperations.getCurrency(player));
+		boards.get(name).putHeader("[1v1]");
+		boards.get(name).putField("Rating: ", competitor.getRating(GameType.ONE));
+		boards.get(name).putField("Wins: ", competitor.getWins(GameType.ONE));
+		boards.get(name).putField("Losses: ", competitor.getLosses(GameType.ONE));
+
+		boards.get(name).putHeader("[2v2]");
+		boards.get(name).putField("Rating: ", competitor.getRating(GameType.TWO));
+		boards.get(name).putField("Wins: ", competitor.getWins(GameType.TWO));
+		boards.get(name).putField("Losses: ", competitor.getLosses(GameType.TWO));
+
+		boards.get(name).putHeader("[3v3]");
+		boards.get(name).putField("Rating: ", competitor.getRating(GameType.THREE));
+		boards.get(name).putField("Wins: ", competitor.getWins(GameType.THREE));
+		boards.get(name).putField("Losses: ", competitor.getLosses(GameType.THREE));
+		boards.get(name).putSpace();
+		boards.get(name).putField("Honor: ", DatabaseOperations.getCurrency(player));
 		
-		boards.get(player).display();
+		boards.get(name).update();
 	}
 
 	public void addToQueue(Player player, LobbyStatus gameType)
@@ -299,8 +300,6 @@ public class ArenaManager
 			}
 			
 			//Start game with teams
-			System.out.print("Team 1: " + players.get(0));
-			System.out.print("Team 2: " + players.get(1));
 			gameManager.startGame(players.get(0), players.get(1), a);
 		}
 	}
@@ -419,7 +418,12 @@ public class ArenaManager
 
 	public void cleanPlayer(Player p)
 	{
-		boards.remove(p);
+		boards.remove(p.getName());
 		gameManager.getPlayerStatuses().remove(p);
+	}
+	
+	public DisplayBoard getDisplayBoard(String playerName)
+	{
+		return boards.get(playerName);
 	}
 }

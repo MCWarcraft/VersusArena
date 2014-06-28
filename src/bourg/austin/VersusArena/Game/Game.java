@@ -63,6 +63,8 @@ public class Game implements Listener
 		//Lock players and remove scoreboard
 		for (Player player : allPlayers)
 		{
+			gameManager.getArenaManager().getDisplayBoard(player.getName()).hide();
+			
 			player.sendMessage(ChatColor.BLUE + "Prepare to fight.");
 			
 			lockPlayer(player);
