@@ -119,13 +119,9 @@ public class ArenaManager
 	
 	public void generateLobbyBoard(Player player)
 	{
-		Competitor competitor = plugin.getCompetitorManager().getCompetitor(player);
+		CompetitorManager compManager = plugin.getCompetitorManager();
 		DisplayBoard tempBoard = CoreScoreboardManager.getDisplayBoard(player);
-
-		//tempBoard.setTitle("Test");
-		tempBoard.putField("Check: ", "yes");
 		
-		/*
 		tempBoard.setHeaderColor(ChatColor.GREEN);
 		tempBoard.setScoreColor(ChatColor.GOLD);
 		tempBoard.setTitle("Arena");
@@ -133,22 +129,22 @@ public class ArenaManager
 		tempBoard.putSpace();
 		
 		tempBoard.putHeader("[1v1]");
-		tempBoard.putField("Rating: ", competitor, "rating1");
-		tempBoard.putField("Wins: ", competitor, "kills1");
-		tempBoard.putField("Losses: ", competitor, "deaths1");
-
+		tempBoard.putField("Rating: ", compManager, player.getName() + "|rating1");
+		tempBoard.putField("Wins: ", compManager, player.getName() + "|wins1");
+		tempBoard.putField("Losses: ", compManager, player.getName() + "|losses1");
+		
 		tempBoard.putHeader("[2v2]");
-		tempBoard.putField("Rating: ", competitor, "rating2");
-		tempBoard.putField("Wins: ", competitor, "kills2");
-		tempBoard.putField("Losses: ", competitor, "deaths2");
+		tempBoard.putField("Rating: ", compManager, player.getName() + "|rating2");
+		tempBoard.putField("Wins: ", compManager, player.getName() + "|wins2");
+		tempBoard.putField("Losses: ", compManager, player.getName() + "|losses2");
 
 		tempBoard.putHeader("[3v3]");
-		tempBoard.putField("Rating: ", competitor, "rating3");
-		tempBoard.putField("Wins: ", competitor, "kills3");
-		tempBoard.putField("Losses: ", competitor, "deaths3");
+		tempBoard.putField("Rating: ", compManager, player.getName() + "|rating3");
+		tempBoard.putField("Wins: ", compManager, player.getName() + "|wins3");
+		tempBoard.putField("Losses: ", compManager, player.getName() + "|losses3");
 		tempBoard.putSpace();
 		tempBoard.putField("Honor: ", DatabaseOperations.getCurrency(player));
-		*/
+		
 	}
 
 	public void addToQueue(Player player, LobbyStatus gameType)

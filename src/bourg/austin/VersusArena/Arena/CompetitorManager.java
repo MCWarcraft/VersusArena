@@ -7,10 +7,11 @@ import java.sql.SQLException;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 
+import randy.core.ScoreboardValue;
 import bourg.austin.VersusArena.VersusArena;
 import bourg.austin.VersusArena.Constants.GameType;
 
-public class CompetitorManager
+public class CompetitorManager implements ScoreboardValue
 {
 	private VersusArena plugin;
 	
@@ -113,5 +114,39 @@ public class CompetitorManager
 	public VersusArena getPlugin()
 	{
 		return plugin;
+	}
+	
+	@Override
+	public String getScoreboardValue(String key)
+	{
+		String[] splitkey = key.split("\\|");
+		if (splitkey.length != 2) return "err1";
+		
+		Competitor c = getCompetitor(Bukkit.getOfflinePlayer(splitkey[0]));
+		if (c == null) return "err2";
+		
+		switch (splitkey[1])
+		{
+		case "wins1":
+			return "" + c.getWins(GameType.ONE);
+		case "losses1":
+			return "" + c.getLosses(GameType.ONE);
+		case "rating1":
+			return "" + c.getRating(GameType.ONE);
+		case "wins2":
+			return "" + c.getWins(GameType.TWO);
+		case "losses2":
+			return "" + c.getLosses(GameType.TWO);
+		case "rating2":
+			return "" + c.getRating(GameType.TWO);
+		case "wins3":
+			return "" + c.getWins(GameType.THREE);
+		case "losses3":
+			return "" + c.getLosses(GameType.THREE);
+		case "rating3":
+			return "" + c.getRating(GameType.THREE);
+		default:
+			return "err3";
+		}
 	}
 }
