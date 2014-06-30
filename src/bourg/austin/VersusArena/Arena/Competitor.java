@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import org.bukkit.entity.Player;
 
+import randy.core.ScoreboardValue;
 import bourg.austin.VersusArena.MatchmakingEntity;
 import bourg.austin.VersusArena.VersusArena;
 import bourg.austin.VersusArena.Constants.GameResult;
@@ -11,7 +12,7 @@ import bourg.austin.VersusArena.Constants.GameType;
 import bourg.austin.VersusArena.Constants.LobbyStatus;
 import bourg.austin.VersusArena.Game.VersusTeam;
 
-public class Competitor implements MatchmakingEntity
+public class Competitor implements MatchmakingEntity, ScoreboardValue
 {
 	private Integer[] wins, losses, rating;
 	private int kills, deaths;
@@ -122,5 +123,33 @@ public class Competitor implements MatchmakingEntity
 		list.add(plugin.getServer().getPlayer(name));
 		
 		return list;
+	}
+
+	@Override
+	public String getScoreboardValue(String key)
+	{
+		switch (key)
+		{
+		case "wins1":
+			return "" + wins[0];
+		case "losses1":
+			return "" + losses[0];
+		case "rating1":
+			return "" + rating[0];
+		case "wins2":
+			return "" + wins[1];
+		case "losses2":
+			return "" + losses[1];
+		case "rating2":
+			return "" + rating[1];
+		case "wins3":
+			return "" + wins[2];
+		case "losses3":
+			return "" + losses[2];
+		case "rating3":
+			return "" + rating[2];
+		default:
+			return "";
+		}
 	}
 }

@@ -11,14 +11,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 
+import randy.core.CoreScoreboardManager;
+import randy.core.DisplayBoard;
 import bourg.austin.HonorPoints.DatabaseOperations;
 import bourg.austin.VersusArena.MatchmakingEntity;
 import bourg.austin.VersusArena.VersusArena;
-import bourg.austin.VersusArena.Constants.GameType;
 import bourg.austin.VersusArena.Constants.Inventories;
 import bourg.austin.VersusArena.Constants.LobbyStatus;
 import bourg.austin.VersusArena.Game.GameManager;
-import bourg.austin.VersusArena.Interface.DisplayBoard;
 import bourg.austin.VersusArena.Party.Party;
 import bourg.austin.VersusArena.Tasks.VersusMatchmakeTask;
 import bourg.austin.VersusArena.Tasks.VersusMatchmakeTimeTask;
@@ -32,8 +32,6 @@ public class ArenaManager
 	private HashMap<String, LobbyStatus> playerLobbyStatuses;
 	private ArrayList<Integer> partyInQueue;
 	
-	private HashMap<String, DisplayBoard> boards;
-	
 	private GameManager gameManager;
 	private VersusArena plugin;
 	
@@ -44,8 +42,6 @@ public class ArenaManager
 		nexusLocation = null;
 		
 		gameManager = new GameManager(this);
-		
-		boards = new HashMap<String, DisplayBoard>();
 		
 		playerLobbyStatuses = new HashMap<String, LobbyStatus>();
 		partyInQueue = new ArrayList<Integer>();
@@ -89,7 +85,7 @@ public class ArenaManager
 			generateLobbyBoard(player);
 			player.sendMessage(ChatColor.AQUA + "Welcome to the Arena!");
 		}
-		getDisplayBoard(playerName).update();
+		CoreScoreboardManager.getDisplayBoard(player).update();
 		
 		player.teleport(plugin.getArenaManager().getNexusLocation());
 	}
@@ -113,7 +109,6 @@ public class ArenaManager
 	
 	public void removePlayer(Player p)
 	{
-		boards.remove(p.getName());
 		playerLobbyStatuses.remove(p.getName());
 	}
 	
@@ -124,32 +119,36 @@ public class ArenaManager
 	
 	public void generateLobbyBoard(Player player)
 	{
-		String name = player.getName();
-		
 		Competitor competitor = plugin.getCompetitorManager().getCompetitor(player);
-		
-		boards.put(name, new DisplayBoard(player, ChatColor.AQUA + "Arena", ChatColor.GOLD, ChatColor.GREEN));
-		
-		boards.get(name).putSpace();
-		
-		boards.get(name).putHeader("[1v1]");
-		boards.get(name).putField("Rating: ", competitor.getRating(GameType.ONE));
-		boards.get(name).putField("Wins: ", competitor.getWins(GameType.ONE));
-		boards.get(name).putField("Losses: ", competitor.getLosses(GameType.ONE));
+		DisplayBoard tempBoard = CoreScoreboardManager.getDisplayBoard(player);
 
-		boards.get(name).putHeader("[2v2]");
-		boards.get(name).putField("Rating: ", competitor.getRating(GameType.TWO));
-		boards.get(name).putField("Wins: ", competitor.getWins(GameType.TWO));
-		boards.get(name).putField("Losses: ", competitor.getLosses(GameType.TWO));
-
-		boards.get(name).putHeader("[3v3]");
-		boards.get(name).putField("Rating: ", competitor.getRating(GameType.THREE));
-		boards.get(name).putField("Wins: ", competitor.getWins(GameType.THREE));
-		boards.get(name).putField("Losses: ", competitor.getLosses(GameType.THREE));
-		boards.get(name).putSpace();
-		boards.get(name).putField("Honor: ", DatabaseOperations.getCurrency(player));
+		//tempBoard.setTitle("Test");
+		tempBoard.putField("Check: ", "yes");
 		
-		boards.get(name).update();
+		/*
+		tempBoard.setHeaderColor(ChatColor.GREEN);
+		tempBoard.setScoreColor(ChatColor.GOLD);
+		tempBoard.setTitle("Arena");
+		
+		tempBoard.putSpace();
+		
+		tempBoard.putHeader("[1v1]");
+		tempBoard.putField("Rating: ", competitor, "rating1");
+		tempBoard.putField("Wins: ", competitor, "kills1");
+		tempBoard.putField("Losses: ", competitor, "deaths1");
+
+		tempBoard.putHeader("[2v2]");
+		tempBoard.putField("Rating: ", competitor, "rating2");
+		tempBoard.putField("Wins: ", competitor, "kills2");
+		tempBoard.putField("Losses: ", competitor, "deaths2");
+
+		tempBoard.putHeader("[3v3]");
+		tempBoard.putField("Rating: ", competitor, "rating3");
+		tempBoard.putField("Wins: ", competitor, "kills3");
+		tempBoard.putField("Losses: ", competitor, "deaths3");
+		tempBoard.putSpace();
+		tempBoard.putField("Honor: ", DatabaseOperations.getCurrency(player));
+		*/
 	}
 
 	public void addToQueue(Player player, LobbyStatus gameType)
@@ -418,12 +417,6 @@ public class ArenaManager
 
 	public void cleanPlayer(Player p)
 	{
-		boards.remove(p.getName());
 		gameManager.getPlayerStatuses().remove(p);
-	}
-	
-	public DisplayBoard getDisplayBoard(String playerName)
-	{
-		return boards.get(playerName);
 	}
 }
