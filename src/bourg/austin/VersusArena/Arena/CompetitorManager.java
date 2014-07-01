@@ -7,9 +7,9 @@ import java.sql.SQLException;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 
-import randy.core.ScoreboardValue;
 import bourg.austin.VersusArena.VersusArena;
 import bourg.austin.VersusArena.Constants.GameType;
+import core.Scoreboard.ScoreboardValue;
 
 public class CompetitorManager implements ScoreboardValue
 {

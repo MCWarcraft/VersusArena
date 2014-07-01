@@ -11,8 +11,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 
-import randy.core.CoreScoreboardManager;
-import randy.core.DisplayBoard;
 import bourg.austin.HonorPoints.DatabaseOperations;
 import bourg.austin.VersusArena.MatchmakingEntity;
 import bourg.austin.VersusArena.VersusArena;
@@ -23,6 +21,8 @@ import bourg.austin.VersusArena.Party.Party;
 import bourg.austin.VersusArena.Tasks.VersusMatchmakeTask;
 import bourg.austin.VersusArena.Tasks.VersusMatchmakeTimeTask;
 import core.Custody.Custody;
+import core.Scoreboard.CoreScoreboardManager;
+import core.Scoreboard.DisplayBoard;
 
 public class ArenaManager
 {
@@ -53,7 +53,7 @@ public class ArenaManager
 	public void bringPlayer(String playerName, boolean entry)
 	{
 		if (entry)
-			Custody.switchCustody(plugin.getServer().getPlayer(playerName));
+			Custody.switchCustody(plugin.getServer().getPlayer(playerName), "arena");
 		
 		Player player = plugin.getServer().getPlayer(playerName);
 		player.setHealth(20);
@@ -85,7 +85,7 @@ public class ArenaManager
 			generateLobbyBoard(player);
 			player.sendMessage(ChatColor.AQUA + "Welcome to the Arena!");
 		}
-		CoreScoreboardManager.getDisplayBoard(player).update();
+		CoreScoreboardManager.getDisplayBoard(player).update(true);
 		
 		player.teleport(plugin.getArenaManager().getNexusLocation());
 	}
@@ -122,23 +122,21 @@ public class ArenaManager
 		CompetitorManager compManager = plugin.getCompetitorManager();
 		DisplayBoard tempBoard = CoreScoreboardManager.getDisplayBoard(player);
 		
-		tempBoard.setHeaderColor(ChatColor.GREEN);
 		tempBoard.setScoreColor(ChatColor.GOLD);
 		tempBoard.setTitle("Arena");
 		
 		tempBoard.putSpace();
-		
-		tempBoard.putHeader("[1v1]");
+		tempBoard.putHeader(ChatColor.GREEN + "[1v1]");
 		tempBoard.putField("Rating: ", compManager, player.getName() + "|rating1");
 		tempBoard.putField("Wins: ", compManager, player.getName() + "|wins1");
 		tempBoard.putField("Losses: ", compManager, player.getName() + "|losses1");
 		
-		tempBoard.putHeader("[2v2]");
+		tempBoard.putHeader(ChatColor.GREEN + "[2v2]");
 		tempBoard.putField("Rating: ", compManager, player.getName() + "|rating2");
 		tempBoard.putField("Wins: ", compManager, player.getName() + "|wins2");
 		tempBoard.putField("Losses: ", compManager, player.getName() + "|losses2");
 
-		tempBoard.putHeader("[3v3]");
+		tempBoard.putHeader(ChatColor.GREEN + "[3v3]");
 		tempBoard.putField("Rating: ", compManager, player.getName() + "|rating3");
 		tempBoard.putField("Wins: ", compManager, player.getName() + "|wins3");
 		tempBoard.putField("Losses: ", compManager, player.getName() + "|losses3");
