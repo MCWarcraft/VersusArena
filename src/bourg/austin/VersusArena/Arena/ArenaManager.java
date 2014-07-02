@@ -123,7 +123,7 @@ public class ArenaManager
 		DisplayBoard tempBoard = CoreScoreboardManager.getDisplayBoard(player);
 		
 		tempBoard.setScoreColor(ChatColor.GOLD);
-		tempBoard.setTitle("Arena");
+		tempBoard.setTitle("Welcome to the Arena " + player.getName() + "!", "" + ChatColor.AQUA);
 		
 		tempBoard.putSpace();
 		tempBoard.putHeader(ChatColor.GREEN + "[1v1]");
