@@ -11,7 +11,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 
-import bourg.austin.HonorPoints.DatabaseOperations;
 import bourg.austin.VersusArena.MatchmakingEntity;
 import bourg.austin.VersusArena.VersusArena;
 import bourg.austin.VersusArena.Constants.Inventories;
@@ -21,8 +20,10 @@ import bourg.austin.VersusArena.Party.Party;
 import bourg.austin.VersusArena.Tasks.VersusMatchmakeTask;
 import bourg.austin.VersusArena.Tasks.VersusMatchmakeTimeTask;
 import core.Custody.Custody;
+import core.HonorPoints.DatabaseOperations;
 import core.Scoreboard.CoreScoreboardManager;
 import core.Scoreboard.DisplayBoard;
+import core.Utilities.CoreItems;
 
 public class ArenaManager
 {
@@ -65,6 +66,16 @@ public class ArenaManager
 		player.getInventory().setLeggings(new ItemStack(Material.AIR, 1));
 		player.getInventory().setBoots(new ItemStack(Material.AIR, 1));
 		
+		if (entry)
+		{
+			generateLobbyBoard(player);
+			player.sendMessage(ChatColor.AQUA + "Welcome to the Arena!");
+		}
+		
+		player.teleport(plugin.getArenaManager().getNexusLocation());
+		
+		CoreScoreboardManager.getDisplayBoard(player).update(true);
+		
 		for (PotionEffect effect : player.getActivePotionEffects())
 			player.removePotionEffect(effect.getType());
 		
@@ -79,15 +90,6 @@ public class ArenaManager
 			playerLobbyStatuses.put(player.getName(), LobbyStatus.IN_LOBBY);
 			giveLobbyInventory(player);
 		}
-		
-		if (entry)
-		{
-			generateLobbyBoard(player);
-			player.sendMessage(ChatColor.AQUA + "Welcome to the Arena!");
-		}
-		CoreScoreboardManager.getDisplayBoard(player).update(true);
-		
-		player.teleport(plugin.getArenaManager().getNexusLocation());
 	}
 	
 	public void addPartyToQueue(int id)
@@ -158,7 +160,7 @@ public class ArenaManager
 	{
 		p.getInventory().clear();
 		
-		p.getInventory().addItem(Inventories.COMPASS);
+		p.getInventory().addItem(CoreItems.COMPASS);
 		
 		for (ItemStack i : Inventories.LOBBY_SLOTS)
 		{
@@ -173,7 +175,7 @@ public class ArenaManager
 	{
 		p.getInventory().clear();
 		
-		p.getInventory().addItem(Inventories.COMPASS);
+		p.getInventory().addItem(CoreItems.COMPASS);
 		
 		for (int i = 0; i < Inventories.QUEUE_SLOTS.length; i++)
 		{

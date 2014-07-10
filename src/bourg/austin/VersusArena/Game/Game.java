@@ -196,11 +196,16 @@ public class Game implements Listener
 	{
 		for (Player p : teams[deathTeam].getAllPlayers())
 			if (!quitters.contains(p.getName()))
+			{
+				//gameManager.getArenaManager().setPlayerStatus(p.getName(), LobbyStatus.IN_LOBBY);
 				p.sendMessage(ChatColor.DARK_RED + "You have lost");
+			}
 		for (Player p : teams[Math.abs(deathTeam-1)].getAllPlayers())
 			if (!quitters.contains(p.getName()))
-			p.sendMessage(ChatColor.GREEN + "You have won");
-		
+			{
+				//gameManager.getArenaManager().setPlayerStatus(p.getName(), LobbyStatus.IN_LOBBY);
+				p.sendMessage(ChatColor.GREEN + "You have won");
+			}
 		new VersusEndGameTask(this, deathTeam).runTaskLater(gameManager.getArenaManager().getPlugin(), 60);
 	}
 	

@@ -6,12 +6,12 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import bourg.austin.HonorPoints.DatabaseOperations;
 import bourg.austin.VersusArena.Arena.Competitor;
 import bourg.austin.VersusArena.Arena.CompetitorManager;
 import bourg.austin.VersusArena.Constants.GameResult;
 import bourg.austin.VersusArena.Constants.GameType;
 import bourg.austin.VersusArena.Game.Game;
+import core.HonorPoints.DatabaseOperations;
 
 public class VersusEndGameTask extends BukkitRunnable
 {

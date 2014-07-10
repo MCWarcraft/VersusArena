@@ -1,6 +1,7 @@
 name: VersusArena
 main: bourg.austin.VersusArena.VersusArena
 version: 2.0.0
+depend: [CorePlugin]
 commands:
   versus:
     description: 'The root command for the Versus Arena Plugin'

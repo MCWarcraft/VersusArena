@@ -20,13 +20,14 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 
-import core.Custody.CustodySwitchEvent;
-import bourg.austin.HonorPoints.OnlinePlayerCurrencyUpdateEvent;
 import bourg.austin.VersusArena.VersusArena;
 import bourg.austin.VersusArena.Constants.InGameStatus;
 import bourg.austin.VersusArena.Constants.Inventories;
 import bourg.austin.VersusArena.Constants.LobbyStatus;
 import bourg.austin.VersusArena.Game.Game;
+import core.Custody.CustodySwitchEvent;
+import core.HonorPoints.OnlinePlayerCurrencyUpdateEvent;
+import core.Utilities.CoreItems;
 
 
 public class MyListener implements Listener
@@ -341,8 +342,7 @@ public class MyListener implements Listener
 	private void killPlayer(Player damagedPlayer, Game game)
 	{
 		damagedPlayer.setHealth(20);
-
-
+		
 		//Hide the player from sight
 		for (Player p : game.getPlayers())
 			if (!damagedPlayer.equals(p))
@@ -386,7 +386,7 @@ public class MyListener implements Listener
 		plugin.getArenaManager().cleanPlayer(p);
 
 		p.getInventory().clear();
-		p.getInventory().addItem(Inventories.COMPASS);
+		p.getInventory().addItem(CoreItems.COMPASS);
 		p.updateInventory();
 	}
 	

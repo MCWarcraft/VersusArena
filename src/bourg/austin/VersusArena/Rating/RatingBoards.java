@@ -14,6 +14,7 @@ import org.bukkit.event.block.SignChangeEvent;
 
 import bourg.austin.VersusArena.VersusArena;
 import bourg.austin.VersusArena.Tasks.RatingBoardUpdateDelayTask;
+import core.Utilities.LocationParser;
 
 public class RatingBoards implements Listener
 {
@@ -80,7 +81,7 @@ public class RatingBoards implements Listener
 				return;
 			
 			PreparedStatement addNewSignStatement = plugin.getConnection().prepareStatement("INSERT INTO rating_signs SET location=?");
-			addNewSignStatement.setString(1, VersusArena.locationToString(event.getBlock().getLocation()));
+			addNewSignStatement.setString(1, LocationParser.locationToString(event.getBlock().getLocation()));
 			addNewSignStatement.execute();
 		}
 		catch (SQLException e)
@@ -113,7 +114,7 @@ public class RatingBoards implements Listener
 		try
 		{
 			PreparedStatement deleteSignStatement = plugin.getConnection().prepareStatement("DELETE FROM rating_signs WHERE location = ?");
-			deleteSignStatement.setString(1, VersusArena.locationToString(loc));
+			deleteSignStatement.setString(1, LocationParser.locationToString(loc));
 			deleteSignStatement.execute();							
 		}
 		catch (SQLException e)
@@ -131,7 +132,7 @@ public class RatingBoards implements Listener
 			
 			while (allSignsResultSet.next())
 			{				
-				Location loc = plugin.parseLocation(allSignsResultSet.getString("location"));
+				Location loc = LocationParser.parseLocation(allSignsResultSet.getString("location"));
 
 				if (!(loc.getBlock().getState() instanceof Sign))
 					removeRatingBoard(loc);

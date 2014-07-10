@@ -465,6 +465,7 @@ public class MyCommandExecutor implements CommandExecutor
 							sender.sendMessage("Only a player can set a spawn location.");
 					}
 					//If only the argument arena is provided
+					else
 						sender.sendMessage(ChatColor.RED + "Invalid command");
 				}
 				

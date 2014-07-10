@@ -11,18 +11,13 @@ import java.util.HashMap;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.util.Vector;
 
-import austin.CavemanSQL.DatabaseConnection;
-import austin.CavemanSQL.DatabaseQueryAction;
-import austin.CavemanSQL.DatabaseUpdateAction;
 import bourg.austin.VersusArena.Arena.Arena;
 import bourg.austin.VersusArena.Arena.ArenaManager;
 import bourg.austin.VersusArena.Arena.CompetitorManager;
@@ -33,6 +28,10 @@ import bourg.austin.VersusArena.Constants.VersusKit;
 import bourg.austin.VersusArena.Party.PartyCommandExecutor;
 import bourg.austin.VersusArena.Party.PartyManager;
 import bourg.austin.VersusArena.Rating.RatingBoards;
+import core.CavemanSQL.DatabaseConnection;
+import core.CavemanSQL.DatabaseQueryAction;
+import core.CavemanSQL.DatabaseUpdateAction;
+import core.Utilities.LocationParser;
 
 public final class VersusArena extends JavaPlugin
 {
@@ -220,8 +219,8 @@ public final class VersusArena extends JavaPlugin
 					arenaManager.addArena(arenaResultSets[i - 1].getString("name"), i);
 					for (int teamNum = 0; teamNum <= 1; teamNum++)
 						for (int playerNum = 0; playerNum < i; playerNum++)
-							arenaManager.getArena(arenaResultSets[i - 1].getString("name")).setSpawnLocation(teamNum, playerNum, parseLocation(arenaResultSets[i - 1].getString("team" + (teamNum + 1) + "player" + (playerNum + 1))));
-					arenaManager.getArena(arenaResultSets[i - 1].getString("name")).setDeathLocation(parseLocation(arenaResultSets[i - 1].getString("deathlocation")));
+							arenaManager.getArena(arenaResultSets[i - 1].getString("name")).setSpawnLocation(teamNum, playerNum, LocationParser.parseLocation(arenaResultSets[i - 1].getString("team" + (teamNum + 1) + "player" + (playerNum + 1))));
+					arenaManager.getArena(arenaResultSets[i - 1].getString("name")).setDeathLocation(LocationParser.parseLocation(arenaResultSets[i - 1].getString("deathlocation")));
 				}
 	
 			//Load nexus location
@@ -233,7 +232,7 @@ public final class VersusArena extends JavaPlugin
 			else
 				locationRaw = nexusLocation.getString("location");
 			
-			arenaManager.setNexusLocation(this.parseLocation(locationRaw));
+			arenaManager.setNexusLocation(LocationParser.parseLocation(locationRaw));
 		}
 		catch (SQLException e)
 		{
@@ -260,7 +259,7 @@ public final class VersusArena extends JavaPlugin
 						if (tempArena.getSpawnLocations()[teamNum][playerNum] == null)
 							spawnLocations.add("null");
 						else
-							spawnLocations.add(locationToString(tempArena.getSpawnLocations()[teamNum][playerNum]));
+							spawnLocations.add(LocationParser.locationToString(tempArena.getSpawnLocations()[teamNum][playerNum]));
 					}
 				
 				String arenaType = "";
@@ -286,7 +285,7 @@ public final class VersusArena extends JavaPlugin
 					updateAction.setString("team2player3", spawnLocations.get(5));
 				}
 				
-				updateAction.setString("deathlocation", locationToString(tempArena.getDeathLocation()));
+				updateAction.setString("deathlocation", LocationParser.locationToString(tempArena.getDeathLocation()));
 				updateAction.setPrimaryValue(tempArena.getArenaName());
 				
 				updateAction.executeUpdate();
@@ -316,7 +315,7 @@ public final class VersusArena extends JavaPlugin
 			}
 			
 			DatabaseUpdateAction nexusAction = databaseConnection.getDatabaseUpdateAction("nexus_data");
-			nexusAction.setString("location", locationToString(this.getArenaManager().getNexusLocation()));	
+			nexusAction.setString("location", LocationParser.locationToString(this.getArenaManager().getNexusLocation()));	
 			nexusAction.setPrimaryValue("nexus");
 			nexusAction.executeUpdate();
 		}
@@ -445,49 +444,6 @@ public final class VersusArena extends JavaPlugin
 		{
 			this.getServer().getLogger().info("There are no kits. The plugin will not operate as intended.");
 		}
-	}
-	
-	public static String locationToString(Location loc)
-	{
-		if (loc == null)
-		{
-			return "null";
-		}
-		return (loc.getWorld().getName()) + "|" +
-				(loc.getBlockX()) + "|" +
-				(loc.getBlockY()) + "|" +
-				(loc.getBlockZ()) + "|" +
-				(loc.getDirection().getX() + "|" +
-				(loc.getDirection().getZ()));
-	}
-	
-	public Location parseLocation(String unparsed)
-	{		
-		if (unparsed == null || unparsed.equalsIgnoreCase("null"))
-			return null;
-		
-		
-		String[] coords = unparsed.split("\\|");
-		double x, y, z, facingX, facingZ;
-		
-		World world = this.getServer().getWorld(coords[0]);
-		if (world == null)
-			return null;
-		
-		try
-		{
-			x = Double.parseDouble(coords[1]);
-			y = Double.parseDouble(coords[2]);
-			z = Double.parseDouble(coords[3]);
-			facingX = Double.parseDouble(coords[4]);
-			facingZ = Double.parseDouble(coords[5]);
-		}
-		catch (NumberFormatException e)
-		{
-			return null;
-		}
-		
-		return new Location(world, x, y, z).setDirection(new Vector().setX(facingX).setZ(facingZ));
 	}
 	
 	public RatingBoards getRatingBoards()
