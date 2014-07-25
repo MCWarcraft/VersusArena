@@ -63,7 +63,6 @@ permissions:
       pairspvp.arena.delete: true
       pairspvp.arena.setspawn: true
       pairspvp.arena.setdeath: true
-      pairspvp.arena.setfacing: true
     default: op
   pairspvp.arena.view:
     description: 'Allows the use of any commands that allow viewing of arenas and details'
@@ -76,9 +75,6 @@ permissions:
     default: op
   pairspvp.arena.delete:
     description: 'Allows the use of the /versus arena delete <name> command'
-    default: op
-  pairspvp.arena.setfacing:
-    description: 'Allows the use of the /versus arena setfacing <name> <team> <player> command'
     default: op
   pairspvp.arena.list:
     description: 'Allows the use of the /versus arena list command'

@@ -8,16 +8,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 
 import bourg.austin.VersusArena.VersusArena;
@@ -27,7 +23,6 @@ import bourg.austin.VersusArena.Constants.LobbyStatus;
 import bourg.austin.VersusArena.Game.Game;
 import core.Custody.CustodySwitchEvent;
 import core.HonorPoints.OnlinePlayerCurrencyUpdateEvent;
-import core.Utilities.CoreItems;
 
 
 public class MyListener implements Listener
@@ -39,33 +34,10 @@ public class MyListener implements Listener
 		MyListener.plugin = plugin;
 	}
 
-	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void onRightClick(PlayerInteractEvent event)
 	{		
 		Player p = event.getPlayer();
-		Damageable pl = (Damageable)p;
-		
-		if (p.getItemInHand().getType().equals(Material.MUSHROOM_SOUP) && pl.getHealth() < 20)
-		{	
-			if (event.getAction().equals(Action.RIGHT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_BLOCK))
-			{
-				p.getItemInHand().setType(Material.BOWL);
-				p.updateInventory();
-				if (pl.getHealth() + plugin.getSoupHealAmount() <= 20)
-					event.getPlayer().setHealth(pl.getHealth() + plugin.getSoupHealAmount());
-				else if (pl.getHealth() < 20)
-					p.setHealth(20);
-			}
-		}
-
-		//If player is holding a stick
-		if (p.getItemInHand().getType().equals(Material.STICK) && p.hasPermission("pairspvp.select") && event.getAction().equals(Action.RIGHT_CLICK_BLOCK))
-		{
-			//Store the click
-			plugin.setSelectedLocation(p.getName(), event.getClickedBlock().getLocation());
-			p.sendMessage(ChatColor.YELLOW + "Location Selected " + event.getClickedBlock().getLocation().getBlockX() + " "  + event.getClickedBlock().getLocation().getBlockY() + " " + event.getClickedBlock().getLocation().getBlockZ() + " ");
-		}
 
 		//If the action was a right click on a sign with first line "/versus" and the player has permission		
 		if (event.getAction().equals(Action.RIGHT_CLICK_BLOCK) && ((event.getClickedBlock().getType().equals(Material.WALL_SIGN) || event.getClickedBlock().getType().equals(Material.SIGN_POST))) && ((Sign) event.getClickedBlock().getState()).getLine(0).equalsIgnoreCase(ChatColor.DARK_BLUE + "/versus") && p.hasPermission("pairspvp.arena.go"))
@@ -106,37 +78,6 @@ public class MyListener implements Listener
 	}
 
 	@EventHandler
-	public void onItemDrop(PlayerDropItemEvent event)
-	{
-		if (event.getItemDrop().getItemStack().getType().equals(Material.COMPASS))
-			event.setCancelled(true);
-		if (MyListener.plugin.getArenaManager().getPlayerStatus(event.getPlayer().getName()) != null)
-			event.setCancelled(true);
-	}
-
-	@EventHandler
-	public void onInventoryClick(InventoryClickEvent event)
-	{
-		if (event.getCurrentItem() == null)
-			return;
-		
-		if (event.getCurrentItem().getType().equals(Material.COMPASS))
-			event.setCancelled(true);
-		if (MyListener.plugin.getArenaManager().getPlayerStatus(((Player)event.getWhoClicked()).getName()) != null)
-			event.setCancelled(true);
-	}
-	@SuppressWarnings("deprecation")
-	@EventHandler
-	public void onBlockPlace(BlockPlaceEvent event)
-	{
-		if (plugin.getArenaManager().getPlayerStatus(event.getPlayer().getName()) != null)
-		{
-			event.setCancelled(true);
-			event.getPlayer().updateInventory();
-		}
-	}
-
-	@EventHandler
 	public void onSignChange(SignChangeEvent event)
 	{
 		if (!event.getLine(0).equalsIgnoreCase("/versus"))
@@ -159,7 +100,7 @@ public class MyListener implements Listener
 		try
 		{
 			if (plugin.getArenaManager().getGameManager().getPlayerStatus(event.getPlayer()) == InGameStatus.LOCKED)
-				if (event.getFrom().getBlockX() != event.getTo().getBlockX() || event.getFrom().getBlockY() != event.getTo().getBlockY() || event.getFrom().getBlockZ() != event.getTo().getBlockZ())
+				if (event.getFrom().getBlockX() != event.getTo().getBlockX() || event.getFrom().getBlockY() != event.getTo().getBlockY())
 					event.setCancelled(true);
 		}
 		catch (NullPointerException e)
@@ -354,12 +295,6 @@ public class MyListener implements Listener
 		damagedPlayer.teleport(game.getArena().getDeathLocation());
 		game.checkGameOver();
 	}
-
-	@EventHandler
-	public void onLogout(PlayerQuitEvent event)
-	{
-		executeExit(event.getPlayer());
-	}
 	
 	@EventHandler
 	public void onCustodySwitch(CustodySwitchEvent event)
@@ -377,17 +312,10 @@ public class MyListener implements Listener
 		}
 	}
 
-	@SuppressWarnings("deprecation")
 	@EventHandler 
 	public void onPlayerJoin(PlayerJoinEvent event)
 	{
-		Player p = event.getPlayer();
-
-		plugin.getArenaManager().cleanPlayer(p);
-
-		p.getInventory().clear();
-		p.getInventory().addItem(CoreItems.COMPASS);
-		p.updateInventory();
+		plugin.getArenaManager().cleanPlayer(event.getPlayer());
 	}
 	
 	public static void executeExit(Player player)

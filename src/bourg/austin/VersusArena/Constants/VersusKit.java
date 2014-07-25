@@ -4,6 +4,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 
+import core.Utilities.CoreUtilities;
+
 public class VersusKit
 {
 	private static ItemStack[] contents;
@@ -20,7 +22,8 @@ public class VersusKit
 	@SuppressWarnings(value = { "deprecation" })
 	public static void equipToPlayer(Player p)
 	{
-		p.getInventory().clear();
+		CoreUtilities.resetPlayerState(p, false);
+		
 		for (ItemStack stack : contents)
 			p.getInventory().addItem(stack);
 		p.getInventory().setArmorContents(armor);

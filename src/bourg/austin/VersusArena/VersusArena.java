@@ -7,9 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
@@ -37,8 +35,6 @@ public final class VersusArena extends JavaPlugin
 {
 	private ArenaManager arenaManager;
 	
-	private HashMap<String, Location> selectedLocations;
-	
 	private Connection connection;
 	private DatabaseConnection databaseConnection;
 	private RatingBoards ratingBoards;
@@ -65,7 +61,6 @@ public final class VersusArena extends JavaPlugin
 		//Declare variables
 		arenaManager = new ArenaManager(this);
 		partyManager = new PartyManager(this);
-		selectedLocations = new HashMap<String, Location>();
 
 		//Set event listeners
 		this.getServer().getPluginManager().registerEvents(new MyListener(this), this);
@@ -454,16 +449,6 @@ public final class VersusArena extends JavaPlugin
 	public ArenaManager getArenaManager()
 	{
 		return arenaManager;
-	}
-	
-	public void setSelectedLocation(String playerName, Location clickLocation)
-	{
-		selectedLocations.put(playerName, clickLocation);
-	}
-	
-	public Location getSelectedLocation(String name)
-	{
-		return selectedLocations.get(name);
 	}
 	
 	public int getSoupHealAmount()

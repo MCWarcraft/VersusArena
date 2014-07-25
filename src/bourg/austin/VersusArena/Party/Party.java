@@ -14,6 +14,7 @@ import bourg.austin.VersusArena.Constants.LobbyStatus;
 import bourg.austin.VersusArena.Game.Game;
 import bourg.austin.VersusArena.Game.VersusTeam;
 import core.Utilities.CoreItems;
+import core.Utilities.CoreUtilities;
 
 public class Party implements MatchmakingEntity
 {
@@ -178,7 +179,7 @@ public class Party implements MatchmakingEntity
 			{
 				Player p = partyManager.getPlugin().getServer().getPlayer(playerName);
 				
-				p.getInventory().clear();
+				CoreUtilities.resetPlayerState(p, false);
 				p.getInventory().addItem(CoreItems.COMPASS);
 				if (playerName.equalsIgnoreCase(leader))
 				{
@@ -200,7 +201,7 @@ public class Party implements MatchmakingEntity
 			{
 				Player p = partyManager.getPlugin().getServer().getPlayer(playerName);
 				
-				p.getInventory().clear();
+				CoreUtilities.resetPlayerState(p, false);
 				p.getInventory().addItem(CoreItems.COMPASS);
 				if (playerName.equalsIgnoreCase(leader)) p.getInventory().addItem(Inventories.PARTY_LOBBY);
 				p.updateInventory();
