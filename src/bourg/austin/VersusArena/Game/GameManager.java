@@ -33,7 +33,7 @@ public class GameManager
 		return null;
 	}
 	
-	public void startGame(List<Player> team1, List<Player> team2, Arena a)
+	public void startGame(List<Player> team1, List<Player> team2, Arena a, String arenaID)
 	{
 		for (Player p : team1)
 		{
@@ -52,7 +52,7 @@ public class GameManager
 		for (Player p : team2)
 			all.add(p);
 		
-		gamesInProgress.put(Game.getNextGameID(), new Game(this, all, a));
+		gamesInProgress.put(Game.getNextGameID(), new Game(this, all, a, arenaID));
 	}
 	
 	public InGameStatus getPlayerStatus(Player p)

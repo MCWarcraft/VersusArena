@@ -2,29 +2,29 @@ package bourg.austin.VersusArena.Arena;
 
 import java.util.ArrayList;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import bourg.austin.VersusArena.MatchmakingEntity;
-import bourg.austin.VersusArena.VersusArena;
 import bourg.austin.VersusArena.Constants.GameResult;
 import bourg.austin.VersusArena.Constants.GameType;
 import bourg.austin.VersusArena.Constants.LobbyStatus;
 import bourg.austin.VersusArena.Game.VersusTeam;
+import core.Scoreboard.ScoreboardValue;
 
-public class Competitor implements MatchmakingEntity
+public class Competitor implements MatchmakingEntity, ScoreboardValue
 {
 	private Integer[] wins, losses, rating;
 	private int kills, deaths;
 	private String name;
-	private VersusArena plugin;
 	
-	public Competitor(String name, VersusArena plugin)
+	public Competitor(String name)
 	{
-		this(name, new Integer[]{0, 0, 0}, new Integer[]{0, 0, 0}, new Integer[]{1500, 1500, 1500}, 0, 0, plugin);
+		this(name, new Integer[]{0, 0, 0}, new Integer[]{0, 0, 0}, new Integer[]{1500, 1500, 1500}, 0, 0);
 	}
 	
 	
-	public Competitor(String name, Integer[] wins, Integer[] losses, Integer[] rating, int kills, int deaths, VersusArena plugin)
+	public Competitor(String name, Integer[] wins, Integer[] losses, Integer[] rating, int kills, int deaths)
 	{
 		this.name = name;
 		this.wins = wins;
@@ -32,7 +32,6 @@ public class Competitor implements MatchmakingEntity
 		this.rating = rating;
 		this.kills = kills;
 		this.deaths = deaths;
-		this.plugin = plugin;
 	}
 	
 	public String getCompetitorName()
@@ -119,8 +118,36 @@ public class Competitor implements MatchmakingEntity
 	public ArrayList<Player> getPlayers()
 	{
 		ArrayList<Player> list = new ArrayList<Player>();
-		list.add(plugin.getServer().getPlayer(name));
+		list.add(Bukkit.getServer().getPlayer(name));
 		
 		return list;
+	}
+	
+	@Override
+	public String getScoreboardValue(String key)
+	{
+		switch (key)
+		{
+		case "wins1":
+			return "" + getWins(GameType.ONE);
+		case "losses1":
+			return "" + getLosses(GameType.ONE);
+		case "rating1":
+			return "" + getRating(GameType.ONE);
+		case "wins2":
+			return "" + getWins(GameType.TWO);
+		case "losses2":
+			return "" + getLosses(GameType.TWO);
+		case "rating2":
+			return "" + getRating(GameType.TWO);
+		case "wins3":
+			return "" + getWins(GameType.THREE);
+		case "losses3":
+			return "" + getLosses(GameType.THREE);
+		case "rating3":
+			return "" + getRating(GameType.THREE);
+		default:
+			return "err3";
+		}
 	}
 }

@@ -11,7 +11,7 @@ import bourg.austin.VersusArena.Arena.CompetitorManager;
 import bourg.austin.VersusArena.Constants.GameResult;
 import bourg.austin.VersusArena.Constants.GameType;
 import bourg.austin.VersusArena.Game.Game;
-import core.HonorPoints.DatabaseOperations;
+import core.HonorPoints.CurrencyOperations;
 
 public class VersusEndGameTask extends BukkitRunnable
 {
@@ -60,11 +60,10 @@ public class VersusEndGameTask extends BukkitRunnable
 						money = 20;
 					else if (game.getGameType() == GameType.THREE)
 						money = 50;
-					else
-						game.getGameManager().getArenaManager().getPlugin().getLogger().info(ChatColor.RED + "Gametype is invalid. Check VersusEndGameTask");
+					else						game.getGameManager().getArenaManager().getPlugin().getLogger().info(ChatColor.RED + "Gametype is invalid. Check VersusEndGameTask");
 					
 					OfflinePlayer op = Bukkit.getOfflinePlayer(game.getTeam(teamNum).getPlayer(playerNum).getName());
-					DatabaseOperations.setCurrency(op, DatabaseOperations.getCurrency(op) + money);
+					CurrencyOperations.setCurrency(op, CurrencyOperations.getCurrency(op) + money);
 				}
 				
 				//If player is offline in the records
@@ -82,6 +81,7 @@ public class VersusEndGameTask extends BukkitRunnable
 				}
 			}
 		
+		game.getArena().turnInInstance(game.getArenaID());
 		game.getGameManager().endGame(game.getGameID());
 		game.getGameManager().getArenaManager().getPlugin().getRatingBoards().updateBoards();
 	}

@@ -143,6 +143,7 @@ public class MyListener implements Listener
 			return;
 
 		event.setCancelled(true);
+		
 		plugin.getCompetitorManager().updateCompetitor(plugin.getCompetitorManager().getCompetitor(damagedPlayer).addDeath());
 		killPlayer(damagedPlayer, game);
 
@@ -292,7 +293,7 @@ public class MyListener implements Listener
 		plugin.getArenaManager().getGameManager().setPlayerStatus(damagedPlayer, InGameStatus.DEAD);
 		
 		game.broadcast(ChatColor.BLUE + damagedPlayer.getName() + " has fallen!");
-		damagedPlayer.teleport(game.getArena().getDeathLocation());
+		damagedPlayer.teleport(game.getArena().getDeathLocation(game.getArenaID()));
 		game.checkGameOver();
 	}
 	

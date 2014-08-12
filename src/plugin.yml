@@ -15,6 +15,15 @@ commands:
     description: 'Party chat'
     usage: '/pc <message>'
     permission-message: 'You don''t have <permission>'
+  vsetup:
+    description: 'The setup command'
+    usage: '/vsetup'
+    permission-message: 'You don''t have <permission>'
+  vquit:
+    description: 'Quit setup'
+    usage: '/vquit'
+    permission-message: 'You don''t have <permission>'
+    
 permissions:
   'pairspvp.*':
     description: 'Gives access to everything'
@@ -29,9 +38,6 @@ permissions:
   pairspvp.go:
     description: 'Allows the use of the /versus command to go to the nexus'
     default: true
-  pairspvp.select:
-    description: 'Allows a player to select a block for use with other commands'
-    default: false
   'pairspvp.nexus.*':
     description: 'Allows full control over nexus related commands'
     default: op
@@ -44,8 +50,6 @@ permissions:
     default: op
   pairspvp.nexus.set:
     description: 'Allows the use of the /versus nexus set command'
-    children:
-      pairspvp.select: true
     default: op
   pairspvp.nexus.sign:
     description: 'Allows the user to place signs with /versus as the first line in order to go to arena.'
@@ -85,8 +89,6 @@ permissions:
   pairspvp.arena.setspawn:
     description: 'Allows the use of the /versus arena setdeath <name> command'
     default: op
-    children:
-      pairspvp.select: true
   'pairspvp.config.*':
     description: 'Allows the use of any commands relating to the config file.'
     default: op

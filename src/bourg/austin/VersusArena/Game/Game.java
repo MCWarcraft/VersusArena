@@ -23,13 +23,14 @@ public class Game implements Listener
 	
 	private static int nextGameID = 0;
 	private int gameID;
+	private String arenaID;
 	
 	private List<Player> allPlayers;
 	private ArrayList<String> quitters;
 	
 	private GameType gameType;
 	
-	public Game(GameManager gameManager, List<Player> allPlayers, Arena arena)
+	public Game(GameManager gameManager, List<Player> allPlayers, Arena arena, String arenaID)
 	{		
 		this.allPlayers = allPlayers;
 		quitters = new ArrayList<String>();
@@ -39,6 +40,7 @@ public class Game implements Listener
 		this.gameManager = gameManager;
 		this.teams = new VersusTeam[]{new VersusTeam(allPlayers.subList(0, allPlayers.size()/2), this), new VersusTeam(allPlayers.subList(allPlayers.size()/2, allPlayers.size()), this)};
 		this.arena = arena;
+		this.arenaID = arenaID;
 		
 		gameID = nextGameID;
 		nextGameID++;
@@ -58,9 +60,6 @@ public class Game implements Listener
 	
 	public void run()
 	{
-		//Set invisibility
-		setInGameVisibility();
-		
 		//Lock players and remove scoreboard
 		for (Player player : allPlayers)
 		{
@@ -76,7 +75,7 @@ public class Game implements Listener
 		//Teleport
 		for (int teamNum = 0; teamNum < 2; teamNum++)
 			for (int playerNum = 0; playerNum < teams[teamNum].getNumberOfPlayers(); playerNum++)
-				teams[teamNum].getPlayer(playerNum).teleport(arena.getSpawnLocations()[teamNum][playerNum]);
+				teams[teamNum].getPlayer(playerNum).teleport(arena.getSpawnLocations(arenaID)[teamNum][playerNum]);
 		
 		distributeKits();
 		
@@ -117,35 +116,6 @@ public class Game implements Listener
 	public boolean isQuitter(String playerName)
 	{
 		return quitters.contains(playerName);
-	}
-	
-	private void setInGameVisibility()
-	{
-		for (Player playerInGame : allPlayers)
-		{
-			for (Player playerInArena : gameManager.getPlayersInArena(arena.getArenaName()))
-			{
-				if (!allPlayers.contains(playerInArena))
-				{
-					playerInArena.hidePlayer(playerInGame);
-					playerInGame.hidePlayer(playerInArena);
-				}
-				else
-				{
-					playerInArena.showPlayer(playerInGame);
-					playerInGame.showPlayer(playerInArena);
-				}
-			}
-		}
-		
-		for (Player player1 : allPlayers)
-		{
-			for (Player player2 : allPlayers.subList(1, allPlayers.size()))
-			{
-				player1.showPlayer(player2);
-				player2.showPlayer(player1);
-			}
-		}
 	}
 	
 	public boolean areTeammates(Player p1, Player p2)
@@ -231,5 +201,10 @@ public class Game implements Listener
 	public GameType getGameType()
 	{
 		return gameType;
+	}
+	
+	public String getArenaID()
+	{
+		return arenaID;
 	}
 }

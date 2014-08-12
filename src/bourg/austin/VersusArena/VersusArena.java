@@ -19,6 +19,7 @@ import org.bukkit.potion.PotionEffectType;
 import bourg.austin.VersusArena.Arena.Arena;
 import bourg.austin.VersusArena.Arena.ArenaManager;
 import bourg.austin.VersusArena.Arena.CompetitorManager;
+import bourg.austin.VersusArena.Background.ArenaSetupManager;
 import bourg.austin.VersusArena.Background.MyCommandExecutor;
 import bourg.austin.VersusArena.Background.MyListener;
 import bourg.austin.VersusArena.Constants.Inventories;
@@ -29,9 +30,11 @@ import bourg.austin.VersusArena.Rating.RatingBoards;
 import core.CavemanSQL.DatabaseConnection;
 import core.CavemanSQL.DatabaseQueryAction;
 import core.CavemanSQL.DatabaseUpdateAction;
+import core.Save.CoreSavable;
+import core.Save.CoreSaveManager;
 import core.Utilities.LocationParser;
 
-public final class VersusArena extends JavaPlugin
+public final class VersusArena extends JavaPlugin implements CoreSavable
 {
 	private ArenaManager arenaManager;
 	
@@ -40,6 +43,7 @@ public final class VersusArena extends JavaPlugin
 	private RatingBoards ratingBoards;
 	private CompetitorManager competitorManager;
 	private PartyManager partyManager;
+	private ArenaSetupManager arenaSetupManager;
 	
 	private int soupHealAmount;
 	
@@ -61,6 +65,7 @@ public final class VersusArena extends JavaPlugin
 		//Declare variables
 		arenaManager = new ArenaManager(this);
 		partyManager = new PartyManager(this);
+		arenaSetupManager = new ArenaSetupManager(this);
 
 		//Set event listeners
 		this.getServer().getPluginManager().registerEvents(new MyListener(this), this);
@@ -73,11 +78,14 @@ public final class VersusArena extends JavaPlugin
 		this.getCommand("party").setExecutor(partyExecutor);
 		this.getCommand("pc").setExecutor(partyExecutor);
 		this.loadData();
+		
+		CoreSaveManager.addSavable(this);
 	} 		  
 	
 	public void onDisable()
 	{
 		ratingBoards.updateBoards();
+		
 		saveDatabase();
 	}
 	
@@ -142,9 +150,12 @@ public final class VersusArena extends JavaPlugin
 			//Configure tables for arenas
 			PreparedStatement openSinglesArenaDataStatement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS singles_arena_data" +
 					"( name varchar(17) not null," +
-						"team1player1 varchar(255)," +
-						"team2player1 varchar(255)," +
-						"deathlocation varchar(255)," +
+						"t1p1 varchar(255)," +
+						"t1p1f varchar(255)," +
+						"t2p1 varchar(255)," +
+						"t2p1f varchar(255)," +
+						"death varchar(255)," +
+						"deathf varchar(255)," +
 						"PRIMARY KEY (name) " +
 					")");
 			openSinglesArenaDataStatement.execute();
@@ -153,11 +164,16 @@ public final class VersusArena extends JavaPlugin
 			//Configure databases for doubles arenas
 			PreparedStatement openDoublesArenaDataStatement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS doubles_arena_data" +
 					"( name varchar(17) not null," +
-						"team1player1 varchar(255)," +
-						"team1player2 varchar(255)," +
-						"team2player1 varchar(255)," +
-						"team2player2 varchar(255)," +
-						"deathlocation varchar(255)," +
+						"t1p1 varchar(255)," +
+						"t1p1f varchar(255)," +
+						"t1p2 varchar(255)," +
+						"t1p2f varchar(255)," +
+						"t2p1 varchar(255)," +
+						"t2p1f varchar(255)," +
+						"t2p2 varchar(255)," +
+						"t2p2f varchar(255)," +
+						"death varchar(255)," +
+						"deathf varchar(255)," +
 						"PRIMARY KEY (name) " +
 					")");
 			openDoublesArenaDataStatement.execute();
@@ -166,17 +182,34 @@ public final class VersusArena extends JavaPlugin
 			//Configure databases for triples arenas
 			PreparedStatement openTriplesArenaDataStatement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS triples_arena_data" +
 					"( name varchar(17) not null," +
-						"team1player1 varchar(255)," +
-						"team1player2 varchar(255)," +
-						"team1player3 varchar(255)," +
-						"team2player1 varchar(255)," +
-						"team2player2 varchar(255)," +
-						"team2player3 varchar(255)," +
-						"deathlocation varchar(255)," +
-						"PRIMARY KEY (name) " +
+					"t1p1 varchar(255)," +
+					"t1p1f varchar(255)," +
+					"t1p2 varchar(255)," +
+					"t1p2f varchar(255)," +
+					"t1p3 varchar(255)," +
+					"t1p3f varchar(255)," +
+					"t2p1 varchar(255)," +
+					"t2p1f varchar(255)," +
+					"t2p2 varchar(255)," +
+					"t2p2f varchar(255)," +
+					"t2p3 varchar(255)," +
+					"t2p3f varchar(255)," +
+					"death varchar(255)," +
+					"deathf varchar(255)," +
+					"PRIMARY KEY (name) " +
 					")");
 			openTriplesArenaDataStatement.execute();
 			openTriplesArenaDataStatement.close();
+			
+			//Configure databases for triples arenas
+			PreparedStatement openCoreDataStatement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS arena_cores" +
+					"( id varchar(255)," +
+					"arena varchar(17)," +
+					"location varchar(255)," +
+					"PRIMARY KEY (id) " +
+					")");
+			openCoreDataStatement.execute();
+			openCoreDataStatement.close();
 			
 			//Configure databases for nexus
 			PreparedStatement openNexusDataStatement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS nexus_data (name varchar(17) not null, location varchar(255), PRIMARY KEY (name))");
@@ -206,16 +239,30 @@ public final class VersusArena extends JavaPlugin
 			getArenaDataStatements[2] = databaseConnection.getDatabaseQueryAction("triples_arena_data");
 			arenaResultSets[2] = getArenaDataStatements[2].executeQuery();
 			
+			
+			
 			arenaManager.clearArenas();
 			
 			for (int i = 1; i <= 3; i++)
 				while (arenaResultSets[i - 1].next())
-				{
-					arenaManager.addArena(arenaResultSets[i - 1].getString("name"), i);
+				{					
+					Arena tempArena = new Arena(arenaResultSets[i - 1].getString("name"), i);
+					
+					DatabaseQueryAction getArenaCoreDataStatement = databaseConnection.getDatabaseQueryAction("arena_cores");
+					getArenaCoreDataStatement.addConstraint("arena", tempArena.getArenaName());
+					ResultSet cores = getArenaCoreDataStatement.executeQuery();
+					
+					while (cores.next())
+						tempArena.addOrigin(LocationParser.parseLocation(cores.getString("location")), cores.getString("id"));
+					
 					for (int teamNum = 0; teamNum <= 1; teamNum++)
 						for (int playerNum = 0; playerNum < i; playerNum++)
-							arenaManager.getArena(arenaResultSets[i - 1].getString("name")).setSpawnLocation(teamNum, playerNum, LocationParser.parseLocation(arenaResultSets[i - 1].getString("team" + (teamNum + 1) + "player" + (playerNum + 1))));
-					arenaManager.getArena(arenaResultSets[i - 1].getString("name")).setDeathLocation(LocationParser.parseLocation(arenaResultSets[i - 1].getString("deathlocation")));
+						{
+							String colTitle = "t" + (teamNum + 1) + "p" + (playerNum + 1);
+							tempArena.setRelativeSpawnLocation(teamNum, playerNum, LocationParser.parseVector(arenaResultSets[i - 1].getString(colTitle)), LocationParser.parseVector(arenaResultSets[i - 1].getString(colTitle + "f")));
+						}
+					tempArena.setRelativeDeathLocation(LocationParser.parseVector(arenaResultSets[i - 1].getString("death")), LocationParser.parseVector(arenaResultSets[i - 1].getString("deathf")));
+					arenaManager.addArena(tempArena);
 				}
 	
 			//Load nexus location
@@ -236,57 +283,66 @@ public final class VersusArena extends JavaPlugin
 	}
 	
 	public synchronized void saveDatabase()
-	{
+	{		
 		try
 		{			
 			//Save arenas
-			ArrayList<String> spawnLocations = new ArrayList<String>();
+			ArrayList<String> relativeSpawnLocations = new ArrayList<String>();
+			ArrayList<String> spawnFacings = new ArrayList<String>();
 			
 			for (String name : arenaManager.getAllArenas().keySet())
 			{
-				spawnLocations.clear();
+				relativeSpawnLocations.clear();
+				spawnFacings.clear();
 				
 				Arena tempArena = arenaManager.getAllArenas().get(name);
 				//Save spawn locations
 				for (int playerNum = 0; playerNum < tempArena.getTeamSize(); playerNum++)
 					for (int teamNum = 0; teamNum <= 1; teamNum++)
 					{
-						if (tempArena.getSpawnLocations()[teamNum][playerNum] == null)
-							spawnLocations.add("null");
-						else
-							spawnLocations.add(LocationParser.locationToString(tempArena.getSpawnLocations()[teamNum][playerNum]));
+						relativeSpawnLocations.add(LocationParser.vectorToString(tempArena.getRelativeSpawnLocations()[teamNum][playerNum]));
+						spawnFacings.add(LocationParser.vectorToString(tempArena.getSpawnFacings()[teamNum][playerNum]));
 					}
 				
 				String arenaType = "";
-				if (spawnLocations.size() == 2)
+				if (relativeSpawnLocations.size() == 2)
 					arenaType = "singles";
-				else if (spawnLocations.size() == 4)
+				else if (relativeSpawnLocations.size() == 4)
 					arenaType = "doubles";
-				else if (spawnLocations.size() == 6)
+				else if (relativeSpawnLocations.size() == 6)
 					arenaType = "triples";
 
 				DatabaseUpdateAction updateAction = databaseConnection.getDatabaseUpdateAction(arenaType + "_arena_data");
 				
-				updateAction.setString("team1player1", spawnLocations.get(0));
-				updateAction.setString("team2player1", spawnLocations.get(1));
+				updateAction.setString("t1p1", relativeSpawnLocations.get(0));
+				updateAction.setString("t1p1f", spawnFacings.get(0));
+				updateAction.setString("t2p1", relativeSpawnLocations.get(1));
+				updateAction.setString("t2p1f", spawnFacings.get(1));
+				
 				if (arenaType.equals("doubles") || arenaType.equals("triples"))
 				{
-					updateAction.setString("team1player2", spawnLocations.get(2));
-					updateAction.setString("team2player2", spawnLocations.get(3));
+					updateAction.setString("t1p2", relativeSpawnLocations.get(2));
+					updateAction.setString("t1p2f", spawnFacings.get(2));
+					updateAction.setString("t2p2", relativeSpawnLocations.get(3));
+					updateAction.setString("t2p2f", spawnFacings.get(3));
 				}
 				if (arenaType.equals("triples"))
 				{
-					updateAction.setString("team1player3", spawnLocations.get(4));
-					updateAction.setString("team2player3", spawnLocations.get(5));
+					updateAction.setString("t1p3", relativeSpawnLocations.get(4));
+					updateAction.setString("t1p3f", spawnFacings.get(4));
+					updateAction.setString("t2p3", relativeSpawnLocations.get(5));
+					updateAction.setString("t2p3f", spawnFacings.get(5));
 				}
 				
-				updateAction.setString("deathlocation", LocationParser.locationToString(tempArena.getDeathLocation()));
+				updateAction.setString("death", LocationParser.vectorToString(tempArena.getRelativeDeathLocation()));
+				updateAction.setString("deathf", LocationParser.vectorToString(tempArena.getDeathFacing()));
+				
 				updateAction.setPrimaryValue(tempArena.getArenaName());
 				
 				updateAction.executeUpdate();
 				
 				//Remove arenas that have been deleted
-				PreparedStatement deleteArenaStatement;
+				PreparedStatement deleteArenaStatement, deleteCoreStatement;
 				DatabaseQueryAction getArenaAction;
 				String prefixes[] = new String[]{"singles", "doubles", "triples"};
 
@@ -302,11 +358,39 @@ public final class VersusArena extends JavaPlugin
 						{							
 							deleteArenaStatement = connection.prepareStatement("DELETE FROM " + prefix + "_arena_data WHERE name = ?");
 							deleteArenaStatement.setString(1, arenas.getString("name"));
+							deleteArenaStatement.execute();
 							
-							deleteArenaStatement.execute();						
+							deleteCoreStatement = connection.prepareStatement("DELETE FROM arena_cores WHERE arena = ?");
+							deleteCoreStatement.setString(1, arenas.getString("name"));
+							deleteCoreStatement.execute();		
 						}
 					}
-				}				
+				}
+				
+				//Remove cores that have been deleted
+				PreparedStatement deleteSingleCoreStatement;
+				DatabaseQueryAction getCoresAction = databaseConnection.getDatabaseQueryAction("arena_cores");
+				getCoresAction.addConstraint("arena", name);
+				ResultSet cores = getCoresAction.executeQuery();
+				while (cores.next())
+				{
+					if (!tempArena.getAllOrigins().keySet().contains(cores.getString("id")))
+					{
+						deleteSingleCoreStatement = connection.prepareStatement("DELETE FROM arena_cores WHERE id = ?");
+						deleteSingleCoreStatement.setString(1, cores.getString("id"));
+						deleteSingleCoreStatement.execute();		
+					}
+				}
+				
+				//Add new cores
+				for (String key : tempArena.getAllOrigins().keySet())
+				{
+					DatabaseUpdateAction coreUpdateAction = databaseConnection.getDatabaseUpdateAction("arena_cores");
+					coreUpdateAction.setString("location", LocationParser.locationToString(tempArena.getAllOrigins().get(key)));
+					coreUpdateAction.setString("arena", name);
+					coreUpdateAction.setPrimaryValue(key);
+					coreUpdateAction.executeUpdate();
+				}
 			}
 			
 			DatabaseUpdateAction nexusAction = databaseConnection.getDatabaseUpdateAction("nexus_data");
@@ -469,5 +553,16 @@ public final class VersusArena extends JavaPlugin
 	public PartyManager getPartyManager()
 	{
 		return partyManager;
+	}
+	
+	public ArenaSetupManager getArenaSetupManager()
+	{
+		return arenaSetupManager;
+	}
+	
+	@Override
+	public void coreSave()
+	{
+		saveDatabase();
 	}
 }

@@ -9,9 +9,8 @@ import org.bukkit.OfflinePlayer;
 
 import bourg.austin.VersusArena.VersusArena;
 import bourg.austin.VersusArena.Constants.GameType;
-import core.Scoreboard.ScoreboardValue;
 
-public class CompetitorManager implements ScoreboardValue
+public class CompetitorManager
 {
 	private VersusArena plugin;
 	
@@ -22,7 +21,7 @@ public class CompetitorManager implements ScoreboardValue
 	
 	public Competitor getCompetitor(OfflinePlayer player)
 	{
-		Competitor tempCompetitor = new Competitor(player.getName(), plugin);
+		Competitor tempCompetitor = new Competitor(player.getName());
 		
 		try
 		{
@@ -50,15 +49,13 @@ public class CompetitorManager implements ScoreboardValue
 							
 						competitorResult.getInt("kills"),
 						
-						competitorResult.getInt("deaths"),
-							
-							plugin
+						competitorResult.getInt("deaths")
 						);
 			}
 			getCompetitorStatement.close();
 			competitorResult.close();
 			
-			return tempCompetitor;			
+			return tempCompetitor;
 		}
 		catch (SQLException e)
 		{
@@ -114,39 +111,5 @@ public class CompetitorManager implements ScoreboardValue
 	public VersusArena getPlugin()
 	{
 		return plugin;
-	}
-	
-	@Override
-	public String getScoreboardValue(String key)
-	{
-		String[] splitkey = key.split("\\|");
-		if (splitkey.length != 2) return "err1";
-		
-		Competitor c = getCompetitor(Bukkit.getOfflinePlayer(splitkey[0]));
-		if (c == null) return "err2";
-		
-		switch (splitkey[1])
-		{
-		case "wins1":
-			return "" + c.getWins(GameType.ONE);
-		case "losses1":
-			return "" + c.getLosses(GameType.ONE);
-		case "rating1":
-			return "" + c.getRating(GameType.ONE);
-		case "wins2":
-			return "" + c.getWins(GameType.TWO);
-		case "losses2":
-			return "" + c.getLosses(GameType.TWO);
-		case "rating2":
-			return "" + c.getRating(GameType.TWO);
-		case "wins3":
-			return "" + c.getWins(GameType.THREE);
-		case "losses3":
-			return "" + c.getLosses(GameType.THREE);
-		case "rating3":
-			return "" + c.getRating(GameType.THREE);
-		default:
-			return "err3";
-		}
 	}
 }

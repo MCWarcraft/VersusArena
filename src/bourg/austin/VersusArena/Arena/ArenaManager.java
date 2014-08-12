@@ -20,7 +20,7 @@ import bourg.austin.VersusArena.Party.Party;
 import bourg.austin.VersusArena.Tasks.VersusMatchmakeTask;
 import bourg.austin.VersusArena.Tasks.VersusMatchmakeTimeTask;
 import core.Custody.Custody;
-import core.HonorPoints.DatabaseOperations;
+import core.HonorPoints.HonorConnector;
 import core.Scoreboard.CoreScoreboardManager;
 import core.Scoreboard.DisplayBoard;
 import core.Utilities.CoreItems;
@@ -36,6 +36,8 @@ public class ArenaManager
 	private GameManager gameManager;
 	private VersusArena plugin;
 	
+	private HonorConnector honorConnector;
+	
 	public ArenaManager(VersusArena plugin)
 	{
 		this.plugin = plugin;
@@ -46,6 +48,8 @@ public class ArenaManager
 		
 		playerLobbyStatuses = new HashMap<String, LobbyStatus>();
 		partyInQueue = new ArrayList<Integer>();
+		
+		honorConnector = new HonorConnector();
 		
 		new VersusMatchmakeTask(this).runTaskTimer(this.plugin, 0, 300);
 		new VersusMatchmakeTimeTask().runTaskTimer(this.plugin, 20, 20);
@@ -59,7 +63,7 @@ public class ArenaManager
 		Player player = plugin.getServer().getPlayer(playerName);
 		player.setHealth(20);
 		player.setFireTicks(0);
-
+		
 		//Clear armor
 		player.getInventory().setHelmet(new ItemStack(Material.AIR, 1));
 		player.getInventory().setChestplate(new ItemStack(Material.AIR, 1));
@@ -121,7 +125,7 @@ public class ArenaManager
 	
 	public void generateLobbyBoard(Player player)
 	{
-		CompetitorManager compManager = plugin.getCompetitorManager();
+		Competitor comp = plugin.getCompetitorManager().getCompetitor(player);
 		DisplayBoard tempBoard = CoreScoreboardManager.getDisplayBoard(player);
 		
 		tempBoard.setScoreColor(ChatColor.GOLD);
@@ -129,22 +133,26 @@ public class ArenaManager
 		
 		tempBoard.putSpace();
 		tempBoard.putHeader(ChatColor.GREEN + "[1v1]");
-		tempBoard.putField("Rating: ", compManager, player.getName() + "|rating1");
-		tempBoard.putField("Wins: ", compManager, player.getName() + "|wins1");
-		tempBoard.putField("Losses: ", compManager, player.getName() + "|losses1");
+		tempBoard.putField("Rating: ", comp, "rating1");
+		tempBoard.putField("Wins: ", comp, "wins1");
+		tempBoard.putField("Losses: ", comp, "losses1");
 		
 		tempBoard.putHeader(ChatColor.GREEN + "[2v2]");
-		tempBoard.putField("Rating: ", compManager, player.getName() + "|rating2");
-		tempBoard.putField("Wins: ", compManager, player.getName() + "|wins2");
-		tempBoard.putField("Losses: ", compManager, player.getName() + "|losses2");
+		tempBoard.putField("Rating: ", comp, "rating2");
+		tempBoard.putField("Wins: ", comp, "wins2");
+		tempBoard.putField("Losses: ", comp, "losses2");
 
 		tempBoard.putHeader(ChatColor.GREEN + "[3v3]");
-		tempBoard.putField("Rating: ", compManager, player.getName() + "|rating3");
-		tempBoard.putField("Wins: ", compManager, player.getName() + "|wins3");
-		tempBoard.putField("Losses: ", compManager, player.getName() + "|losses3");
+		tempBoard.putField("Rating: ", comp, "rating3");
+		tempBoard.putField("Wins: ", comp, "wins3");
+		tempBoard.putField("Losses: ", comp, "losses3");
 		tempBoard.putSpace();
-		tempBoard.putField("Honor: ", DatabaseOperations.getCurrency(player));
 		
+		System.out.println("PRE-HONOR: " + System.currentTimeMillis());
+		
+		tempBoard.putField("Honor: ", honorConnector, player.getName());
+		
+		System.out.println("POST-HONOR: " + System.currentTimeMillis());
 	}
 
 	public void addToQueue(Player player, LobbyStatus gameType)
@@ -198,16 +206,9 @@ public class ArenaManager
 	}
 	
 	public void matchMake(LobbyStatus queueType)
-	{
-		//Random arena
-		Arena a = this.getRandomArenaBySize(queueType.getValue());
-		
+	{		
 		//Get players for the queue type
 		ArrayList<Player> validPlayers = getSpecificQueue(queueType);
-		
-		//If there aren't any configured arenas
-		if (a == null)
-			return;
 		
 		//New ArrayList of competitors
 		ArrayList<MatchmakingEntity> validMatchmakingEntities = new ArrayList<MatchmakingEntity>();
@@ -294,8 +295,19 @@ public class ArenaManager
 				}
 			}
 			
+			Arena a = this.getRandomArenaBySize(queueType.getValue());
+			
+			//If there aren't any configured arenas
+			if (a == null)
+				return;
+			
+			String arenaID = a.checkoutInstance();
+			
+			if (arenaID == null)
+				continue;
+			
 			//Start game with teams
-			gameManager.startGame(players.get(0), players.get(1), a);
+			gameManager.startGame(players.get(0), players.get(1), a, arenaID);
 		}
 	}
 	
@@ -361,9 +373,9 @@ public class ArenaManager
 		p.sendMessage(ChatColor.BLUE + "You have been removed from the queue");
 	}
 	
-	public void addArena(String name, int teamSize)
+	public void addArena(Arena arena)
 	{
-		arenas.put(name, new Arena(name, teamSize));
+		arenas.put(arena.getArenaName(), arena);
 	}
 	
 	public void deleteArena(String name)
