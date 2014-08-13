@@ -23,6 +23,7 @@ import bourg.austin.VersusArena.Constants.LobbyStatus;
 import bourg.austin.VersusArena.Game.Game;
 import core.Custody.CustodySwitchEvent;
 import core.HonorPoints.OnlinePlayerCurrencyUpdateEvent;
+import core.Utilities.CoreUtilities;
 
 
 public class MyListener implements Listener
@@ -294,6 +295,9 @@ public class MyListener implements Listener
 		
 		game.broadcast(ChatColor.BLUE + damagedPlayer.getName() + " has fallen!");
 		damagedPlayer.teleport(game.getArena().getDeathLocation(game.getArenaID()));
+		
+		CoreUtilities.deathAnimation(damagedPlayer);
+		
 		game.checkGameOver();
 	}
 	
