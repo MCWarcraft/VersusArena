@@ -148,11 +148,7 @@ public class ArenaManager
 		tempBoard.putField("Losses: ", comp, "losses3");
 		tempBoard.putSpace();
 		
-		System.out.println("PRE-HONOR: " + System.currentTimeMillis());
-		
 		tempBoard.putField("Honor: ", honorConnector, player.getName());
-		
-		System.out.println("POST-HONOR: " + System.currentTimeMillis());
 	}
 
 	public void addToQueue(Player player, LobbyStatus gameType)
@@ -209,14 +205,12 @@ public class ArenaManager
 	{		
 		//Get players for the queue type
 		ArrayList<Player> validPlayers = getSpecificQueue(queueType);
-		
 		//New ArrayList of competitors
 		ArrayList<MatchmakingEntity> validMatchmakingEntities = new ArrayList<MatchmakingEntity>();
 		
 		//Add the valid players' competitor objects to an ArrayList
 		for (Player p : validPlayers)
 			validMatchmakingEntities.add(plugin.getCompetitorManager().getCompetitor(p));
-		
 		//Add the parties from the party queue of proper size
 		for (int id : partyInQueue)
 		{
@@ -225,8 +219,8 @@ public class ArenaManager
 				validMatchmakingEntities.add(tempParty);
 		}
 		
+		//The number of players between singles and parties
 		int playersInQueue = trueSize(validMatchmakingEntities);
-		
 		//If there aren't enough players to start a game
 		if (playersInQueue < queueType.getValue() * 2)
 			return;
@@ -255,6 +249,14 @@ public class ArenaManager
         
         //Drop random players to maintain proper sizing
         int numToDrop = playersInQueue % (queueType.getValue() * 2);
+        int maxPlayers = getNumAvailableArenas(queueType) * (queueType.getValue() * 2);
+        
+        if (maxPlayers == 0)
+        	return;
+        
+        if (playersInQueue - numToDrop > maxPlayers)
+        	numToDrop = playersInQueue - maxPlayers;
+        
         while (numToDrop != 0)
         {
         	int indexToDrop = ((int) (Math.random() * sortedMatchmakingEntities.size()));
@@ -309,6 +311,18 @@ public class ArenaManager
 			//Start game with teams
 			gameManager.startGame(players.get(0), players.get(1), a, arenaID);
 		}
+	}
+	
+	public int getNumAvailableArenas(LobbyStatus statusType)
+	{
+		ArrayList<Arena> arenas = this.getArenasBySize(statusType.getValue());
+		
+		int avail = 0;
+		
+		for (Arena a : arenas)
+			avail += a.getNumAvailableInstances();
+		
+		return avail;
 	}
 	
 	public ArrayList<Player> getSpecificQueue(LobbyStatus statusType)

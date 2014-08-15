@@ -149,4 +149,13 @@ public class Arena
 	{
 		return origins;
 	}
+	
+	public int getNumAvailableInstances()
+	{
+		int avail = 0;
+		for (String s : availableOrigins.keySet())
+			avail += (availableOrigins.get(s) == true ? 1 : 0);
+		
+		return avail;
+	}
 }
