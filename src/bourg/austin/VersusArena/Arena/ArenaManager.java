@@ -44,7 +44,7 @@ public class ArenaManager
 		arenas = new HashMap<String, Arena>();
 		nexusLocation = null;
 		
-		gameManager = new GameManager(this);
+		gameManager = new GameManager(this, plugin.getConfig().getString("kitname"));
 		
 		playerLobbyStatuses = new HashMap<String, LobbyStatus>();
 		partyInQueue = new ArrayList<Integer>();

@@ -6,15 +6,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
-import org.bukkit.Material;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.enchantments.Enchantment;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 
 import bourg.austin.VersusArena.Arena.Arena;
 import bourg.austin.VersusArena.Arena.ArenaManager;
@@ -23,7 +16,6 @@ import bourg.austin.VersusArena.Background.ArenaSetupManager;
 import bourg.austin.VersusArena.Background.MyCommandExecutor;
 import bourg.austin.VersusArena.Background.MyListener;
 import bourg.austin.VersusArena.Constants.Inventories;
-import bourg.austin.VersusArena.Constants.VersusKit;
 import bourg.austin.VersusArena.Party.PartyCommandExecutor;
 import bourg.austin.VersusArena.Party.PartyManager;
 import bourg.austin.VersusArena.Rating.RatingBoards;
@@ -436,93 +428,8 @@ public final class VersusArena extends JavaPlugin implements CoreSavable
 	public void loadData()
 	{
 		loadDatabase();
-		try
-		{
-			//Load kit
-			ArrayList<ItemStack> armor, inventory;
-			ArrayList<PotionEffect> effects;
-			
-			armor = new ArrayList<ItemStack>();
-			inventory = new ArrayList<ItemStack>();
-			effects = new ArrayList<PotionEffect>();
-			
-			String[] armorPieces = new String[]{"boots", "legs", "chest", "helmet"};
-			
-			ItemStack tempStack;
-
-			soupHealAmount = getConfig().getInt("soupheal");
-			
-			for (String piece : armorPieces)
-			{
-				try
-				{
-					tempStack = (new ItemStack(Material.getMaterial(this.getConfig().getString("kit.armor." + piece)), 1));
-					
-					ConfigurationSection section = getConfig().getConfigurationSection("kit.enchantments." + piece);
-					if (section != null)
-						for (String enchantName : section.getKeys(false))
-						{
-							Enchantment enchantment;
-							int enchantLevel = -1;
-							
-							enchantLevel = getConfig().getInt("kit.enchantments." + piece + "." + enchantName);
-							enchantment = Enchantment.getByName(enchantName);
-							if (enchantLevel != -1 && enchantment != null)
-								tempStack.addEnchantment(enchantment, enchantLevel);
-						}
-					
-					armor.add(tempStack);
-				}
-				catch (NullPointerException e)
-				{
-					armor.add(new ItemStack(Material.AIR, 1));
-				}
-			}
-			
-			for (int slot = 1; slot <= 9; slot++)
-			{				
-				try
-				{
-					ConfigurationSection section = getConfig().getConfigurationSection("kit.enchantments." + slot);
-					
-					tempStack = (new ItemStack(Material.getMaterial(this.getConfig().getString("kit.inventory." + slot)), 1));
-					
-					if (section != null)
-						for (String enchantName : section.getKeys(false))
-						{
-							Enchantment enchantment;
-							int enchantLevel = -1;
-							
-							enchantLevel = getConfig().getInt("kit.enchantments." + slot + "." + enchantName);
-							enchantment = Enchantment.getByName(enchantName);
-							if (enchantLevel != -1 && enchantment != null)
-								tempStack.addEnchantment(enchantment, enchantLevel);
-						}
-
-					inventory.add(tempStack);
-					
-				}
-				catch (NullPointerException e)
-				{
-					inventory.add(new ItemStack(Material.AIR, 1));
-				}
-			}
-			
-			ConfigurationSection potionSection = getConfig().getConfigurationSection("kit.potions");
-			for (String potionName : potionSection.getKeys(false))
-			{
-				int amplifier;
-				
-				amplifier = getConfig().getInt("kit.potions." + potionName);
-				effects.add(new PotionEffect(PotionEffectType.getByName(potionName), 6000, amplifier, false));
-			}
-			
-			VersusKit.initialize(Arrays.copyOf(inventory.toArray(), inventory.toArray().length, ItemStack[].class), Arrays.copyOf(armor.toArray(), armor.toArray().length, ItemStack[].class), Arrays.copyOf(effects.toArray(), effects.toArray().length, PotionEffect[].class));
-		}
-		catch (NullPointerException e)
-		{
-			this.getServer().getLogger().info("There are no kits. The plugin will not operate as intended.");
-		}
+		
+		soupHealAmount = getConfig().getInt("soupheal");
 	}
 	
 	public RatingBoards getRatingBoards()

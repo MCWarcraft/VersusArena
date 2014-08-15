@@ -18,11 +18,15 @@ public class GameManager
 	private HashMap<Player, InGameStatus> playerInGameStatuses;
 	private HashMap<Integer, Game> gamesInProgress;
 	
-	public GameManager(ArenaManager arenaManager)
+	private String versusKitName;
+	
+	public GameManager(ArenaManager arenaManager, String versusKitName)
 	{
 		this.arenaManager = arenaManager;
 		playerInGameStatuses = new HashMap<Player, InGameStatus>();
 		gamesInProgress = new HashMap<Integer, Game>();
+		
+		this.versusKitName = versusKitName;
 	}
 	
 	public Game getGameByParticipant(Player p)
@@ -95,5 +99,10 @@ public class GameManager
 				tempInArena.addAll(game.getPlayers());
 		
 		return tempInArena;
+	}
+	
+	public String getVersusKitName()
+	{
+		return versusKitName;
 	}
 }

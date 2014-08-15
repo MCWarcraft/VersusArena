@@ -10,9 +10,9 @@ import org.bukkit.event.Listener;
 import bourg.austin.VersusArena.Arena.Arena;
 import bourg.austin.VersusArena.Constants.GameType;
 import bourg.austin.VersusArena.Constants.InGameStatus;
-import bourg.austin.VersusArena.Constants.VersusKit;
 import bourg.austin.VersusArena.Tasks.VersusEndGameTask;
 import bourg.austin.VersusArena.Tasks.VersusStartGameTask;
+import core.Kits.EquippableKitConnector;
 import core.Scoreboard.CoreScoreboardManager;
 
 public class Game implements Listener
@@ -129,7 +129,7 @@ public class Game implements Listener
 	public void distributeKits()
 	{
 		for (Player p : allPlayers)
-			VersusKit.equipToPlayer(p);
+			EquippableKitConnector.getBaseEquippableKit(p, gameManager.getVersusKitName()).equip();
 	}
 	
 	public Arena getArena()

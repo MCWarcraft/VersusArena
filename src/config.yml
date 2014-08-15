@@ -6,44 +6,7 @@ sql:
   username:
   password:
 
-
-kit:
-  inventory:
-    1:
-    2:
-    3:
-    4:
-    5:
-    6:
-    7:
-    8:
-    9:
-  armor:
-    helmet:
-    chest:
-    legs:
-    boots:
-  #Write enchants with as NAME: LEVEL on the item number or armor name
-  #
-  # 1:
-  #   ARROW_FIRE: 1
-  #   DAMAGE_UNDEAD: 2
-  enchantments:
-    1:
-    2:
-    3:
-    4:
-    5:
-    6:
-    7:
-    8:
-    9:
-    helmet:
-    chest:
-    legs:
-    boots:
-  potions:
-    
+kitname: 'versus'
 
 # 1 heart is 2 hp ex if you want 5.5 hearts, put 11 here
 soupheal: 7
