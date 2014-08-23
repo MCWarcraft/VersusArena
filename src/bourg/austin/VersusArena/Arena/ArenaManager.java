@@ -317,6 +317,9 @@ public class ArenaManager
 	{
 		ArrayList<Arena> arenas = this.getArenasBySize(statusType.getValue());
 		
+		if (arenas == null)
+			return 0;
+		
 		int avail = 0;
 		
 		for (Arena a : arenas)
