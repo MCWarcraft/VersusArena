@@ -14,6 +14,7 @@ import bourg.austin.VersusArena.Tasks.VersusEndGameTask;
 import bourg.austin.VersusArena.Tasks.VersusStartGameTask;
 import core.Kits.EquippableKitConnector;
 import core.Scoreboard.CoreScoreboardManager;
+import core.Utilities.HungerStopper;
 
 public class Game implements Listener
 {
@@ -64,7 +65,7 @@ public class Game implements Listener
 		for (Player player : allPlayers)
 		{
 			CoreScoreboardManager.getDisplayBoard(player).hide();
-			
+			HungerStopper.setCanGetHungry(player.getName());
 			player.sendMessage(ChatColor.BLUE + "Prepare to fight.");
 			
 			lockPlayer(player);
