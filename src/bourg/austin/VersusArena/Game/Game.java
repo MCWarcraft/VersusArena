@@ -2,6 +2,7 @@ package bourg.austin.VersusArena.Game;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -27,14 +28,14 @@ public class Game implements Listener
 	private String arenaID;
 	
 	private List<Player> allPlayers;
-	private ArrayList<String> quitters;
+	private ArrayList<UUID> quitters;
 	
 	private GameType gameType;
 	
 	public Game(GameManager gameManager, List<Player> allPlayers, Arena arena, String arenaID)
 	{		
 		this.allPlayers = allPlayers;
-		quitters = new ArrayList<String>();
+		quitters = new ArrayList<UUID>();
 		
 		gameType = GameType.values()[allPlayers.size() / 2 - 1];
 		
@@ -65,7 +66,7 @@ public class Game implements Listener
 		for (Player player : allPlayers)
 		{
 			CoreScoreboardManager.getDisplayBoard(player).hide();
-			HungerStopper.setCanGetHungry(player.getName());
+			HungerStopper.setCanGetHungry(player.getUniqueId());
 			player.sendMessage(ChatColor.BLUE + "Prepare to fight.");
 			
 			lockPlayer(player);
@@ -93,11 +94,11 @@ public class Game implements Listener
 		gameManager.setPlayerStatus(player, InGameStatus.LOCKED);
 	}
 	
-	public void quit(String leaverName)
+	public void quit(UUID leaverUUID)
 	{
-		quitters.add(leaverName);
+		quitters.add(leaverUUID);
 		
-		Player leaver = gameManager.getArenaManager().getPlugin().getServer().getPlayer(leaverName);
+		Player leaver = gameManager.getArenaManager().getPlugin().getServer().getPlayer(leaverUUID);
 		
 		if (leaver != null)
 			for (Player p : gameManager.getArenaManager().getOnlinePlayersInLobby())
@@ -110,7 +111,7 @@ public class Game implements Listener
 	public void broadcast(String message)
 	{
 		for (Player p : allPlayers)
-			if (!quitters.contains(p.getName()))
+			if (!quitters.contains(p.getUniqueId()))
 				p.sendMessage(message);
 	}
 	
@@ -166,15 +167,15 @@ public class Game implements Listener
 	private void terminateGame(int deathTeam)
 	{
 		for (Player p : teams[deathTeam].getAllPlayers())
-			if (!quitters.contains(p.getName()))
+			if (!quitters.contains(p.getUniqueId()))
 			{
-				//gameManager.getArenaManager().setPlayerStatus(p.getName(), LobbyStatus.IN_LOBBY);
+				//gameManager.getArenaManager().setPlayerStatus(p.getUniqueId(), LobbyStatus.IN_LOBBY);
 				p.sendMessage(ChatColor.DARK_RED + "You have lost");
 			}
 		for (Player p : teams[Math.abs(deathTeam-1)].getAllPlayers())
-			if (!quitters.contains(p.getName()))
+			if (!quitters.contains(p.getUniqueId()))
 			{
-				//gameManager.getArenaManager().setPlayerStatus(p.getName(), LobbyStatus.IN_LOBBY);
+				//gameManager.getArenaManager().setPlayerStatus(p.getUniqueId(), LobbyStatus.IN_LOBBY);
 				p.sendMessage(ChatColor.GREEN + "You have won");
 			}
 		new VersusEndGameTask(this, deathTeam).runTaskLater(gameManager.getArenaManager().getPlugin(), 60);

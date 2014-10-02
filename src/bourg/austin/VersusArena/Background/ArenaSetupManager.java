@@ -1,6 +1,7 @@
 package bourg.austin.VersusArena.Background;
 
 import java.util.HashMap;
+import java.util.UUID;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -20,16 +21,16 @@ import core.Utilities.LocationSelector;
 public class ArenaSetupManager implements CommandExecutor, Listener
 {
 	private VersusArena plugin;
-	private HashMap<String, Integer> setupStep;
-	private HashMap<String, Arena> arenas;
-	private HashMap<String, Location> originLocations;
+	private HashMap<UUID, Integer> setupStep;
+	private HashMap<UUID, Arena> arenas;
+	private HashMap<UUID, Location> originLocations;
 	
 	public ArenaSetupManager(VersusArena plugin)
 	{
 		this.plugin = plugin;
-		setupStep = new HashMap<String, Integer>();
-		arenas = new HashMap<String, Arena>();
-		originLocations = new HashMap<String, Location>();
+		setupStep = new HashMap<UUID, Integer>();
+		arenas = new HashMap<UUID, Arena>();
+		originLocations = new HashMap<UUID, Location>();
 		
 		plugin.getServer().getPluginManager().registerEvents(this, plugin);
 		plugin.getCommand("vsetup").setExecutor(this);
@@ -38,8 +39,8 @@ public class ArenaSetupManager implements CommandExecutor, Listener
 	
 	public void openSetup(Player player, Arena arena)
 	{
-		arenas.put(player.getName(), arena);
-		setupStep.put(player.getName(), 0);
+		arenas.put(player.getUniqueId(), arena);
+		setupStep.put(player.getUniqueId(), 0);
 
 		this.sendInstructions(player, ChatColor.BLUE + "Use a stick to select the reference point.");
 	}
@@ -55,20 +56,20 @@ public class ArenaSetupManager implements CommandExecutor, Listener
 	
 	private void finalizeArena(Player player)
 	{
-		plugin.getArenaManager().addArena(arenas.get(player.getName()));
+		plugin.getArenaManager().addArena(arenas.get(player.getUniqueId()));
 		
-		player.sendMessage(ChatColor.GREEN + "The arena " + arenas.get(player.getName()).getArenaName() + " now exists");
+		player.sendMessage(ChatColor.GREEN + "The arena " + arenas.get(player.getUniqueId()).getArenaName() + " now exists");
 		
-		arenas.remove(player.getName());
-		setupStep.remove(player.getName());
-		originLocations.remove(player.getName());
+		arenas.remove(player.getUniqueId());
+		setupStep.remove(player.getUniqueId());
+		originLocations.remove(player.getUniqueId());
 	}
 	
 	@EventHandler
 	public void onCustodySwitch(CustodySwitchEvent event)
 	{
-		setupStep.remove(event.getPlayer().getName());
-		arenas.remove(event.getPlayer().getName());
+		setupStep.remove(event.getPlayer().getUniqueId());
+		arenas.remove(event.getPlayer().getUniqueId());
 	}
 
 	@Override
@@ -82,94 +83,107 @@ public class ArenaSetupManager implements CommandExecutor, Listener
 		
 		Player player = (Player) sender;
 		
-		if (!setupStep.containsKey(player.getName()))
+		if (!setupStep.containsKey(player.getUniqueId()))
 			return true;
 		
 		if (cmd.getName().equalsIgnoreCase("vsetup"))
 		{
-			if (setupStep.get(player.getName()) == 0)
+			if (setupStep.get(player.getUniqueId()) == 0)
 			{
-				if (LocationSelector.getSelectedLocation(player.getName()) != null)
+				if (LocationSelector.getSelectedLocation(player.getUniqueId()) != null)
 				{
-					originLocations.put(player.getName(), LocationSelector.getSelectedLocation(player.getName()));
-					arenas.get(player.getName()).addOrigin(originLocations.get(player.getName()));
+					originLocations.put(player.getUniqueId(), LocationSelector.getSelectedLocation(player.getUniqueId()));
+					arenas.get(player.getUniqueId()).addOrigin(originLocations.get(player.getUniqueId()));
 					sendInstructions(player, ChatColor.BLUE + "Use a stick to select the death location.");
-					setupStep.put(player.getName(), 1);
+					setupStep.put(player.getUniqueId(), 1);
 				}
 				else
 					sendInstructions(player, ChatColor.RED + "You need to select a reference point.");
 			}
-			else if (setupStep.get(player.getName()) == 1)
+			else if (setupStep.get(player.getUniqueId()) == 1)
 			{
-				Vector v = LocationSelector.getSelectedLocation(player.getName()).clone().subtract(originLocations.get(player.getName())).toVector();
+				Vector v = LocationSelector.getSelectedLocation(player.getUniqueId()).clone().subtract(originLocations.get(player.getUniqueId())).toVector();
 				
-				arenas.get(player.getName()).setRelativeDeathLocation(v, LocationSelector.getSelectedLocation(player.getName()).getDirection());
+				arenas.get(player.getUniqueId()).setRelativeDeathLocation(v, LocationSelector.getSelectedLocation(player.getUniqueId()).getDirection());
 				sendInstructions(player, ChatColor.BLUE + "Use a stick to select the spawn for team 1 player 1");
-				setupStep.put(player.getName(), 2);
+				setupStep.put(player.getUniqueId(), 2);
 			}
-			else if (setupStep.get(player.getName()) == 2)
+			else if (setupStep.get(player.getUniqueId()) == 2)
 			{
-				arenas.get(player.getName()).setRelativeSpawnLocation(0, 0, LocationSelector.getSelectedLocation(player.getName()).clone().subtract(originLocations.get(player.getName())).toVector(), LocationSelector.getSelectedLocation(player.getName()).getDirection());
+				arenas.get(player.getUniqueId()).setRelativeSpawnLocation(0, 0,
+						LocationSelector.getSelectedLocation(player.getUniqueId()).clone().subtract(originLocations.get(player.getUniqueId())).toVector(),
+						LocationSelector.getSelectedLocation(player.getUniqueId()).getDirection());
+				
 				//If the arena is 1v1
-				if (arenas.get(player.getName()).getTeamSize() == 1)
+				if (arenas.get(player.getUniqueId()).getTeamSize() == 1)
 				{
 					sendInstructions(player, ChatColor.BLUE + "Use a stick to select the spawn for team 2 player 1");
-					setupStep.put(player.getName(), 5);
+					setupStep.put(player.getUniqueId(), 5);
 				}
 				else
 				{
 					sendInstructions(player, ChatColor.BLUE + "Use a stick to select the spawn for team 1 player 2");
-					setupStep.put(player.getName(), 3);
+					setupStep.put(player.getUniqueId(), 3);
 				}
 			}
-			else if (setupStep.get(player.getName()) == 3)
+			else if (setupStep.get(player.getUniqueId()) == 3)
 			{
-				arenas.get(player.getName()).setRelativeSpawnLocation(0, 1, LocationSelector.getSelectedLocation(player.getName()).clone().subtract(originLocations.get(player.getName())).toVector(), LocationSelector.getSelectedLocation(player.getName()).getDirection());
+				arenas.get(player.getUniqueId()).setRelativeSpawnLocation(0, 1, 
+						LocationSelector.getSelectedLocation(player.getUniqueId()).clone().subtract(originLocations.get(player.getUniqueId())).toVector(),
+						LocationSelector.getSelectedLocation(player.getUniqueId()).getDirection());
 				//If the arena is 2v2
-				if (arenas.get(player.getName()).getTeamSize() == 2)
+				if (arenas.get(player.getUniqueId()).getTeamSize() == 2)
 				{
 					sendInstructions(player, ChatColor.BLUE + "Use a stick to select the spawn for team 2 player 1");
-					setupStep.put(player.getName(), 5);
+					setupStep.put(player.getUniqueId(), 5);
 				}
 				else
 				{
 					sendInstructions(player, ChatColor.BLUE + "Use a stick to select the spawn for team 1 player 3");
-					setupStep.put(player.getName(), 4);
+					setupStep.put(player.getUniqueId(), 4);
 				}
 			}
-			else if (setupStep.get(player.getName()) == 4)
+			else if (setupStep.get(player.getUniqueId()) == 4)
 			{
-				arenas.get(player.getName()).setRelativeSpawnLocation(0, 2, LocationSelector.getSelectedLocation(player.getName()).clone().subtract(originLocations.get(player.getName())).toVector(), LocationSelector.getSelectedLocation(player.getName()).getDirection());
+				arenas.get(player.getUniqueId()).setRelativeSpawnLocation(0, 2,
+						LocationSelector.getSelectedLocation(player.getUniqueId()).clone().subtract(originLocations.get(player.getUniqueId())).toVector(),
+						LocationSelector.getSelectedLocation(player.getUniqueId()).getDirection());
 				sendInstructions(player, ChatColor.BLUE + "Use a stick to select the spawn for team 2 player 1");
-				setupStep.put(player.getName(), 5);
+				setupStep.put(player.getUniqueId(), 5);
 			}
-			else if (setupStep.get(player.getName()) == 5)
+			else if (setupStep.get(player.getUniqueId()) == 5)
 			{
-				arenas.get(player.getName()).setRelativeSpawnLocation(1, 0, LocationSelector.getSelectedLocation(player.getName()).clone().subtract(originLocations.get(player.getName())).toVector(), LocationSelector.getSelectedLocation(player.getName()).getDirection());
+				arenas.get(player.getUniqueId()).setRelativeSpawnLocation(1, 0,
+						LocationSelector.getSelectedLocation(player.getUniqueId()).clone().subtract(originLocations.get(player.getUniqueId())).toVector(),
+						LocationSelector.getSelectedLocation(player.getUniqueId()).getDirection());
 				//If the arena is 1v1
-				if (arenas.get(player.getName()).getTeamSize() == 1)
+				if (arenas.get(player.getUniqueId()).getTeamSize() == 1)
 					finalizeArena(player);
 				else
 				{
 					sendInstructions(player, ChatColor.BLUE + "Use a stick to select the spawn for team 2 player 2");
-					setupStep.put(player.getName(), 6);
+					setupStep.put(player.getUniqueId(), 6);
 				}
 			}
-			else if (setupStep.get(player.getName()) == 6)
+			else if (setupStep.get(player.getUniqueId()) == 6)
 			{
-				arenas.get(player.getName()).setRelativeSpawnLocation(1, 1, LocationSelector.getSelectedLocation(player.getName()).clone().subtract(originLocations.get(player.getName())).toVector(), LocationSelector.getSelectedLocation(player.getName()).getDirection());
+				arenas.get(player.getUniqueId()).setRelativeSpawnLocation(1, 1,
+						LocationSelector.getSelectedLocation(player.getUniqueId()).clone().subtract(originLocations.get(player.getUniqueId())).toVector(),
+						LocationSelector.getSelectedLocation(player.getUniqueId()).getDirection());
 				//If the arena is 1v1
-				if (arenas.get(player.getName()).getTeamSize() == 2)
+				if (arenas.get(player.getUniqueId()).getTeamSize() == 2)
 					finalizeArena(player);
 				else
 				{
 					sendInstructions(player, ChatColor.BLUE + "Use a stick to select the spawn for team 2 player 3");
-					setupStep.put(player.getName(), 7);
+					setupStep.put(player.getUniqueId(), 7);
 				}
 			}
-			else if (setupStep.get(player.getName()) == 7)
+			else if (setupStep.get(player.getUniqueId()) == 7)
 			{
-				arenas.get(player.getName()).setRelativeSpawnLocation(1, 2, LocationSelector.getSelectedLocation(player.getName()).clone().subtract(originLocations.get(player.getName())).toVector(), LocationSelector.getSelectedLocation(player.getName()).getDirection());
+				arenas.get(player.getUniqueId()).setRelativeSpawnLocation(1, 2,
+						LocationSelector.getSelectedLocation(player.getUniqueId()).clone().subtract(originLocations.get(player.getUniqueId())).toVector(),
+						LocationSelector.getSelectedLocation(player.getUniqueId()).getDirection());
 				//If the arena is 1v1
 				finalizeArena(player);
 			}
@@ -178,9 +192,9 @@ public class ArenaSetupManager implements CommandExecutor, Listener
 		}
 		else if (cmd.getName().equalsIgnoreCase("vquit"))
 		{
-			setupStep.remove(player.getName());
-			arenas.remove(player.getName());
-			originLocations.remove(player.getName());
+			setupStep.remove(player.getUniqueId());
+			arenas.remove(player.getUniqueId());
+			originLocations.remove(player.getUniqueId());
 			player.sendMessage(ChatColor.RED + "Setup aborted");
 			return true;
 		}

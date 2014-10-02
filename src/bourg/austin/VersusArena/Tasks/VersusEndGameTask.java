@@ -36,7 +36,7 @@ public class VersusEndGameTask extends BukkitRunnable
 		for (int teamNum = 0; teamNum < game.getNumberOfTeams(); teamNum++)
 			for (int playerNum = 0; playerNum < game.getTeam(teamNum).getNumberOfPlayers(); playerNum++)
 			{
-				tempPlayer = Bukkit.getOfflinePlayer(game.getTeam(teamNum).getPlayer(playerNum).getName());
+				tempPlayer = Bukkit.getOfflinePlayer(game.getTeam(teamNum).getPlayer(playerNum).getUniqueId());
 				
 				//Add losses or wins
 				if (teamNum == losingTeamNum)
@@ -62,13 +62,13 @@ public class VersusEndGameTask extends BukkitRunnable
 						money = 50;
 					else						game.getGameManager().getArenaManager().getPlugin().getLogger().info(ChatColor.RED + "Gametype is invalid. Check VersusEndGameTask");
 					
-					OfflinePlayer op = Bukkit.getOfflinePlayer(game.getTeam(teamNum).getPlayer(playerNum).getName());
+					OfflinePlayer op = Bukkit.getOfflinePlayer(game.getTeam(teamNum).getPlayer(playerNum).getUniqueId());
 					CurrencyOperations.setCurrency(op, CurrencyOperations.getCurrency(op) + money);
 				}
 				
 				//If player is offline in the records
-				if (game.getGameManager().getArenaManager().getPlayerStatus(game.getTeam(teamNum).getPlayer(playerNum).getName()) != null)
-					game.getGameManager().getArenaManager().bringPlayer(game.getTeam(teamNum).getPlayer(playerNum).getName(), false);
+				if (game.getGameManager().getArenaManager().getPlayerStatus(game.getTeam(teamNum).getPlayer(playerNum).getUniqueId()) != null)
+					game.getGameManager().getArenaManager().bringPlayer(game.getTeam(teamNum).getPlayer(playerNum).getUniqueId(), false);
 				//If player is still online, heal
 				else
 					game.getTeam(teamNum).getPlayer(playerNum).setHealth(20);

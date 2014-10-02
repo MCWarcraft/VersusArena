@@ -16,8 +16,8 @@ public class PartyListener implements Listener
 	@EventHandler
 	public void onLogout(PlayerQuitEvent event)
 	{
-		Party party = partyManager.getParty(event.getPlayer().getName());
+		Party party = partyManager.getParty(event.getPlayer().getUniqueId());
 		if (party == null) return;
-		party.playerLeave(event.getPlayer().getName(), true);
+		party.playerLeave(event.getPlayer().getUniqueId(), true);
 	}
 }

@@ -1,6 +1,7 @@
 package bourg.austin.VersusArena.Arena;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -16,17 +17,17 @@ public class Competitor implements MatchmakingEntity, ScoreboardValue
 {
 	private Integer[] wins, losses, rating;
 	private int kills, deaths;
-	private String name;
+	private UUID playerUUID;
 	
-	public Competitor(String name)
+	public Competitor(UUID playerUUID)
 	{
-		this(name, new Integer[]{0, 0, 0}, new Integer[]{0, 0, 0}, new Integer[]{1500, 1500, 1500}, 0, 0);
+		this(playerUUID, new Integer[]{0, 0, 0}, new Integer[]{0, 0, 0}, new Integer[]{1500, 1500, 1500}, 0, 0);
 	}
 	
 	
-	public Competitor(String name, Integer[] wins, Integer[] losses, Integer[] rating, int kills, int deaths)
+	public Competitor(UUID playerUUID, Integer[] wins, Integer[] losses, Integer[] rating, int kills, int deaths)
 	{
-		this.name = name;
+		this.playerUUID = playerUUID;
 		this.wins = wins;
 		this.losses = losses;
 		this.rating = rating;
@@ -34,9 +35,9 @@ public class Competitor implements MatchmakingEntity, ScoreboardValue
 		this.deaths = deaths;
 	}
 	
-	public String getCompetitorName()
+	public UUID getCompetitorUUID()
 	{
-		return name;
+		return playerUUID;
 	}
 	
 	public int getWins(GameType type)
@@ -118,7 +119,7 @@ public class Competitor implements MatchmakingEntity, ScoreboardValue
 	public ArrayList<Player> getPlayers()
 	{
 		ArrayList<Player> list = new ArrayList<Player>();
-		list.add(Bukkit.getServer().getPlayer(name));
+		list.add(Bukkit.getServer().getPlayer(playerUUID));
 		
 		return list;
 	}

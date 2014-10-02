@@ -43,12 +43,12 @@ public class MyCommandExecutor implements CommandExecutor
 					if (player.hasPermission("pairspvp.go"))
 					{
 						player = (Player) sender;
-						if (plugin.getArenaManager().getPlayerStatus(player.getName()) != LobbyStatus.IN_GAME)
+						if (plugin.getArenaManager().getPlayerStatus(player.getUniqueId()) != LobbyStatus.IN_GAME)
 						{
 							//If a nexus exists
 							if (plugin.getArenaManager().getNexusLocation() != null)
 							{
-								plugin.getArenaManager().bringPlayer(player.getName(), true);
+								plugin.getArenaManager().bringPlayer(player.getUniqueId(), true);
 							}
 							//If no nexus exists
 							else
@@ -89,9 +89,9 @@ public class MyCommandExecutor implements CommandExecutor
 							if (args.length == 2)
 							{
 								//If the player has a location selected
-								if (LocationSelector.getSelectedLocation(sender.getName()) != null)
+								if (LocationSelector.getSelectedLocation(player.getUniqueId()) != null)
 								{
-									plugin.getArenaManager().setNexusLocation(LocationSelector.getSelectedLocation(player.getName()));
+									plugin.getArenaManager().setNexusLocation(LocationSelector.getSelectedLocation(player.getUniqueId()));
 									player.sendMessage(ChatColor.GREEN + "The nexus has been set at the selected location.");
 								}
 								//If the player does not have a location selected
@@ -161,9 +161,9 @@ public class MyCommandExecutor implements CommandExecutor
 							if (plugin.getArenaManager().containsArena(args[2]))
 							{								
 								//If the player has a location selected
-								if (LocationSelector.getSelectedLocation(player.getName()) != null)
+								if (LocationSelector.getSelectedLocation(player.getUniqueId()) != null)
 								{
-									plugin.getArenaManager().getArena(args[2]).addOrigin(LocationSelector.getSelectedLocation(player.getName()));
+									plugin.getArenaManager().getArena(args[2]).addOrigin(LocationSelector.getSelectedLocation(player.getUniqueId()));
 									sender.sendMessage(ChatColor.GREEN + "New origin added");
 								}
 								//If the player doesn't have a location selected

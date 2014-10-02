@@ -41,12 +41,12 @@ public class GameManager
 	{
 		for (Player p : team1)
 		{
-			arenaManager.setPlayerStatus(p.getName(), LobbyStatus.IN_GAME);
+			arenaManager.setPlayerStatus(p.getUniqueId(), LobbyStatus.IN_GAME);
 			p.setHealth(20);
 		}
 		for (Player p : team2)
 		{
-			arenaManager.setPlayerStatus(p.getName(), LobbyStatus.IN_GAME);
+			arenaManager.setPlayerStatus(p.getUniqueId(), LobbyStatus.IN_GAME);
 			p.setHealth(20);
 		}
 		

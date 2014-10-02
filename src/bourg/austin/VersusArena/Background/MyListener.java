@@ -45,7 +45,7 @@ public class MyListener implements Listener
 		{
 			if (plugin.getArenaManager().getNexusLocation() != null)
 			{
-				plugin.getArenaManager().bringPlayer(p.getName(), true);
+				plugin.getArenaManager().bringPlayer(p.getUniqueId(), true);
 				return;
 			}
 			//If no nexus exists
@@ -64,11 +64,11 @@ public class MyListener implements Listener
 				else if (event.getPlayer().getItemInHand().getItemMeta().getDisplayName().equals(Inventories.LOBBY_SLOTS[2].getItemMeta().getDisplayName()) && event.getPlayer().getItemInHand().getItemMeta().getLore().equals(Inventories.LOBBY_SLOTS[2].getItemMeta().getLore()))
 					plugin.getArenaManager().addToQueue(event.getPlayer(), LobbyStatus.IN_3V3_QUEUE);
 				else if (event.getPlayer().getItemInHand().getItemMeta().getDisplayName().equals(Inventories.PARTY_LOBBY.getItemMeta().getDisplayName()) && event.getPlayer().getItemInHand().getItemMeta().getLore().equals(Inventories.PARTY_LOBBY.getItemMeta().getLore()))
-					plugin.getArenaManager().addPartyToQueue(plugin.getPartyManager().getParty(event.getPlayer().getName()).getID());
+					plugin.getArenaManager().addPartyToQueue(plugin.getPartyManager().getParty(event.getPlayer().getUniqueId()).getID());
 				if (event.getPlayer().getItemInHand().getItemMeta().getDisplayName().equals(Inventories.QUEUE_SLOTS[3].getItemMeta().getDisplayName()) && event.getPlayer().getItemInHand().getItemMeta().getLore().equals(Inventories.QUEUE_SLOTS[3].getItemMeta().getLore()))
 				{
 					plugin.getArenaManager().removeFromQueue(event.getPlayer());
-					plugin.getArenaManager().removePartyFromQueue(plugin.getPartyManager().getParty(event.getPlayer().getName()).getID());
+					plugin.getArenaManager().removePartyFromQueue(plugin.getPartyManager().getParty(event.getPlayer().getUniqueId()).getID());
 				}
 			}
 			catch (NullPointerException e)
@@ -121,10 +121,10 @@ public class MyListener implements Listener
 		Player damagedPlayer = (Player) event.getEntity();
 		Damageable dp = (Damageable)damagedPlayer;
 		
-		if (plugin.getArenaManager().getPlayerStatus(damagedPlayer.getName()) == null)
+		if (plugin.getArenaManager().getPlayerStatus(damagedPlayer.getUniqueId()) == null)
 			return;
 		//If the player is in the arena system but not in game
-		if (plugin.getArenaManager().getPlayerStatus(damagedPlayer.getName()) != LobbyStatus.IN_GAME)
+		if (plugin.getArenaManager().getPlayerStatus(damagedPlayer.getUniqueId()) != LobbyStatus.IN_GAME)
 		{
 			event.setCancelled(true);
 			return;
@@ -162,10 +162,10 @@ public class MyListener implements Listener
 		Player damagedPlayer = (Player) event.getEntity();
 		Damageable dp = (Damageable)damagedPlayer;
 
-		if (plugin.getArenaManager().getPlayerStatus(damagedPlayer.getName()) == null)
+		if (plugin.getArenaManager().getPlayerStatus(damagedPlayer.getUniqueId()) == null)
 			return;
 		//If the player is in the arena system but not in game
-		if (plugin.getArenaManager().getPlayerStatus(damagedPlayer.getName()) != LobbyStatus.IN_GAME)
+		if (plugin.getArenaManager().getPlayerStatus(damagedPlayer.getUniqueId()) != LobbyStatus.IN_GAME)
 		{
 			event.setCancelled(true);
 			return;
@@ -311,7 +311,7 @@ public class MyListener implements Listener
 	public void onPlayerCurrencyUpdateEvent(OnlinePlayerCurrencyUpdateEvent event)
 	{
 		//If the player is in arena in some capacity and not in game
-		if (plugin.getArenaManager().getPlayerStatus(event.getPlayer().getName()) != null && !(plugin.getArenaManager().getPlayerStatus(event.getPlayer().getName()) == LobbyStatus.IN_GAME))
+		if (plugin.getArenaManager().getPlayerStatus(event.getPlayer().getUniqueId()) != null && !(plugin.getArenaManager().getPlayerStatus(event.getPlayer().getUniqueId()) == LobbyStatus.IN_GAME))
 		{
 			plugin.getArenaManager().generateLobbyBoard(event.getPlayer());
 		}
@@ -334,7 +334,7 @@ public class MyListener implements Listener
 		if (!game.getPlayers().contains(player))
 			return;
 
-		game.quit(player.getName());
+		game.quit(player.getUniqueId());
 		game.broadcast(ChatColor.DARK_RED + player.getName() + " has left the game.");
 		
 		game.getGameManager().setPlayerStatus(player, InGameStatus.DEAD);

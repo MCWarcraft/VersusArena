@@ -21,17 +21,19 @@ public class CompetitorManager
 	
 	public Competitor getCompetitor(OfflinePlayer player)
 	{
-		Competitor tempCompetitor = new Competitor(player.getName());
+		Competitor tempCompetitor = new Competitor(player.getUniqueId());
+		
+		System.out.println(player.getUniqueId());
 		
 		try
 		{
-			PreparedStatement getCompetitorStatement = plugin.getConnection().prepareStatement("SELECT * FROM player_data WHERE player=?");
-			getCompetitorStatement.setString(1, player.getName());
+			PreparedStatement getCompetitorStatement = plugin.getConnection().prepareStatement("SELECT * FROM player_data WHERE uuid=?");
+			getCompetitorStatement.setString(1, player.getUniqueId().toString());
 			ResultSet competitorResult = getCompetitorStatement.executeQuery();
 			
 			if (competitorResult.next())
 			{
-				tempCompetitor = new Competitor(competitorResult.getString("player"),
+				tempCompetitor = new Competitor(player.getUniqueId(),
 						new Integer[] {
 						competitorResult.getInt("wins1"),
 						competitorResult.getInt("wins2"),
@@ -67,20 +69,23 @@ public class CompetitorManager
 	
 	public void updateCompetitor(Competitor updatedCompetitor)
 	{
-		OfflinePlayer p = Bukkit.getOfflinePlayer(updatedCompetitor.getCompetitorName());
+		OfflinePlayer p = Bukkit.getOfflinePlayer(updatedCompetitor.getCompetitorUUID());
 
 		PreparedStatement saveStatement = null;
 		try
 		{
 			boolean playerDataExists;
-			playerDataExists = plugin.isStringInCol("player_data", "player", p.getName());
+			playerDataExists = plugin.isStringInCol("player_data", "uuid", p.getUniqueId().toString());
 			
 			String query = (playerDataExists ? "UPDATE" : "INSERT INTO") + " player_data SET " +
-					"wins1=?, losses1=?, rating1=?, wins2=?, losses2=?, rating2=?, wins3=?, losses3=?, rating3=?, kills=?, deaths=?" + (playerDataExists ? " WHERE player = '" + p.getName() + "'" : ", player=?");
+					"wins1=?, losses1=?, rating1=?, wins2=?, losses2=?, rating2=?, wins3=?, losses3=?, rating3=?, kills=?, deaths=?, ign=?" + (playerDataExists ? " WHERE uuid = '" + p.getUniqueId() + "'" : ", uuid=?");
 							
 			saveStatement = plugin.getConnection().prepareStatement(query);
+			
+			saveStatement.setString(12, p.getName());
+			
 			if (!playerDataExists)
-				saveStatement.setString(12, p.getName());
+				saveStatement.setString(13, p.getUniqueId().toString());
 			
 			saveStatement.setInt(1, updatedCompetitor.getWins(GameType.ONE));
 			saveStatement.setInt(4, updatedCompetitor.getWins(GameType.TWO));

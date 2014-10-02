@@ -1,6 +1,7 @@
 package bourg.austin.VersusArena.Party;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -18,50 +19,50 @@ import core.Utilities.CoreUtilities;
 
 public class Party implements MatchmakingEntity
 {
-	private String leader;
+	private UUID leaderUUID;
 	private PartyManager partyManager;
 	
-	private ArrayList<String> members;
+	private ArrayList<UUID> members;
 	
 	private static int nextID = 0;
 	private int partyID;
 	
-	public Party(String leader, PartyManager partyManager)
+	public Party(UUID leaderUUID, PartyManager partyManager)
 	{
 		this.partyManager = partyManager;
 		
-		members = new ArrayList<String>();
+		members = new ArrayList<UUID>();
 
 		partyID = nextID;
 		nextID++;
 		
-		addPlayer(leader);
+		addPlayer(leaderUUID);
 		
-		setLeader(leader);
+		setLeader(leaderUUID);
 		
 	}
 	
-	public String getLeaderName()
+	public UUID getLeaderUUID()
 	{
-		return leader;
+		return leaderUUID;
 	}
 	
-	public void setLeader(String leaderName)
+	public void setLeader(UUID leaderUUID)
 	{
-		leader = leaderName;
+		this.leaderUUID = leaderUUID;
 		giveLobbyInventory();
 	}
 	
-	public void addPlayer(String playerToAdd)
+	public void addPlayer(UUID playerUUIDToAdd)
 	{
 		partyManager.getPlugin().getArenaManager().removePartyFromQueue(partyID);
-		partyManager.getPlugin().getArenaManager().setPlayerStatus(playerToAdd, LobbyStatus.IN_PARTY);
-		members.add(playerToAdd);
+		partyManager.getPlugin().getArenaManager().setPlayerStatus(playerUUIDToAdd, LobbyStatus.IN_PARTY);
+		members.add(playerUUIDToAdd);
 		
 		giveLobbyInventory();
 	}
 	
-	public ArrayList<String> getMembers()
+	public ArrayList<UUID> getMemberUUIDs()
 	{
 		return members;
 	}
@@ -78,32 +79,32 @@ public class Party implements MatchmakingEntity
 	
 	public void broadcast(String message)
 	{
-		for (String playerName : members)
-			partyManager.getPlugin().getServer().getPlayer(playerName).sendMessage(message);
+		for (UUID playerUUID : members)
+			partyManager.getPlugin().getServer().getPlayer(playerUUID).sendMessage(message);
 	}
 	
-	public void broadcast(String message, String player)
+	public void broadcast(String message, UUID playerUUID)
 	{
-		broadcast( ChatColor.BLUE + "[/pc]" + (leader.equals(player) ? ChatColor.GOLD : ChatColor.YELLOW) + "<" + player + "> " + ChatColor.WHITE + message);
+		broadcast( ChatColor.BLUE + "[/pc]" + (leaderUUID.equals(playerUUID) ? ChatColor.GOLD : ChatColor.YELLOW) + "<" + Bukkit.getPlayer(playerUUID).getName() + "> " + ChatColor.WHITE + message);
 	}
 	
 	public void messageLeader(String message)
 	{
-		partyManager.getPlugin().getServer().getPlayer(leader).sendMessage(message);
+		partyManager.getPlugin().getServer().getPlayer(leaderUUID).sendMessage(message);
 	}
 	
-	public void playerLeave(String playerName, boolean broadcast)
+	public void playerLeave(UUID playerUUID, boolean broadcast)
 	{
 		partyManager.getPlugin().getArenaManager().removePartyFromQueue(partyID);
 		
-		Player p = partyManager.getPlugin().getServer().getPlayer(playerName);
+		Player p = partyManager.getPlugin().getServer().getPlayer(playerUUID);
 		partyManager.getPlugin().getArenaManager().giveLobbyInventory(p);
-		partyManager.getPlugin().getArenaManager().setPlayerStatus(playerName, LobbyStatus.IN_LOBBY);
+		partyManager.getPlugin().getArenaManager().setPlayerStatus(playerUUID, LobbyStatus.IN_LOBBY);
 		
-		boolean isLeader = leader.equals(playerName);
-		members.remove(playerName);
+		boolean isLeader = leaderUUID.equals(playerUUID);
+		members.remove(playerUUID);
 		if (broadcast)
-			broadcast(playerName + ChatColor.BLUE + " has left the party.");
+			broadcast(p.getName() + ChatColor.BLUE + " has left the party.");
 		if (members.size() == 0)
 		{
 			partyManager.deleteParty(partyID);
@@ -113,7 +114,7 @@ public class Party implements MatchmakingEntity
 		{
 			setLeader(members.get(0));
 			if (broadcast)
-				broadcast(leader + ChatColor.BLUE + " is the new leader.");
+				broadcast(Bukkit.getPlayer(leaderUUID).getName() + ChatColor.BLUE + " is the new leader.");
 		}
 	}
 	
@@ -121,9 +122,9 @@ public class Party implements MatchmakingEntity
 	{
 		ArrayList<Player> players = new ArrayList<Player>();
 		
-		for (String pName : members)
+		for (UUID pUUID : members)
 		{
-			players.add(game.getGameManager().getArenaManager().getPlugin().getServer().getPlayer(pName));
+			players.add(game.getGameManager().getArenaManager().getPlugin().getServer().getPlayer(pUUID));
 			if (players.get(players.size() - 1) == null)
 				return null;
 		}
@@ -139,24 +140,24 @@ public class Party implements MatchmakingEntity
 	public int getRating(GameType type)
 	{
 		int total = 0;
-		for (String name : members)
-			total += partyManager.getPlugin().getCompetitorManager().getCompetitor(Bukkit.getOfflinePlayer(name)).getRating(type);
+		for (UUID playerUUID : members)
+			total += partyManager.getPlugin().getCompetitorManager().getCompetitor(Bukkit.getOfflinePlayer(playerUUID)).getRating(type);
 		return total / members.size();
 	}
 	
 	public int getRating(LobbyStatus status)
 	{
 		int total = 0;
-		for (String name : members)
-			total += partyManager.getPlugin().getCompetitorManager().getCompetitor(Bukkit.getOfflinePlayer(name)).getRating(status);
+		for (UUID playerUUID : members)
+			total += partyManager.getPlugin().getCompetitorManager().getCompetitor(Bukkit.getOfflinePlayer(playerUUID)).getRating(status);
 		return total / members.size();
 	}
 	
 	public ArrayList<Competitor> getCompetitors()
 	{
 		ArrayList<Competitor> list = new ArrayList<Competitor>();
-		for (String playerName : members)
-			list.add(partyManager.getPlugin().getCompetitorManager().getCompetitor(Bukkit.getOfflinePlayer(playerName)));
+		for (UUID playerUUID : members)
+			list.add(partyManager.getPlugin().getCompetitorManager().getCompetitor(Bukkit.getOfflinePlayer(playerUUID)));
 		
 		return list;
 	}
@@ -164,8 +165,8 @@ public class Party implements MatchmakingEntity
 	public ArrayList<Player> getPlayers()
 	{
 		ArrayList<Player> list = new ArrayList<Player>();
-		for (String playerName : members)
-			list.add(partyManager.getPlugin().getServer().getPlayer(playerName));
+		for (UUID playerUUID : members)
+			list.add(partyManager.getPlugin().getServer().getPlayer(playerUUID));
 		
 		return list;
 	}
@@ -173,15 +174,15 @@ public class Party implements MatchmakingEntity
 	@SuppressWarnings("deprecation")
 	public void giveQueueInventory()
 	{
-		for (String playerName : members)
+		for (UUID playerUUID : members)
 		{
-			if (partyManager.getPlugin().getArenaManager().getPlayerStatus(playerName) != LobbyStatus.IN_GAME)
+			if (partyManager.getPlugin().getArenaManager().getPlayerStatus(playerUUID) != LobbyStatus.IN_GAME)
 			{
-				Player p = partyManager.getPlugin().getServer().getPlayer(playerName);
+				Player p = partyManager.getPlugin().getServer().getPlayer(playerUUID);
 				
 				CoreUtilities.resetPlayerState(p, false);
 				p.getInventory().addItem(CoreItems.COMPASS);
-				if (playerName.equalsIgnoreCase(leader))
+				if (playerUUID.equals(leaderUUID))
 				{
 					p.getInventory().addItem(Inventories.PARTY_QUEUE);
 					p.getInventory().addItem(Inventories.QUEUE_SLOTS[3]);
@@ -195,15 +196,15 @@ public class Party implements MatchmakingEntity
 	@SuppressWarnings("deprecation")
 	public void giveLobbyInventory()
 	{
-		for (String playerName : members)
+		for (UUID playerUUID : members)
 		{
-			if (partyManager.getPlugin().getArenaManager().getPlayerStatus(playerName) != LobbyStatus.IN_GAME)
+			if (partyManager.getPlugin().getArenaManager().getPlayerStatus(playerUUID) != LobbyStatus.IN_GAME)
 			{
-				Player p = partyManager.getPlugin().getServer().getPlayer(playerName);
+				Player p = partyManager.getPlugin().getServer().getPlayer(playerUUID);
 				
 				CoreUtilities.resetPlayerState(p, false);
 				p.getInventory().addItem(CoreItems.COMPASS);
-				if (playerName.equalsIgnoreCase(leader)) p.getInventory().addItem(Inventories.PARTY_LOBBY);
+				if (playerUUID.equals(leaderUUID)) p.getInventory().addItem(Inventories.PARTY_LOBBY);
 				p.updateInventory();
 			}
 		}

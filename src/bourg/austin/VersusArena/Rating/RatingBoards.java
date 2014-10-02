@@ -71,18 +71,28 @@ public class RatingBoards implements Listener
 	@EventHandler
 	public void addRatingBoard(SignChangeEvent event)
 	{		
+		System.out.println("R1");
+		
 		if (!event.getPlayer().hasPermission("pairspvp.rating.make"))
 			return;
 		
+		System.out.println("R2");
+		
 		try
 		{
+			System.out.println("R3");
+			
 			RatingBoard board = getAsRatingBoard(event.getLine(0));
 			if (board == null)
 				return;
 			
+			System.out.println("R4");
+			
 			PreparedStatement addNewSignStatement = plugin.getConnection().prepareStatement("INSERT INTO rating_signs SET location=?");
 			addNewSignStatement.setString(1, LocationParser.locationToString(event.getBlock().getLocation()));
 			addNewSignStatement.execute();
+			
+			System.out.println("R5");
 		}
 		catch (SQLException e)
 		{
@@ -90,6 +100,8 @@ public class RatingBoards implements Listener
 		}
 		
 		Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new RatingBoardUpdateDelayTask(plugin), 1);
+		
+		System.out.println("R6");
 	}
 	
 	@EventHandler
@@ -145,11 +157,17 @@ public class RatingBoards implements Listener
 						removeRatingBoard(loc);
 					else
 					{
-						PreparedStatement getPlayerStatement = plugin.getConnection().prepareStatement("SELECT player, rating" + tempBoard.getGameType() + " FROM player_data ORDER BY rating" + tempBoard.getGameType() + " DESC ,player ASC LIMIT " + (tempBoard.getRatingNum() - 1) + ",1");
+						System.out.println("presql");
+						
+						PreparedStatement getPlayerStatement = plugin.getConnection().prepareStatement("SELECT ign, rating" + tempBoard.getGameType() + " FROM player_data ORDER BY rating" + tempBoard.getGameType() + " DESC ,ign ASC LIMIT " + (tempBoard.getRatingNum() - 1) + ",1");
 						ResultSet playerOfRating = getPlayerStatement.executeQuery();
+						
+						System.out.println("postsql");
 						if (playerOfRating.next())
 						{
-							tempSign.setLine(1, playerOfRating.getString("player"));
+							System.out.println("isnext");
+							
+							tempSign.setLine(1, playerOfRating.getString("ign"));
 							tempSign.setLine(2, "" + playerOfRating.getInt("rating" + tempBoard.getGameType()));
 							tempSign.setLine(3, "");
 							tempSign.update();

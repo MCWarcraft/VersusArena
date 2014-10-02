@@ -2,6 +2,7 @@ package bourg.austin.VersusArena.Party;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.UUID;
 
 import org.bukkit.ChatColor;
 
@@ -12,92 +13,92 @@ public class PartyManager
 {	
 	private VersusArena plugin;
 	private HashMap<Integer, Party> parties;
-	private HashMap<String, Integer> openInvites;
-	private HashMap<String, PartyInviteCloseTask> closeInviteTasks;
+	private HashMap<UUID, Integer> openInvites;
+	private HashMap<UUID, PartyInviteCloseTask> closeInviteTasks;
 	
 	public PartyManager(VersusArena plugin)
 	{
 		this.plugin = plugin;
 		parties = new HashMap<Integer, Party>();
-		openInvites = new HashMap<String, Integer>();
-		closeInviteTasks = new HashMap<String, PartyInviteCloseTask>();
+		openInvites = new HashMap<UUID, Integer>();
+		closeInviteTasks = new HashMap<UUID, PartyInviteCloseTask>();
 		
 		plugin.getServer().getPluginManager().registerEvents(new PartyListener(this), plugin);
 	}
 	
-	public void createParty(String leader)
+	public void createParty(UUID leaderUUID)
 	{
-		parties.put(Party.getCurrentID(), new Party(leader, this));
+		parties.put(Party.getCurrentID(), new Party(leaderUUID, this));
 	}
 	
-	public ArrayList<String> getInvitees(int partyID)
+	public ArrayList<UUID> getInvitees(int partyID)
 	{
-		ArrayList<String> marks = new ArrayList<String>();
+		ArrayList<UUID> marks = new ArrayList<UUID>();
 		
-		for (String playerName : openInvites.keySet())
-			if (openInvites != null && openInvites.get(playerName) == partyID)
-				marks.add(playerName);
+		for (UUID playerUUID : openInvites.keySet())
+			if (openInvites != null && openInvites.get(playerUUID) == partyID)
+				marks.add(playerUUID);
 		
 		return marks;
 	}
 	
 	public void deleteParty(int id)
 	{
-		ArrayList<String> marks = getInvitees(id);
+		ArrayList<UUID> marks = getInvitees(id);
 		
-		for (String playerName : openInvites.keySet())
-			if (openInvites != null && openInvites.get(playerName) == id)
-				marks.add(playerName);
-		for (String playerName: marks)
+		for (UUID playerUUID : openInvites.keySet())
+			if (openInvites != null && openInvites.get(playerUUID) == id)
+				marks.add(playerUUID);
+		for (UUID playerUUID : marks)
 		{
-			closeInvite(playerName);
-			if (plugin.getServer().getPlayer(playerName) != null)
-				plugin.getServer().getPlayer(playerName).sendMessage(ChatColor.BLUE + "The party you were invited to has been disbanded.");
+			closeInvite(playerUUID);
+			if (plugin.getServer().getPlayer(playerUUID) != null)
+				plugin.getServer().getPlayer(playerUUID).sendMessage(ChatColor.BLUE + "The party you were invited to has been disbanded.");
 		}
 	}
 	
-	public boolean isInvitedToParty(String playerName, int partyID)
+	public boolean isInvitedToParty(UUID playerUUID, int partyID)
 	{
-		if (openInvites.get(playerName) == null)
+		if (openInvites.get(playerUUID) == null)
 			return false;
-		return openInvites.get(playerName) == partyID;
+		return openInvites.get(playerUUID) == partyID;
 	}
 	
-	public void openInvite(String playerToInvite, int partyID)
+	public void openInvite(UUID playerUUIDToInvite, int partyID)
 	{
-		if (openInvites.containsKey(playerToInvite))
-			closeInvite(playerToInvite);
-		openInvites.put(playerToInvite, partyID);
+		if (openInvites.containsKey(playerUUIDToInvite))
+			closeInvite(playerUUIDToInvite);
+		openInvites.put(playerUUIDToInvite, partyID);
 		
-		closeInviteTasks.put(playerToInvite, new PartyInviteCloseTask(this, playerToInvite, parties.get(partyID)));
-		closeInviteTasks.get(playerToInvite).runTaskLater(plugin, 1200);
+		closeInviteTasks.put(playerUUIDToInvite, new PartyInviteCloseTask(this, playerUUIDToInvite, parties.get(partyID)));
+		closeInviteTasks.get(playerUUIDToInvite).runTaskLater(plugin, 1200);
 	}
 	
-	public void closeInvite(String playerName)
+	public void closeInvite(UUID playerUUID)
 	{
-		openInvites.remove(playerName);
-		closeInviteTasks.get(playerName).cancel();
-		closeInviteTasks.remove(playerName);
+		openInvites.remove(playerUUID);
+		closeInviteTasks.get(playerUUID).cancel();
+		closeInviteTasks.remove(playerUUID);
 	}
 	
-	public void acceptInvite(String invitedPlayer)
+	public void acceptInvite(UUID invitedUUID)
 	{
-		parties.get(openInvites.get(invitedPlayer)).addPlayer(invitedPlayer);
-		closeInvite(invitedPlayer);
+		parties.get(openInvites.get(invitedUUID)).addPlayer(invitedUUID);
+		closeInvite(invitedUUID);
 	}
 	
-	public boolean isInParty(String playerName)
+	public boolean isInParty(UUID playerUUID)
 	{
 		for (Party party : parties.values())
-			if (party.getMembers().contains(playerName))
+			if (party.getMemberUUIDs().contains(playerUUID))
 				return true;
 		return false;
 	}
 	
-	public Party getParty(String playerName)
+	public Party getParty(UUID playerUUID)
 	{
 		for (Party party : parties.values())
-			if (party.getMembers().contains(playerName))
+			if (party.getMemberUUIDs().contains(playerUUID))
 				return party;
 		return null;
 	}
@@ -107,16 +108,16 @@ public class PartyManager
 		return parties.get(id);
 	}
 	
-	public boolean hasOpenInvite(String playerName)
+	public boolean hasOpenInvite(UUID playerUUID)
 	{
-		return openInvites.keySet().contains(playerName);
+		return openInvites.keySet().contains(playerUUID);
 	}
 	
-	public Party getInvitedParty(String playerName)
+	public Party getInvitedParty(UUID playerUUID)
 	{
-		if (!hasOpenInvite(playerName)) return null;
+		if (!hasOpenInvite(playerUUID)) return null;
 		
-		return parties.get(openInvites.get(playerName));
+		return parties.get(openInvites.get(playerUUID));
 	}
 	
 	public VersusArena getPlugin()

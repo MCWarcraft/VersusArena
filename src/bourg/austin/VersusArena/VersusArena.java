@@ -122,7 +122,8 @@ public final class VersusArena extends JavaPlugin implements CoreSavable
 		{
 			//Configure main player data table
 			PreparedStatement openPlayerDataStatement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS player_data" +
-					"( player varchar(17) not null," +
+					"( uuid varchar(36) not null," +
+						"ign varchar(17) not null," +
 						"wins1 int DEFAULT 0," +
 						"losses1 int DEFAULT 0," +
 						"rating1 int DEFAULT 1500," +
@@ -134,7 +135,7 @@ public final class VersusArena extends JavaPlugin implements CoreSavable
 						"rating3 int DEFAULT 1500," +
 						"kills int DEFAULT 0," +
 						"deaths int DEFAULT 0," +
-						"PRIMARY KEY (player) " +
+						"PRIMARY KEY (uuid) " +
 					")");
 			openPlayerDataStatement.execute();
 			openPlayerDataStatement.close();

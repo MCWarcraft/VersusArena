@@ -1,10 +1,15 @@
 package bourg.austin.VersusArena.Party;
 
+import java.util.UUID;
+
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import core.Utilities.UUIDCache;
 
 public class PartyCommandExecutor implements CommandExecutor
 {
@@ -48,9 +53,9 @@ public class PartyCommandExecutor implements CommandExecutor
 					if (args.length == 1)
 					{
 						//If the player isn't already in a party
-						if (!partyManager.isInParty(player.getName()))
+						if (!partyManager.isInParty(player.getUniqueId()))
 						{
-							partyManager.createParty(player.getName());
+							partyManager.createParty(player.getUniqueId());
 							player.sendMessage(ChatColor.BLUE + "Party created. Use" + ChatColor.WHITE + " /party help " + ChatColor.BLUE + "for more commands.");
 						}
 						//If the player is already in a party
@@ -69,26 +74,37 @@ public class PartyCommandExecutor implements CommandExecutor
 					if (args.length == 2)
 					{
 						//If you are a party leader
-						Party senderParty = partyManager.getParty(player.getName());
-						if (senderParty != null && senderParty.getLeaderName().equalsIgnoreCase(player.getName()))
+						Party senderParty = partyManager.getParty(player.getUniqueId());
+						if (senderParty != null && senderParty.getLeaderUUID().equals(player.getUniqueId()))
 						{
 							//If there are less than 3 party members
-							if (senderParty.getMembers().size() < 3)
+							if (senderParty.getMemberUUIDs().size() < 3)
 							{
-								//If the sender is inviting somebody other than themself
-								Player invitee = partyManager.getPlugin().getServer().getPlayer(args[1]);
-								if (!player.getName().equalsIgnoreCase(invitee.getName()))
+
+								UUID inviteeUUID = UUIDCache.getPlayerUUID(args[1]);
+								
+								//If there is no cached UUID
+								if (inviteeUUID == null)
 								{
-									//If player being invited is online
-									if (invitee != null && partyManager.getPlugin().getArenaManager().getOnlinePlayersInLobby().contains(invitee))
+									player.sendMessage(ChatColor.RED + args[1] + " is not online.");
+									return true;
+								}
+								
+								//If the sender is inviting somebody other than themself
+								if (!player.getUniqueId().equals(inviteeUUID))
+								{									
+									Player invitee = Bukkit.getPlayer(inviteeUUID);
+									
+									//If player being invited is not in the arena
+									if (partyManager.getPlugin().getArenaManager().getOnlinePlayersInLobby().contains(invitee))
 									{
 										//If the player being invited doesn't already have an invite from you
-										if (!partyManager.isInvitedToParty(invitee.getName(), senderParty.getID()))
+										if (!partyManager.isInvitedToParty(invitee.getUniqueId(), senderParty.getID()))
 										{
 											//If the player being invited isn't in a party already
-											if (!partyManager.isInParty(invitee.getName()))
+											if (!partyManager.isInParty(invitee.getUniqueId()))
 											{
-												partyManager.openInvite(invitee.getName(), senderParty.getID());
+												partyManager.openInvite(invitee.getUniqueId(), senderParty.getID());
 												player.sendMessage(ChatColor.BLUE + "Invite sent.");
 												invitee.sendMessage(player.getName() + ChatColor.BLUE + " has sent you a party invite.");
 												invitee.sendMessage(ChatColor.GOLD + "/party accept");
@@ -130,30 +146,30 @@ public class PartyCommandExecutor implements CommandExecutor
 					if (args.length == 1)
 					{
 						//If you have an open invite
-						Party invitedParty = partyManager.getInvitedParty(player.getName());
+						Party invitedParty = partyManager.getInvitedParty(player.getUniqueId());
 						if (invitedParty != null)
 						{
 							//If there's room in the party
-							if (invitedParty.getMembers().size() < 3)
+							if (invitedParty.getMemberUUIDs().size() < 3)
 							{
 								//If the player isn't in another party (should always work, just to be safe)
-								if (!partyManager.isInParty(player.getName()))
+								if (!partyManager.isInParty(player.getUniqueId()))
 								{
 									player.sendMessage(ChatColor.BLUE + "You have joined a party.");
 									invitedParty.broadcast(player.getName() + ChatColor.BLUE + " has joined your party.");
-									partyManager.acceptInvite(player.getName());
+									partyManager.acceptInvite(player.getUniqueId());
 								}
 								else
 								{
 									sender.sendMessage(ChatColor.RED + "You are already in a party.");
-									partyManager.closeInvite(player.getName());
+									partyManager.closeInvite(player.getUniqueId());
 								}
 							}
 							//If there's no room left
 							else
 							{
 								player.sendMessage(ChatColor.RED + "There's no room left in the party.");
-								partyManager.closeInvite(player.getName());
+								partyManager.closeInvite(player.getUniqueId());
 							}	
 						}
 						//If you have no open invite
@@ -171,12 +187,12 @@ public class PartyCommandExecutor implements CommandExecutor
 					if (args.length == 1)
 					{
 						//If you have an open invite
-						Party invitedParty = partyManager.getInvitedParty(player.getName());
+						Party invitedParty = partyManager.getInvitedParty(player.getUniqueId());
 						if (invitedParty != null)
 						{
 							player.sendMessage(ChatColor.BLUE + "You have denied the invite.");
 							invitedParty.messageLeader(player.getName() + ChatColor.DARK_RED + " has denied your invite.");
-							partyManager.closeInvite(player.getName());
+							partyManager.closeInvite(player.getUniqueId());
 						}
 						//If you have no open invite
 						else
@@ -193,9 +209,9 @@ public class PartyCommandExecutor implements CommandExecutor
 					if (args.length == 1)
 					{
 						//If the player is in a party
-						if (partyManager.isInParty(player.getName()))
+						if (partyManager.isInParty(player.getUniqueId()))
 						{
-							partyManager.getParty(player.getName()).playerLeave(player.getName(), true);
+							partyManager.getParty(player.getUniqueId()).playerLeave(player.getUniqueId(), true);
 							player.sendMessage(ChatColor.BLUE + "You have left the party.");
 							
 						}
@@ -214,20 +230,27 @@ public class PartyCommandExecutor implements CommandExecutor
 					if (args.length == 2)
 					{
 						//If you are a party leader
-						Party senderParty = partyManager.getParty(player.getName());
-						if (senderParty != null && senderParty.getLeaderName().equalsIgnoreCase(player.getName()))
+						Party senderParty = partyManager.getParty(player.getUniqueId());
+						if (senderParty != null && senderParty.getLeaderUUID().equals(player.getUniqueId()))
 						{
-							//If the player being kicked is online
-							Player kickee = partyManager.getPlugin().getServer().getPlayer(args[1]);
-							if (kickee != null)
+							//If the player being kicked is offline
+							UUID kickeeUUID = UUIDCache.getPlayerUUID(args[1]);
+							if (kickeeUUID == null)
 							{
+								player.sendMessage(ChatColor.RED + args[1] + " is not online.");
+							}
+							
+							Player kickee = Bukkit.getPlayer(kickeeUUID);
+							
+							if (kickee != null)
+							{								
 								//If the sender is inviting somebody other than themself
-								if (!player.getName().equalsIgnoreCase(kickee.getName()))
+								if (!player.getUniqueId().equals(kickee.getUniqueId()))
 								{
 									//If the player being kicked is in the party
-									if (senderParty.getMembers().contains(kickee.getName()))
+									if (senderParty.getMemberUUIDs().contains(kickee.getUniqueId()))
 									{
-										senderParty.playerLeave(kickee.getName(), false);
+										senderParty.playerLeave(kickee.getUniqueId(), false);
 										kickee.sendMessage(ChatColor.DARK_RED + "You have been kicked from the party.");
 										senderParty.broadcast(kickee.getName() + ChatColor.BLUE + " has been kicked from the party.");
 									}
@@ -258,18 +281,18 @@ public class PartyCommandExecutor implements CommandExecutor
 					if (args.length == 1)
 					{
 						//If player is in a party
-						if (partyManager.isInParty(player.getName()))
+						if (partyManager.isInParty(player.getUniqueId()))
 						{
-							Party party = partyManager.getParty(player.getName());
+							Party party = partyManager.getParty(player.getUniqueId());
 							
 							player.sendMessage(ChatColor.GOLD + "-----Your Party-----");
 							
-							player.sendMessage(ChatColor.GOLD + "Leader: " + ChatColor.WHITE + party.getLeaderName());
-							for (String name : party.getMembers())
-								if (!name.equals(party.getLeaderName()))
-									player.sendMessage(ChatColor.YELLOW + "Member: " + ChatColor.WHITE + name);
-							for (String name : partyManager.getInvitees(party.getID()))
-								player.sendMessage(ChatColor.DARK_AQUA + "INVITEE: " + ChatColor.WHITE + name);
+							player.sendMessage(ChatColor.GOLD + "Leader: " + ChatColor.WHITE + Bukkit.getPlayer(party.getLeaderUUID()).getName());
+							for (UUID pUUID : party.getMemberUUIDs())
+								if (!pUUID.equals(party.getLeaderUUID()))
+									player.sendMessage(ChatColor.YELLOW + "Member: " + ChatColor.WHITE + Bukkit.getPlayer(pUUID).getName());
+							for (UUID pUUID : partyManager.getInvitees(party.getID()))
+								player.sendMessage(ChatColor.DARK_AQUA + "INVITEE: " + ChatColor.WHITE + Bukkit.getPlayer(pUUID).getName());
 
 							player.sendMessage(ChatColor.GOLD + "--------------------");
 						}
@@ -307,7 +330,7 @@ public class PartyCommandExecutor implements CommandExecutor
 		//If the command is party chat
 		if (cmd.getName().equals("pc") && sender.hasPermission("pairspvp.party"))
 		{
-			Party party = partyManager.getParty(player.getName());
+			Party party = partyManager.getParty(player.getUniqueId());
 			//If the player is in a party
 			if (party != null)
 			{
@@ -318,7 +341,7 @@ public class PartyCommandExecutor implements CommandExecutor
 					for (String s : args)
 						fullMessage = fullMessage + s + " ";
 					
-					party.broadcast(fullMessage, player.getName());
+					party.broadcast(fullMessage, player.getUniqueId());
 				}
 				//If no args are supplied
 				else
