@@ -23,8 +23,6 @@ public class CompetitorManager
 	{
 		Competitor tempCompetitor = new Competitor(player.getUniqueId());
 		
-		System.out.println(player.getUniqueId());
-		
 		try
 		{
 			PreparedStatement getCompetitorStatement = plugin.getConnection().prepareStatement("SELECT * FROM player_data WHERE uuid=?");

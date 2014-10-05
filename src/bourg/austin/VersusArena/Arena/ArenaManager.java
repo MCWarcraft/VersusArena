@@ -13,7 +13,6 @@ import org.bukkit.potion.PotionEffect;
 
 import bourg.austin.VersusArena.MatchmakingEntity;
 import bourg.austin.VersusArena.VersusArena;
-import bourg.austin.VersusArena.Constants.GameType;
 import bourg.austin.VersusArena.Constants.Inventories;
 import bourg.austin.VersusArena.Constants.LobbyStatus;
 import bourg.austin.VersusArena.Game.GameManager;
@@ -120,11 +119,6 @@ public class ArenaManager
 	public void generateLobbyBoard(Player player)
 	{
 		Competitor comp = plugin.getCompetitorManager().getCompetitor(player);
-		
-		System.out.println(player.getName());
-		System.out.println(comp.getWins(GameType.ONE));
-		System.out.println(comp.getLosses(GameType.ONE));
-		System.out.println(comp.getRating(GameType.ONE));
 		
 		DisplayBoard tempBoard = CoreScoreboardManager.getDisplayBoard(player);
 		
