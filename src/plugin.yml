@@ -64,9 +64,9 @@ permissions:
     description: 'Allows the use of any commands that modify arenas'
     children:
       pairspvp.arena.make: true
+      pairspvp.arena.addinstance: true
       pairspvp.arena.delete: true
-      pairspvp.arena.setspawn: true
-      pairspvp.arena.setdeath: true
+      pairspvp.arena.delinstance: true
     default: op
   pairspvp.arena.view:
     description: 'Allows the use of any commands that allow viewing of arenas and details'
@@ -77,17 +77,20 @@ permissions:
   pairspvp.arena.make:
     description: 'Allows the use of the /versus arena make <name> command'
     default: op
+  pairspvp.arena.addinstance:
+    description: 'Allows the use of the /versus arena addinstance <name> command'
+    default: op
   pairspvp.arena.delete:
     description: 'Allows the use of the /versus arena delete <name> command'
+    default: op
+  pairspvp.arena.delinstance:
+    description: 'Allows the use of the /versus arena delinstance <name> command'
     default: op
   pairspvp.arena.list:
     description: 'Allows the use of the /versus arena list command'
     default: op
   pairspvp.arena.details:
     description: 'Allows the use of the /versus arena details <name> command'
-    default: op
-  pairspvp.arena.setspawn:
-    description: 'Allows the use of the /versus arena setdeath <name> command'
     default: op
   'pairspvp.config.*':
     description: 'Allows the use of any commands relating to the config file.'

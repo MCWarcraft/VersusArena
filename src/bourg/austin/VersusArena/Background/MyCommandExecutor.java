@@ -152,7 +152,7 @@ public class MyCommandExecutor implements CommandExecutor
 						else
 							sender.sendMessage(ChatColor.RED + "/versus arena make <arena_name> <team_size>");
 					}
-					else if (args[1].equalsIgnoreCase("addinstance"))
+					else if (args[1].equalsIgnoreCase("addinstance") && sender.hasPermission("pairspvp.arena.addinstance"))
 					{
 						//If the correct number of arguments has been supplied
 						if (args.length == 3)
@@ -179,7 +179,7 @@ public class MyCommandExecutor implements CommandExecutor
 							sender.sendMessage(ChatColor.RED + "/versus arena addinstance <arena_name>");
 					}
 					
-					else if (args[1].equalsIgnoreCase("delinstance"))
+					else if (args[1].equalsIgnoreCase("delinstance") && sender.hasPermission("pairspvp.arena.delinstance"))
 					{
 						//If the correct number of arguments has been supplied
 						if (args.length == 3)
