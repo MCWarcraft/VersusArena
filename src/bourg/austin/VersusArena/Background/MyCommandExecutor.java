@@ -12,6 +12,7 @@ import org.bukkit.util.Vector;
 import bourg.austin.VersusArena.VersusArena;
 import bourg.austin.VersusArena.Arena.Arena;
 import bourg.austin.VersusArena.Constants.LobbyStatus;
+import core.EngagementTracker.PlayerEngageListener;
 import core.Utilities.LocationSelector;
 
 public class MyCommandExecutor implements CommandExecutor
@@ -45,14 +46,23 @@ public class MyCommandExecutor implements CommandExecutor
 						player = (Player) sender;
 						if (plugin.getArenaManager().getPlayerStatus(player.getUniqueId()) != LobbyStatus.IN_GAME)
 						{
-							//If a nexus exists
-							if (plugin.getArenaManager().getNexusLocation() != null)
+							if (!PlayerEngageListener.isEngaged(player.getUniqueId()))
 							{
-								plugin.getArenaManager().bringPlayer(player.getUniqueId(), true);
+								//If a nexus exists
+								if (plugin.getArenaManager().getNexusLocation() != null)
+								{
+									plugin.getArenaManager().bringPlayer(player.getUniqueId(), true);
+								}
+								//If no nexus exists
+								else
+									sender.sendMessage(ChatColor.RED + "There is currently no PvP nexus. Please notify the mods.");
 							}
-							//If no nexus exists
 							else
-								sender.sendMessage(ChatColor.RED + "There is currently no PvP nexus. Please notify the mods.");
+								sender.sendMessage(ChatColor.RED + "You cannot use " +
+										ChatColor.GOLD + "/versus " +
+										ChatColor.RED + "for another " +
+										ChatColor.GREEN + PlayerEngageListener.getSecondsToDisengage(player.getUniqueId()) + 
+										ChatColor.RED + " seconds!");
 						}
 						else
 							player.sendMessage(ChatColor.RED + "You can't use /versus in game.");
